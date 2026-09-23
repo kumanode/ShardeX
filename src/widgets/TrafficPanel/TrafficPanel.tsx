@@ -40,10 +40,10 @@ const hostOf = (url: string) => {
 };
 
 const FIELD =
-  "h-8 w-full rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base";
+  "h-8 w-full rounded-[8px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500 transition-colors";
 const AREA =
-  "min-h-16 w-full rounded-8 bg-bg-white-0 p-2 font-mono text-[11px] text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base";
-const LABEL = "text-subheading-2xs text-text-soft-400";
+  "min-h-16 w-full rounded-[8px] bg-[var(--color-paper,#ffffff)] p-2 font-mono text-[11px] text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500 transition-colors";
+const LABEL = "text-subheading-2xs text-zinc-500 dark:text-zinc-400";
 
 const METHODS = ["", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
 const KINDS = ["", "document", "xhr", "script", "stylesheet", "image", "font", "media", "websocket", "other"];
@@ -90,17 +90,17 @@ function RuleCard({
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-8 bg-bg-weak-50 p-2.5">
+    <div className="flex flex-col gap-2 rounded-[12px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-2.5">
       {/* match */}
       <div className="flex items-center gap-2">
-        <span className="text-label-sm text-text-strong-950">{t("trafficPanel.whenLabel")}</span>
+        <span className="text-label-sm text-zinc-900 dark:text-white">{t("trafficPanel.whenLabel")}</span>
         <select className={FIELD + " w-auto"} value={m.method ?? ""} onChange={(e) => setMatch({ method: e.target.value || undefined })}>
           {METHODS.map((x) => <option key={x} value={x}>{x || t("trafficPanel.anyMethod")}</option>)}
         </select>
         <select className={FIELD + " w-auto"} value={m.resource ?? ""} onChange={(e) => setMatch({ resource: e.target.value || undefined })}>
           {KINDS.map((x) => <option key={x} value={x}>{x || t("trafficPanel.anyType")}</option>)}
         </select>
-        <label className="ml-auto flex items-center gap-1 text-paragraph-xs text-text-soft-400">
+        <label className="ml-auto flex items-center gap-1 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           <input type="checkbox" checked={regex} onChange={(e) => toggleRegex(e.target.checked)} /> {t("trafficPanel.regexToggle")}
         </label>
       </div>
@@ -119,11 +119,11 @@ function RuleCard({
 
       {/* action */}
       <div className="flex items-center gap-2">
-        <span className="text-label-sm text-text-strong-950">{t("trafficPanel.doLabel")}</span>
+        <span className="text-label-sm text-zinc-900 dark:text-white">{t("trafficPanel.doLabel")}</span>
         <select className={FIELD + " w-auto"} value={a.type} onChange={(e) => setAction({ type: e.target.value as TrafficAction["type"] })}>
           {TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
-        <label className="ml-auto flex items-center gap-1 text-paragraph-xs text-text-soft-400">
+        <label className="ml-auto flex items-center gap-1 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           <input type="checkbox" checked={!!rule.await} onChange={(e) => onChange({ ...rule, await: e.target.checked })} /> {t("trafficPanel.awaitToggle")}
         </label>
       </div>
@@ -166,7 +166,7 @@ function RuleCard({
 
       {(a.type === "modify" || a.type === "continue") && (
         <div className="flex flex-col gap-2">
-          <div className="text-subheading-2xs text-text-soft-400">{t("trafficPanel.requestSection")}</div>
+          <div className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("trafficPanel.requestSection")}</div>
           <div className="grid grid-cols-1 gap-2">
             <label className="flex flex-col gap-1">
               <span className={LABEL}>{t("trafficPanel.setMethodLabel")}</span>
@@ -191,7 +191,7 @@ function RuleCard({
               <input className={FIELD} type="number" value={a.delayMs ?? 0} onChange={(e) => setAction({ delayMs: Number(e.target.value) || undefined })} />
             </label>
           </div>
-          <div className="text-subheading-2xs text-text-soft-400">{t("trafficPanel.responseSection")}</div>
+          <div className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("trafficPanel.responseSection")}</div>
           <label className="flex flex-col gap-1">
             <span className={LABEL}>{t("trafficPanel.setResponseHeadersLabel")}</span>
             <textarea className={AREA} value={headersToText(a.setResponseHeaders)} onChange={(e) => setAction({ setResponseHeaders: textToHeaders(e.target.value) })} />
@@ -213,7 +213,7 @@ function RuleCard({
         </div>
       )}
 
-      <button className="self-start text-paragraph-xs text-error-base hover:underline" onClick={onRemove}>{t("trafficPanel.removeRule")}</button>
+      <button className="self-start text-paragraph-xs text-red-600 dark:text-red-400 hover:underline" onClick={onRemove}>{t("trafficPanel.removeRule")}</button>
     </div>
   );
 }
@@ -410,9 +410,9 @@ export function TrafficPanel({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="text-label-sm text-text-strong-950">{t("trafficPanel.title")}</div>
+        <div className="text-label-sm text-zinc-900 dark:text-white">{t("trafficPanel.title")}</div>
         <div className="ml-auto flex flex-wrap items-center gap-1.5">
-          {mounted && <span className="text-paragraph-xs text-success-base">{t("trafficPanel.mountedBadge")}</span>}
+          {mounted && <span className="text-paragraph-xs text-emerald-600 dark:text-emerald-400 font-medium">{t("trafficPanel.mountedBadge")}</span>}
           <Button size="xsmall" mode="stroke" onClick={add}>{t("trafficPanel.addRule")}</Button>
           <Button size="xsmall" mode={observing ? "filled" : "stroke"} disabled={!live} onClick={toggleObserve}>
             {observing ? t("trafficPanel.observing") : t("trafficPanel.observe")}
@@ -421,17 +421,17 @@ export function TrafficPanel({
           {mounted && <Button size="xsmall" mode="stroke" disabled={!live} onClick={clear}>{t("trafficPanel.clearButton")}</Button>}
         </div>
       </div>
-      <p className="m-0 text-paragraph-xs text-text-soft-400">
+      <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
         {t("trafficPanel.savedHint")}
       </p>
       {!live && (
-        <div className="rounded-8 bg-warning-alpha-16 px-2 py-1 text-[11px] text-warning-base">
+        <div className="rounded-[8px] bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 px-2.5 py-1.5 text-[11px] text-amber-700 dark:text-amber-300">
           {t("trafficPanel.liveRequiredHint")}
         </div>
       )}
 
       {rules.length === 0 && (
-        <p className="m-0 py-6 text-center text-paragraph-xs text-text-soft-400">{t("trafficPanel.noRules")}</p>
+        <p className="m-0 py-6 text-center text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("trafficPanel.noRules")}</p>
       )}
       {rules.map((r, i) => (
         <RuleCard key={i} rule={r} onChange={(nr) => update(i, nr)} onRemove={() => remove(i)} />
@@ -441,85 +441,85 @@ export function TrafficPanel({
       {(observing || observed.length > 0) && (
         <>
           <div className="mt-2 flex items-center gap-2">
-            <div className="text-label-sm text-text-strong-950">{t("trafficPanel.requestsTitle")}</div>
+            <div className="text-label-sm text-zinc-900 dark:text-white">{t("trafficPanel.requestsTitle")}</div>
             {observed.length > 0 && (
               <>
-                <span className="text-paragraph-xs text-text-soft-400">{observed.length}</span>
-                <button className="ml-auto text-paragraph-xs text-text-soft-400 hover:text-text-strong-950" onClick={() => { setObserved([]); setSelectedId(null); }}>{t("trafficPanel.clearRequests")}</button>
+                <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{observed.length}</span>
+                <button className="ml-auto text-paragraph-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white" onClick={() => { setObserved([]); setSelectedId(null); }}>{t("trafficPanel.clearRequests")}</button>
               </>
             )}
           </div>
-          <p className="m-0 text-paragraph-xs text-text-soft-400">{t("trafficPanel.rightClickHint")}</p>
+          <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("trafficPanel.rightClickHint")}</p>
           <div className="flex max-h-[220px] flex-col gap-0.5 overflow-y-auto">
             {observed.map((o) => (
               <div
                 key={o.id}
                 onClick={() => setSelectedId(o.id)}
                 onContextMenu={(e) => { e.preventDefault(); setSelectedId(o.id); setMenu({ x: e.clientX, y: e.clientY, item: o }); }}
-                className={"flex cursor-pointer items-center gap-2 rounded-6 px-1.5 py-1 hover:bg-bg-weak-50 " + (selectedId === o.id ? "bg-bg-weak-50 ring-1 ring-inset ring-stroke-soft-200" : "")}
+                className={"flex cursor-pointer items-center gap-2 rounded-[6px] px-1.5 py-1 hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors " + (selectedId === o.id ? "bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)]" : "")}
                 title={o.url}
               >
-                <span className="w-10 shrink-0 font-mono text-[10px] text-text-soft-400">{o.method}</span>
-                <span className="truncate text-[11px] text-text-strong-950">{o.url}</span>
-                {o.status ? <span className="shrink-0 text-[10px] text-text-soft-400">{o.status}</span> : null}
-                <span className="ml-auto shrink-0 text-[10px] text-text-soft-400">{o.resource}</span>
+                <span className="w-10 shrink-0 font-mono text-[10px] text-zinc-500 dark:text-zinc-400">{o.method}</span>
+                <span className="truncate text-[11px] text-zinc-900 dark:text-white">{o.url}</span>
+                {o.status ? <span className="shrink-0 text-[10px] text-zinc-500 dark:text-zinc-400">{o.status}</span> : null}
+                <span className="ml-auto shrink-0 text-[10px] text-zinc-500 dark:text-zinc-400">{o.resource}</span>
               </div>
             ))}
           </div>
           {selected && (
-            <div className="mt-1 flex flex-col gap-2 rounded-8 bg-bg-weak-50 p-2 text-[11px]">
+            <div className="mt-1 flex flex-col gap-2 rounded-[12px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-2.5 text-[11px]">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-text-soft-400">{selected.method}</span>
-                {selected.status ? <span className="rounded-6 bg-bg-white-0 px-1 text-text-strong-950">{selected.status}</span> : <span className="text-text-soft-400">…</span>}
-                <span className="text-[10px] text-text-soft-400">{selected.resource}</span>
-                <button className="ml-auto text-text-soft-400 hover:text-text-strong-950" onClick={() => setSelectedId(null)}>{t("trafficPanel.closeDetails")}</button>
+                <span className="font-mono text-zinc-500 dark:text-zinc-400">{selected.method}</span>
+                {selected.status ? <span className="rounded-[6px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] px-1 text-zinc-900 dark:text-white">{selected.status}</span> : <span className="text-zinc-500 dark:text-zinc-400">…</span>}
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400">{selected.resource}</span>
+                <button className="ml-auto text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white" onClick={() => setSelectedId(null)}>{t("trafficPanel.closeDetails")}</button>
               </div>
-              <div className="break-all text-text-strong-950">{selected.url}</div>
+              <div className="break-all text-zinc-900 dark:text-white font-medium">{selected.url}</div>
 
               {/* What the page sent. */}
               {((selected.requestHeaders && Object.keys(selected.requestHeaders).length > 0) || selected.requestBody) && (
                 <div className="flex flex-col gap-1">
-                  <div className="text-subheading-2xs uppercase tracking-wide text-text-soft-400">{t("trafficPanel.requestSent")}</div>
+                  <div className="text-subheading-2xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("trafficPanel.requestSent")}</div>
                   {selected.requestHeaders && Object.keys(selected.requestHeaders).length > 0 && (
-                    <div className="font-mono text-[10px] text-text-sub-600">
+                    <div className="font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
                       {Object.entries(selected.requestHeaders).map(([k, v]) => (
-                        <div key={k} className="break-all"><span className="text-text-soft-400">{k}:</span> {v}</div>
+                        <div key={k} className="break-all"><span className="text-zinc-500 dark:text-zinc-400">{k}:</span> {v}</div>
                       ))}
                     </div>
                   )}
                   {selected.requestBody && (
-                    <pre className="m-0 max-h-24 overflow-auto rounded-6 bg-bg-white-0 p-1.5 font-mono text-[10px] text-text-strong-950">{selected.requestBody}</pre>
+                    <pre className="m-0 max-h-24 overflow-auto rounded-[6px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] p-1.5 font-mono text-[10px] text-zinc-900 dark:text-white">{selected.requestBody}</pre>
                   )}
                 </div>
               )}
 
               {/* The real response that came back — read-only, as received. */}
               <div className="flex flex-col gap-1">
-                <div className="text-subheading-2xs uppercase tracking-wide text-text-soft-400">{t("trafficPanel.responseReceived")}</div>
+                <div className="text-subheading-2xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("trafficPanel.responseReceived")}</div>
                 {selected.responseHeaders ? (
                   <>
-                    <div className="font-mono text-[10px] text-text-sub-600">
-                      <div className="break-all"><span className="text-text-soft-400">{t("trafficPanel.statusLineLabel")}</span> {selected.status ?? "?"}</div>
+                    <div className="font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
+                      <div className="break-all"><span className="text-zinc-500 dark:text-zinc-400">{t("trafficPanel.statusLineLabel")}</span> {selected.status ?? "?"}</div>
                       {Object.entries(selected.responseHeaders).map(([k, v]) => (
-                        <div key={k} className="break-all"><span className="text-text-soft-400">{k}:</span> {v}</div>
+                        <div key={k} className="break-all"><span className="text-zinc-500 dark:text-zinc-400">{k}:</span> {v}</div>
                       ))}
                     </div>
-                    <div className="text-subheading-2xs text-text-soft-400">
+                    <div className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">
                       {t("trafficPanel.bodyLabel")}{selected.responseBodyTruncated ? t("trafficPanel.truncatedSuffix") : ""}
                     </div>
-                    <pre className="m-0 max-h-40 overflow-auto rounded-6 bg-bg-white-0 p-1.5 font-mono text-[10px] text-text-strong-950">{selected.responseBody || t("trafficPanel.emptyBody")}</pre>
+                    <pre className="m-0 max-h-40 overflow-auto rounded-[6px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] p-1.5 font-mono text-[10px] text-zinc-900 dark:text-white">{selected.responseBody || t("trafficPanel.emptyBody")}</pre>
                   </>
                 ) : selected.capture === false ? (
-                  <div className="text-text-soft-400">{t("trafficPanel.notCaptured", { kind: selected.resource })}</div>
+                  <div className="text-zinc-500 dark:text-zinc-400">{t("trafficPanel.notCaptured", { kind: selected.resource })}</div>
                 ) : (
-                  <div className="text-text-soft-400">{t("trafficPanel.waitingResponse")}</div>
+                  <div className="text-zinc-500 dark:text-zinc-400">{t("trafficPanel.waitingResponse")}</div>
                 )}
               </div>
 
               {/* Seed a rule from this exact request/response, prefilled. */}
-              <div className="flex flex-col gap-1.5 border-t border-stroke-soft-200 pt-1.5">
+              <div className="flex flex-col gap-1.5 border-t border-[var(--color-hairline,#e5e5e5)] pt-1.5">
                 <div className="flex flex-wrap items-center gap-1">
-                  <span className="mr-0.5 text-[10px] uppercase tracking-wide text-text-soft-400">{t("trafficPanel.addStepToProject")}</span>
+                  <span className="mr-0.5 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("trafficPanel.addStepToProject")}</span>
                   {([
                     ["traffic.block", t("trafficPanel.quickBlock")],
                     ["traffic.redirect", t("trafficPanel.quickRedirect")],
@@ -531,7 +531,7 @@ export function TrafficPanel({
                   ))}
                 </div>
                 <div className="flex flex-wrap items-center gap-1">
-                  <span className="mr-0.5 text-[10px] uppercase tracking-wide text-text-soft-400">{t("trafficPanel.mountLiveTest")}</span>
+                  <span className="mr-0.5 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("trafficPanel.mountLiveTest")}</span>
                   {(["modify", "fulfill", "block"] as const).map((t) => (
                     <Button key={"l-" + t} size="xsmall" disabled={!live} onClick={() => mountLiveFromRequest(selected, t)}>{t}</Button>
                   ))}
@@ -544,18 +544,18 @@ export function TrafficPanel({
 
       {/* request browser (await) */}
       <div className="mt-2 flex items-center gap-2">
-        <div className="text-label-sm text-text-strong-950">{t("trafficPanel.pausedTitle")}</div>
-        {paused.length > 0 && <span className="text-paragraph-xs text-text-soft-400">{paused.length}</span>}
+        <div className="text-label-sm text-zinc-900 dark:text-white">{t("trafficPanel.pausedTitle")}</div>
+        {paused.length > 0 && <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{paused.length}</span>}
       </div>
       {paused.length === 0 && (
-        <p className="m-0 py-4 text-center text-paragraph-xs text-text-soft-400">
+        <p className="m-0 py-4 text-center text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {t("trafficPanel.pausedEmptyPart1")}<b>{t("trafficPanel.pausedEmptyAwait")}</b>{t("trafficPanel.pausedEmptyPart2")}
         </p>
       )}
       {paused.map((p) => (
-        <div key={p.requestId} className="flex flex-col gap-2 rounded-8 bg-bg-weak-50 p-2.5">
-          <div className="break-all text-paragraph-xs text-text-strong-950">
-            <span className="font-mono text-text-soft-400">{p.request.method}</span> {p.request.url}
+        <div key={p.requestId} className="flex flex-col gap-2 rounded-[12px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-2.5">
+          <div className="break-all text-paragraph-xs text-zinc-900 dark:text-white">
+            <span className="font-mono text-zinc-500 dark:text-zinc-400">{p.request.method}</span> {p.request.url}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button size="xsmall" onClick={() => resolve(p)}>{t("trafficPanel.continueButton")}</Button>
@@ -567,12 +567,12 @@ export function TrafficPanel({
 
       {menu && (
         <div
-          className="fixed z-50 min-w-[180px] rounded-8 bg-bg-white-0 py-1 shadow-[var(--shadow-md)] ring-1 ring-stroke-soft-200"
+          className="fixed z-50 min-w-[180px] rounded-xl bg-[var(--color-paper,#ffffff)] py-1 shadow-[var(--shadow-card)] border border-[var(--color-hairline,#e5e5e5)]"
           style={{ left: menu.x, top: menu.y }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="truncate px-3 py-1 text-[10px] text-text-soft-400" title={menu.item.url}>{menu.item.url}</div>
-          <div className="px-3 py-1 text-[10px] uppercase tracking-wide text-text-soft-400">{t("trafficPanel.menuAddStepToProject")}</div>
+          <div className="truncate px-3 py-1 text-[10px] text-zinc-500 dark:text-zinc-400" title={menu.item.url}>{menu.item.url}</div>
+          <div className="px-3 py-1 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("trafficPanel.menuAddStepToProject")}</div>
           {([
             ["traffic.block", t("trafficPanel.menuBlock")],
             ["traffic.redirect", t("trafficPanel.menuRedirect")],
@@ -582,18 +582,18 @@ export function TrafficPanel({
           ] as const).map(([kind, label]) => (
             <button
               key={"p-" + kind}
-              className="block w-full px-3 py-1.5 text-left text-paragraph-sm text-text-strong-950 hover:bg-bg-weak-50 disabled:opacity-40"
+              className="block w-full px-3 py-1.5 text-left text-paragraph-sm text-zinc-900 dark:text-white hover:bg-[var(--color-surface-alt,#fafafa)] disabled:opacity-40 transition-colors"
               disabled={!onAddStep}
               onClick={() => addStepFromRequest(menu.item, kind)}
             >
               {label}
             </button>
           ))}
-          <div className="mt-1 border-t border-stroke-soft-200 px-3 py-1 text-[10px] uppercase tracking-wide text-text-soft-400">{t("trafficPanel.menuMountLiveTest")}</div>
+          <div className="mt-1 border-t border-[var(--color-hairline,#e5e5e5)] px-3 py-1 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{t("trafficPanel.menuMountLiveTest")}</div>
           {(["modify", "fulfill", "block"] as const).map((t) => (
             <button
               key={"m-" + t}
-              className="block w-full px-3 py-1.5 text-left text-paragraph-sm text-primary-base hover:bg-bg-weak-50"
+              className="block w-full px-3 py-1.5 text-left text-paragraph-sm text-indigo-600 dark:text-indigo-400 hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors"
               onClick={() => mountLiveFromRequest(menu.item, t)}
             >
               {t}

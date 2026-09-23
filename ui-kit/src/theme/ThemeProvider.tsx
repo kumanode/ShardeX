@@ -28,10 +28,12 @@ function getSystemTheme(): ResolvedTheme {
 }
 
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'system'
+  if (typeof window === 'undefined') return 'light'
   const stored = window.localStorage.getItem(STORAGE_KEY)
   if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
-  return 'system'
+  // DESIGN.md canvas is matte white: first run defaults to light, the toggle
+  // remains available for the full dark ramp.
+  return 'light'
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

@@ -186,7 +186,7 @@ export function PsResiGenerator({ type, onClose }: { type: ResiType; onClose: ()
           />
 
           <label className="flex flex-col gap-1">
-            <span className="text-label-base font-medium text-text-strong-900">{t("psResiGenerator.protocolLabel")}</span>
+            <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{t("psResiGenerator.protocolLabel")}</span>
             <SegmentControl
               size="small"
               value={proto}
@@ -206,7 +206,7 @@ export function PsResiGenerator({ type, onClose }: { type: ResiType; onClose: ()
             options={[{ value: "", label: t("psResiGenerator.countryAnyOption") }, ...countries.map((c) => ({ value: c.code, label: `${c.name} (${c.code})` }))]}
           />
           <label className="flex flex-col gap-1">
-            <span className="text-label-base font-medium text-text-strong-900">{t("psResiGenerator.sessionLabel")}</span>
+            <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{t("psResiGenerator.sessionLabel")}</span>
             <SegmentControl
               size="small"
               value={session}
@@ -258,7 +258,7 @@ export function PsResiGenerator({ type, onClose }: { type: ResiType; onClose: ()
                 type="button"
                 aria-expanded={showAdvanced}
                 onClick={() => setShowAdvanced((v) => !v)}
-                className="flex w-fit items-center gap-2 rounded-lg text-label-sm font-medium text-text-soft-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-base"
+                className="flex w-fit items-center gap-2 rounded-lg text-label-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 {t("psResiGenerator.advancedSettings")}
                 <ChevronDownIcon
@@ -271,13 +271,13 @@ export function PsResiGenerator({ type, onClose }: { type: ResiType; onClose: ()
           {showAdvanced && canPickOs && (
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-1">
-                <span className="text-label-base font-medium text-text-strong-900">{t("psResiGenerator.osLabel")}</span>
+                <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{t("psResiGenerator.osLabel")}</span>
                 <Tooltip
                   content={t("psResiGenerator.osHelp")}
                   side="top"
                   className="left-20"
                 >
-                  <InfoIcon className="size-4 cursor-help text-text-soft-400" />
+                  <InfoIcon className="size-4 cursor-help text-zinc-400 dark:text-zinc-500" />
                 </Tooltip>
               </div>
               <CSSelect
@@ -290,13 +290,13 @@ export function PsResiGenerator({ type, onClose }: { type: ResiType; onClose: ()
           {showAdvanced && (
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-1">
-                <span className="text-label-base font-medium text-text-strong-900">{t("psResiGenerator.sessionModeLabel")}</span>
+                <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{t("psResiGenerator.sessionModeLabel")}</span>
                 <Tooltip
                   content={t("psResiGenerator.sessionModeHelp")}
                   side="top"
                   className="left-20"
                 >
-                  <InfoIcon className="size-4 cursor-help text-text-soft-400" />
+                  <InfoIcon className="size-4 cursor-help text-zinc-400 dark:text-zinc-500" />
                 </Tooltip>
               </div>
               <CSSelect
@@ -307,11 +307,11 @@ export function PsResiGenerator({ type, onClose }: { type: ResiType; onClose: ()
             </div>
           )}
         </div>
-        <div className="mono mt-1.5 break-all rounded-8 bg-bg-weak-50 px-[11px] py-[9px] text-paragraph-xs text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200">
+        <div className="mono mt-1.5 break-all rounded-[12px] bg-[var(--color-surface-alt,#fafafa)] px-3 py-2 text-paragraph-xs text-zinc-600 dark:text-zinc-300 border border-[var(--color-hairline,#e5e5e5)]">
           {relay}:{PS_PORT[proto]}:{sampleUser}:{password ? "••••" : "?"}
         </div>
-        <span className="text-label-sm font-medium text-text-soft-400">{t("psResiGenerator.note")}</span>
-        {pwErr && <p className="m-0 text-paragraph-xs text-text-soft-400">{pwErr}</p>}
+        <span className="text-label-sm font-medium text-zinc-500 dark:text-zinc-400">{t("psResiGenerator.note")}</span>
+        {pwErr && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{pwErr}</p>}
       </div>
     </DialogModal>
   );

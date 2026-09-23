@@ -70,11 +70,11 @@ function Permissions({ module: m }: { module: ModuleInfo }) {
       : t("modulesCard.readsOwnVars");
 
   return (
-    <div className="col-span-3 mt-1 rounded-8 bg-bg-weak-50 px-3 py-2">
-      <div className="text-paragraph-xs text-text-soft-400">{reads}</div>
+    <div className="col-span-3 mt-1.5 rounded-[14px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] px-3.5 py-2.5">
+      <div className="text-paragraph-xs font-medium text-zinc-500 dark:text-zinc-400">{reads}</div>
       {asked === 0 ? null : (
-      <div className="mt-1 text-paragraph-xs text-text-sub-600">
-        {t("modulesCard.wantsToCall")}{perm.asks.reason ? ` — ${perm.asks.reason}` : ""}
+      <div className="mt-1 text-paragraph-xs text-zinc-700 dark:text-zinc-300">
+        {t("modulesCard.wantsToCall")}{perm.asks.reason ? `: ${perm.asks.reason}` : ""}
       </div>
       )}
       <div className="mt-1.5 flex flex-wrap gap-1.5 empty:hidden">
@@ -83,10 +83,10 @@ function Permissions({ module: m }: { module: ModuleInfo }) {
             key={`m-${id}`}
             disabled={saving}
             onClick={() => toggleModule(id)}
-            className={`rounded-6 px-2 py-1 text-paragraph-xs ring-1 ring-inset ${
+            className={`rounded-full px-2.5 py-1 text-paragraph-xs font-mono font-medium border transition-colors ${
               grantedM.has(id)
-                ? "bg-success-lighter text-success-dark ring-success-base"
-                : "bg-bg-white-0 text-text-soft-400 ring-stroke-soft-200"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                : "bg-[var(--color-paper,#ffffff)] text-zinc-500 dark:text-zinc-400 border-[var(--color-hairline,#e5e5e5)]"
             }`}
           >
             {t("modulesCard.moduleChip", { id })}
@@ -100,10 +100,10 @@ function Permissions({ module: m }: { module: ModuleInfo }) {
               disabled={saving || !found}
               onClick={() => found && toggleFlow(found.id)}
               title={found ? undefined : t("modulesCard.flowMissing")}
-              className={`rounded-6 px-2 py-1 text-paragraph-xs ring-1 ring-inset ${
+              className={`rounded-full px-2.5 py-1 text-paragraph-xs font-mono font-medium border transition-colors ${
                 found && grantedF.has(found.id)
-                  ? "bg-success-lighter text-success-dark ring-success-base"
-                  : "bg-bg-white-0 text-text-soft-400 ring-stroke-soft-200"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                  : "bg-[var(--color-paper,#ffffff)] text-zinc-500 dark:text-zinc-400 border-[var(--color-hairline,#e5e5e5)]"
               }`}
             >
               {t("modulesCard.flowChip", { name })}
@@ -174,24 +174,24 @@ export function ModulesCard() {
   };
 
   return (
-    <div className="mt-5 overflow-hidden rounded-12 bg-bg-white-0 shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
-      <div className="flex items-start justify-between gap-4 border-b border-stroke-soft-200 px-4 py-3">
+    <div className="mt-5 overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+      <div className="flex items-start justify-between gap-4 border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-5 py-3.5">
         <div>
-          <h2 className="m-0 text-label-sm text-text-strong-950">{t("modulesCard.title")}</h2>
-          <p className="m-0 mt-0.5 max-w-[80ch] text-paragraph-xs text-text-soft-400">
+          <h2 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("modulesCard.title")}</h2>
+          <p className="m-0 mt-0.5 max-w-[80ch] text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("modulesCard.description")}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-2">
           <Button
-            variant="neutral" mode="stroke" size="xsmall"
+            variant="neutral" mode="stroke" size="small"
             leftIcon={<FolderIcon className="size-4" />}
             onClick={openFolder}
           >
             {t("modulesCard.folderButton")}
           </Button>
           <Button
-            variant="primary" mode="lighter" size="xsmall"
+            variant="primary" mode="filled" size="small"
             isLoading={busy === "+"}
             leftIcon={<AddIcon className="size-4" />}
             onClick={add}
@@ -202,24 +202,24 @@ export function ModulesCard() {
       </div>
 
       {modules.length === 0 ? (
-        <p className="m-0 px-4 py-6 text-center text-paragraph-sm text-text-soft-400">
+        <p className="m-0 px-4 py-8 text-center text-paragraph-sm text-zinc-500 dark:text-zinc-400">
           {t("modulesCard.emptyState")}
         </p>
       ) : (
         modules.map((m) => (
           <div
             key={m.id}
-            className="grid grid-cols-[1fr_180px_60px] items-center gap-3 border-b border-stroke-soft-200 px-4 py-2.5 last:border-b-0"
+            className="grid grid-cols-[1fr_180px_60px] items-center gap-3 border-b border-[var(--color-hairline,#e5e5e5)] px-5 py-3 last:border-b-0 hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors"
           >
             <div className="min-w-0">
-              <div className="truncate text-label-sm text-text-strong-950">{m.name}</div>
-              <div className="truncate text-paragraph-xs text-text-soft-400">{m.path}</div>
+              <div className="truncate text-label-sm font-semibold text-zinc-900 dark:text-white">{m.name}</div>
+              <div className="truncate font-mono text-paragraph-xs text-zinc-500 dark:text-zinc-400">{m.path}</div>
             </div>
             <div className="text-paragraph-xs">
               {m.error ? (
                 <span className="text-warning-base">{m.error}</span>
               ) : (
-                <span className="text-text-sub-600">
+                <span className="font-mono text-zinc-700 dark:text-zinc-300 font-medium">
                   {m.blocks.length === 1
                     ? t("modulesCard.stepCountOne")
                     : t("modulesCard.stepCount", { n: m.blocks.length })}
@@ -228,9 +228,9 @@ export function ModulesCard() {
             </div>
             <div className="flex items-center justify-end">
               <Button
-                variant="error" mode="ghost" size="xsmall"
+                variant="error" mode="stroke" size="small" onlyIcon className="h-9 w-9"
                 disabled={busy === m.id}
-                leftIcon={<DeleteIcon className="size-4" />}
+                leftIcon={<DeleteIcon className="size-[18px]" />}
                 onClick={() => remove(m)}
               />
             </div>

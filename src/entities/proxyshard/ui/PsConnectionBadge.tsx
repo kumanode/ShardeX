@@ -12,14 +12,14 @@ export function PsConnectionBadge({ status, me, err, hasKey }: {
   const t = useT();
   return (
     <div className="mt-2.5 min-h-[22px]">
-      {status === "checking" && <span className="text-paragraph-xs text-text-soft-400">{t("psConnectionBadge.validating")}</span>}
+      {status === "checking" && <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psConnectionBadge.validating")}</span>}
       {status === "ok" && me && (
         <Badge color="success" variant="filled" size="small" dot>{t("psConnectionBadge.connected", { email: me.email })}</Badge>
       )}
       {status === "err" && (
         <Badge color="error" variant="filled" size="small" dot title={err}>{t("psConnectionBadge.notConnected", { err })}</Badge>
       )}
-      {status === "idle" && !hasKey && <span className="text-paragraph-xs text-text-soft-400">{t("psConnectionBadge.noKeyYet")}</span>}
+      {status === "idle" && !hasKey && <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psConnectionBadge.noKeyYet")}</span>}
     </div>
   );
 }

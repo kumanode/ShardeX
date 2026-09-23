@@ -8,8 +8,8 @@ export function PsManagementPanels() {
 
   if (!connected) {
     return (
-      <div className="rounded-lg bg-bg-white-0 p-[18px] ring-1 ring-inset ring-stroke-soft-200">
-        <p className="m-0 text-paragraph-xs text-text-soft-400">
+      <div className="rounded-[24px] bg-[var(--color-paper,#ffffff)] p-5 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+        <p className="m-0 text-paragraph-sm text-zinc-500 dark:text-zinc-400">
           {t("psManagementPanels.needKey")}
         </p>
       </div>

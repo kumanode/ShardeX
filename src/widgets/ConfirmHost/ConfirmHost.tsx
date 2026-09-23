@@ -13,22 +13,20 @@ export function ConfirmHost() {
       title={req.title ?? "Confirm"}
       maxWidthClassName="max-w-md"
       footer={
-        <div className="flex justify-end gap-2">
-          {req.buttons.map((b, i) => (
-            <Button
-              key={i}
-              size="small"
-              variant={b.danger ? "error" : b.primary ? "primary" : "neutral"}
-              mode={b.danger || b.primary ? "filled" : "stroke"}
-              onClick={() => done(b.value)}
-            >
-              {b.label}
-            </Button>
-          ))}
-        </div>
+        req.buttons.map((b, i) => (
+          <Button
+            key={i}
+            size="small"
+            variant={b.danger ? "error" : b.primary ? "primary" : "neutral"}
+            mode={b.danger || b.primary ? "filled" : "stroke"}
+            onClick={() => done(b.value)}
+          >
+            {b.label}
+          </Button>
+        ))
       }
     >
-      <p className="m-0 text-paragraph-sm text-text-sub-600">{req.message}</p>
+      <p className="m-0 text-paragraph-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">{req.message}</p>
     </Modal>
   );
 }

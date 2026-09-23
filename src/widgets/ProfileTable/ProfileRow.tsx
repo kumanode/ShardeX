@@ -60,10 +60,10 @@ export function ProfileRow({ profile, proxy, onMenu }: {
   return (
     <div
       className={cn(
-        "relative border-t border-stroke-soft-200 first:border-t-0",
-        isRunning && "row-running",
+        "relative border-t border-[var(--color-hairline,#e5e5e5)] first:border-t-0 transition-colors",
+        isRunning && "row-running bg-emerald-500/[0.02] dark:bg-emerald-400/[0.03]",
         isExpanded && "row-expanded",
-        p.pinned && "bg-[linear-gradient(90deg,var(--color-primary-alpha-10)_0%,transparent_30%)]",
+        p.pinned && "bg-amber-500/[0.03] dark:bg-amber-400/[0.04]",
       )}
       onContextMenu={(e) => onMenu(e, menu())}
       // Buttons keep their own meaning; the expanded editor is text.
@@ -102,12 +102,14 @@ export function ProfileRow({ profile, proxy, onMenu }: {
         setTimeout(() => chip.remove(), 0);
       }}
     >
-      <div className={cn("t-cols transition-colors hover:bg-bg-weak-50", isExpanded && "bg-bg-weak-50")}>
+      <div className={cn("t-cols transition-colors hover:bg-[var(--color-canvas,#f5f5f5)]", isExpanded && "bg-[var(--color-canvas,#f5f5f5)]")}>
         <div className="flex items-center justify-center pl-1">
           <span
             className={cn(
-              "inline-block h-[7px] w-[7px] rotate-45 transition-[background,box-shadow] duration-150",
-              isRunning ? "shard-on" : "shard-off bg-bg-sub-300",
+              "inline-block h-[7px] w-[7px] rotate-45 transition-all duration-150",
+              isRunning
+                ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] scale-110"
+                : "bg-[var(--color-hairline,#e5e5e5)]",
             )}
           />
         </div>
@@ -118,23 +120,28 @@ export function ProfileRow({ profile, proxy, onMenu }: {
           />
         </div>
         <div className="min-w-0 cursor-pointer overflow-hidden" onClick={() => { if (!shiftPress.current) expand(p.id); }}>
-          <div className="overflow-hidden text-ellipsis whitespace-nowrap text-label-xs text-text-strong-950">
+          <div className="overflow-hidden text-ellipsis whitespace-nowrap text-label-xs text-[var(--color-ink,#0a0a0a)] font-semibold">
             {p.pinned && (
-              <span className="mr-1.5 inline-flex items-center align-middle text-primary-base" title={t("profileRow.pinnedTitle")}>
-                <PinIconApp className="size-3" />
+              <span className="mr-1.5 inline-flex items-center align-middle text-amber-500 dark:text-amber-400" title={t("profileRow.pinnedTitle")}>
+                <PinIconApp className="size-3.5" />
               </span>
             )}
             {p.name}
           </div>
-          <div className="mono mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10.5px] text-text-disabled-300">{p.id.slice(0, 8)}</div>
+          <div className="mono mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-zinc-500 dark:text-zinc-300 font-medium">{p.id.slice(0, 8)}</div>
         </div>
         <div>
-          <Badge color={isRunning ? "success" : "gray"} variant='filled' size="small" dot>
+          <Badge
+            color={isRunning ? "success" : "gray"}
+            variant={isRunning ? "light" : "stroke"}
+            size="small"
+            dot
+          >
             {isRunning ? t("profileRow.statusRunning") : t("profileRow.statusIdle")}
           </Badge>
         </div>
         <div
-          className="cursor-pointer transition-colors hover:text-primary-base"
+          className="cursor-pointer transition-colors hover:text-[var(--color-ink,#0a0a0a)]"
           onClick={() => { if (!shiftPress.current) setQuickEdit({ kind: "proxy", profile: p }); }}
           title={t("profileRow.changeProxyTitle")}
         >
@@ -142,8 +149,16 @@ export function ProfileRow({ profile, proxy, onMenu }: {
             <div className="flex min-w-0 items-center gap-2 overflow-hidden">
               <Badge
                 size="small"
-                variant="filled"
-                color={proxy.kind === "socks5" ? "primary" : proxy.kind === "https" ? "success" : "information"}
+                variant="light"
+                color={
+                  proxy.kind === "socks5"
+                    ? "primary"
+                    : proxy.kind === "https"
+                      ? "success"
+                      : proxy.kind === "http"
+                        ? "warning"
+                        : "gray"
+                }
               >
                 {proxy.kind.toUpperCase()}
               </Badge>
@@ -151,31 +166,31 @@ export function ProfileRow({ profile, proxy, onMenu }: {
                 {proxy.country && (
                   <>
                     <CountryFlag cc={proxy.country} />
-                    <span className="inline-block rounded-4 bg-bg-weak-50 px-1.5 py-0.5 text-[10.5px] font-bold tracking-[0.5px] text-text-sub-600">{proxy.country}</span>
+                    <span className="inline-block rounded-[6px] bg-sky-500/10 dark:bg-sky-500/15 px-1.5 py-0.5 text-[10.5px] font-medium text-sky-700 dark:text-sky-300 border border-sky-500/20">{proxy.country}</span>
                   </>
                 )}
-                <span className="mono small text-text-sub-600">{proxy.host}:{proxy.port}</span>
+                <span className="mono text-[11.5px] text-zinc-700 dark:text-zinc-200 font-medium">{proxy.host}:{proxy.port}</span>
               </span>
             </div>
-          ) : <span className="text-paragraph-xs text-text-soft-400">{t("profileRow.noProxy")}</span>}
+          ) : <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("profileRow.noProxy")}</span>}
         </div>
         <div
-          className="min-w-0 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-paragraph-xs text-text-sub-600 transition-colors hover:text-primary-base"
+          className="min-w-0 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-paragraph-xs text-zinc-600 dark:text-zinc-300 transition-colors hover:text-[var(--color-ink,#0a0a0a)]"
           title={p.notes || t("profileRow.notesHint")}
           onClick={() => { if (!shiftPress.current) setQuickEdit({ kind: "notes", profile: p }); }}
         >
-          {p.notes || <span className="text-text-soft-400">—</span>}
+          {p.notes || <span className="text-zinc-400 dark:text-zinc-500">-</span>}
         </div>
         <div className="cell-time">
-          <span className={cn("text-paragraph-xs", isRunning ? "text-text-strong-950" : "text-text-soft-400")}>
+          <span className={cn("text-paragraph-xs tabular-nums font-mono font-medium", isRunning ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-200")}>
             {(() => {
               const live = isRunning && runningSince ? Date.now() - runningSince : 0;
               const total = p.total_runtime_ms + live;
-              return total > 0 ? fmtUptime(total) : "—";
+              return total > 0 ? fmtUptime(total) : "-";
             })()}
           </span>
         </div>
-        <div className="cell-lastrun"><span className="text-paragraph-xs text-text-soft-400">{p.last_launched_at ? fmtTs(p.last_launched_at) : t("profileRow.neverLaunched")}</span></div>
+        <div className="cell-lastrun"><span className="text-paragraph-xs tabular-nums font-mono text-zinc-600 dark:text-zinc-300">{p.last_launched_at ? fmtTs(p.last_launched_at) : t("profileRow.neverLaunched")}</span></div>
         <ProfileRowActions
           profile={p}
           onMore={(e) => { e.stopPropagation(); onMenu(e, menu()); }}

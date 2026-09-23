@@ -92,7 +92,7 @@ export default function DialogModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-colors duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md transition-all duration-200"
       style={{ backgroundColor: visible ? 'var(--backdrop)' : 'transparent' }}
       onClick={onClose}
       onTransitionEnd={() => {
@@ -104,7 +104,7 @@ export default function DialogModal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[20px] border border-stroke-soft-200 bg-bg-white-0 shadow-[var(--shadow-md)] transition-all duration-200',
+          'flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-2xl transition-all duration-200 ease-out',
           maxWidthClassName,
           className,
         )}
@@ -114,53 +114,51 @@ export default function DialogModal({
         }}
       >
         {/* Header */}
-        <div className="flex items-start gap-4 border-b border-stroke-soft-200 p-4">
+        <div className="flex shrink-0 items-start gap-3.5 border-b border-[var(--color-hairline,#e5e5e5)] px-6 py-4.5">
           {icon && (
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-stroke-soft-200 text-text-sub-600">
-              <span className="flex size-5 items-center justify-center">{icon}</span>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-zinc-100 dark:bg-zinc-800/80 border border-[var(--color-hairline,#e5e5e5)] text-zinc-700 dark:text-zinc-200">
+              <span className="flex size-4.5 items-center justify-center">{icon}</span>
             </span>
           )}
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <h2 className="text-label-sm text-text-strong-950">{title}</h2>
-            {subtitle && <p className="text-paragraph-xs text-text-sub-600">{subtitle}</p>}
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <h2 className="text-[17px] font-semibold tracking-tight text-zinc-900 dark:text-white leading-snug">{title}</h2>
+            {subtitle && <p className="text-paragraph-xs text-zinc-500 dark:text-zinc-400 leading-normal">{subtitle}</p>}
           </div>
           {showClose && (
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="flex size-6 shrink-0 items-center justify-center rounded-md text-text-sub-600 shadow-[var(--shadow-xs)] transition-colors hover:bg-bg-weak-50 hover:text-text-strong-950"
+              className="-mr-1 -mt-0.5 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-[8px] text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
             >
-              <CloseIcon className="size-5" />
+              <CloseIcon className="size-4" />
             </button>
           )}
         </div>
 
         {/* Body */}
         {children != null && (
-          <div className={cn('overflow-auto px-5', bodyClassName)}>{children}</div>
+          <div className={cn('overflow-y-auto px-6 py-4 text-paragraph-sm text-zinc-700 dark:text-zinc-300', bodyClassName)}>{children}</div>
         )}
 
         {/* Footer */}
         {showDefaultFooter &&
           (footer != null ? (
-            <div className="flex items-center gap-3 border-t border-stroke-soft-200 px-5 py-4">
+            <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-6 py-3.5">
               {footer}
             </div>
           ) : (
-            <div className="flex items-center border-t border-stroke-soft-200 px-5 py-4">
-              <div className="flex flex-1 items-center justify-end gap-3">
-                {!hideCancel && (
-                  <Button size="small" mode="stroke" variant="neutral" onClick={onCancel ?? onClose}>
-                    {cancelLabel}
-                  </Button>
-                )}
-                {onConfirm && (
-                  <Button size="small" disabled={isDisabled} variant={confirmVariant} isLoading={isLoading} onClick={onConfirm}>
-                    {confirmLabel}
-                  </Button>
-                )}
-              </div>
+            <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-6 py-3.5">
+              {!hideCancel && (
+                <Button size="small" mode="stroke" variant="neutral" onClick={onCancel ?? onClose}>
+                  {cancelLabel}
+                </Button>
+              )}
+              {onConfirm && (
+                <Button size="small" mode="filled" disabled={isDisabled} variant={confirmVariant} isLoading={isLoading} onClick={onConfirm}>
+                  {confirmLabel}
+                </Button>
+              )}
             </div>
           ))}
       </div>

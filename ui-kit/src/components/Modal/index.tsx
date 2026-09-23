@@ -59,7 +59,7 @@ export default function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-colors duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md transition-all duration-200"
       style={{ backgroundColor: visible ? 'var(--backdrop)' : 'transparent' }}
       onClick={onClose}
       onTransitionEnd={() => {
@@ -71,7 +71,7 @@ export default function Modal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'relative flex w-full flex-col rounded-2xl bg-bg-white-0 shadow-[var(--shadow-md)] transition-all duration-200',
+          'relative flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-2xl transition-all duration-200 ease-out',
           maxWidthClassName,
         )}
         style={{
@@ -80,25 +80,25 @@ export default function Modal({
         }}
       >
         {(title || showClose) && (
-          <div className="flex items-start justify-between gap-4 p-5 pb-0">
-            <div className="flex flex-col gap-1">
-              {title && <h2 className="text-label-lg text-text-strong-950">{title}</h2>}
-              {description && <p className="text-paragraph-sm text-text-sub-600">{description}</p>}
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--color-hairline,#e5e5e5)] px-6 py-4.5">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              {title && <h2 className="text-[17px] font-semibold tracking-tight text-zinc-900 dark:text-white leading-snug">{title}</h2>}
+              {description && <p className="text-paragraph-xs text-zinc-500 dark:text-zinc-400 leading-normal">{description}</p>}
             </div>
             {showClose && (
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="-mr-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg text-text-soft-400 transition-colors hover:bg-bg-weak-50 hover:text-text-strong-950"
+                className="-mr-1 -mt-0.5 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-[8px] text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
               >
-                <CloseIcon className="size-5" />
+                <CloseIcon className="size-4" />
               </button>
             )}
           </div>
         )}
-        {children && <div className="p-5 text-paragraph-sm text-text-sub-600">{children}</div>}
-        {footer && <div className="flex justify-end gap-3 border-t border-stroke-soft-200 p-4">{footer}</div>}
+        {children && <div className="overflow-y-auto px-6 py-5 text-paragraph-sm text-zinc-700 dark:text-zinc-300">{children}</div>}
+        {footer && <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-6 py-3.5">{footer}</div>}
       </div>
     </div>,
     target,

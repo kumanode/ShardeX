@@ -91,16 +91,16 @@ export function ProxySelect({
         bottom: coords?.bottom,
         zIndex: 1000,
       }}
-      className="flex flex-col overflow-hidden rounded-xl bg-bg-white-0 shadow-[var(--shadow-md)] ring-1 ring-stroke-soft-200"
+      className="flex flex-col overflow-hidden rounded-[18px] bg-[var(--color-paper,#ffffff)] shadow-[var(--shadow-subtle)] border border-[var(--color-hairline,#e5e5e5)]"
     >
       <button
         type="button"
         onClick={() => setCreating((v) => !v)}
         className={cn(
-          "flex items-center gap-2 border-b border-stroke-soft-200 px-2.5 py-2 text-left text-paragraph-sm transition-colors",
+          "flex items-center gap-2 border-b border-[var(--color-hairline,#e5e5e5)] px-3 py-2.5 text-left text-paragraph-sm transition-colors",
           creating
-            ? "bg-primary-alpha-10 text-primary-base"
-            : "text-primary-base hover:bg-bg-weak-50",
+            ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold"
+            : "text-indigo-600 dark:text-indigo-400 hover:bg-[var(--color-surface-alt,#fafafa)]",
         )}
       >
         <AddIcon className="size-4 shrink-0" />
@@ -115,7 +115,7 @@ export function ProxySelect({
       ) : (
         <>
           {proxies.length > 8 && (
-            <div className="border-b border-stroke-soft-200 px-2 py-1.5">
+            <div className="border-b border-[var(--color-hairline,#e5e5e5)] px-2 py-1.5">
               <Input
                 autoFocus
                 inputSize="small"
@@ -144,7 +144,7 @@ export function ProxySelect({
               </li>
             ))}
             {shown.length === 0 && (
-              <li className="px-2.5 py-4 text-center text-paragraph-sm text-text-soft-400">
+              <li className="px-2.5 py-4 text-center text-paragraph-sm text-zinc-500 dark:text-zinc-400">
                 {t("proxySelect.noMatches")}
               </li>
             )}
@@ -160,13 +160,13 @@ export function ProxySelect({
         ref={trigger}
         type="button"
         onClick={() => (open ? close() : setOpen(true))}
-        className="flex h-9 w-full items-center gap-2 rounded-lg bg-bg-white-0 px-2.5 text-left text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 transition-colors hover:bg-bg-weak-50"
+        className="flex h-9.5 w-full items-center gap-2 rounded-[14px] bg-[var(--color-paper,#ffffff)] px-3 text-left text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] shadow-xs transition-colors hover:bg-[var(--color-surface-alt,#fafafa)]"
       >
-        <span className={cn("min-w-0 flex-1 truncate", !selected && "text-text-soft-400")}>
+        <span className={cn("min-w-0 flex-1 truncate", !selected && "text-zinc-400 dark:text-zinc-500")}>
           {selected ? label(selected) : directLabel}
         </span>
         <ChevronDownIcon
-          className={cn("size-4 shrink-0 text-icon-soft-400 transition-transform", open && "rotate-180")}
+          className={cn("size-4 shrink-0 text-zinc-400 transition-transform", open && "rotate-180")}
         />
       </button>
       {open && coords && createPortal(
@@ -193,8 +193,8 @@ function Row({ text, active, muted, onClick }: {
       className={cn(
         "flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-paragraph-sm transition-colors",
         active
-          ? "bg-primary-alpha-10 text-primary-base"
-          : cn(muted ? "text-text-soft-400" : "text-text-sub-600", "hover:bg-bg-weak-50"),
+          ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-medium"
+          : cn(muted ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-700 dark:text-zinc-300", "hover:bg-zinc-100 dark:hover:bg-zinc-800"),
       )}
     >
       <span className="min-w-0 flex-1 truncate">{text}</span>
@@ -255,16 +255,16 @@ function CreatePanel({ onCancel, onCreated }: {
         }}
         placeholder={t("proxySelect.linePlaceholder")}
       />
-      <div className="min-h-[34px] rounded-8 bg-bg-weak-50 px-2.5 py-1.5 text-paragraph-xs ring-1 ring-inset ring-stroke-soft-200">
+      <div className="min-h-[34px] rounded-[12px] bg-[var(--color-surface-alt,#fafafa)] px-2.5 py-1.5 text-paragraph-xs border border-[var(--color-hairline,#e5e5e5)]">
         {parsed ? (
-          <span className="text-text-sub-600">
-            <strong className="text-text-strong-950">{parsed.name}</strong>
+          <span className="text-zinc-600 dark:text-zinc-300">
+            <strong className="text-zinc-900 dark:text-white">{parsed.name}</strong>
             {" · "}
             {parsed.kind.toUpperCase()} {parsed.host}:{parsed.port}
             {parsed.username && ` · ${parsed.username}`}
           </span>
         ) : (
-          <span className="text-text-soft-400">
+          <span className="text-zinc-400 dark:text-zinc-500">
             {line.trim()
               ? t("proxySelect.parseFailed")
               : t("proxySelect.pasteHint")}

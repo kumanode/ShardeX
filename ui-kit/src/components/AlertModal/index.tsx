@@ -52,12 +52,13 @@ export type AlertModalProps = {
 
 
 // static class maps (no dynamic class names → visible to Tailwind / @source)
+// Tints come from the state tokens, never raw hex: they must flip with theme.
 const badge: Record<AlertModalStatus, { bg: string; icon: string }> = {
-  feature: { bg: 'bg-[#6F42C129]', icon: 'text-primary-base' },
-  information: { bg: 'bg-[#EBF1FF]', icon: 'text-information-base' },
-  success: { bg: 'bg-[#1FC16B29]', icon: 'text-success-base' },
-  warning: { bg: 'bg-[#FF990029]', icon: 'text-warning-base' },
-  error: { bg: 'bg-[#FB374829]', icon: 'text-error-base' },
+  feature: { bg: 'bg-feature-base/10', icon: 'text-primary-base' },
+  information: { bg: 'bg-information-weak dark:bg-information-soft/30', icon: 'text-primary-base' },
+  success: { bg: 'bg-success-weak dark:bg-success-soft/20', icon: 'text-success-base' },
+  warning: { bg: 'bg-warning-weak dark:bg-warning-soft/20', icon: 'text-warning-base' },
+  error: { bg: 'bg-error-weak dark:bg-error-soft/20', icon: 'text-error-base' },
 }
 
 const statusIcon: Record<AlertModalStatus, React.ReactNode> = {
@@ -125,7 +126,7 @@ export default function AlertModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-colors duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md transition-all duration-200"
       style={{ backgroundColor: visible ? 'var(--backdrop)' : 'transparent' }}
       onClick={onClose}
       onTransitionEnd={() => {
@@ -137,7 +138,7 @@ export default function AlertModal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'flex w-[440px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-stroke-soft-200 bg-bg-white-0 shadow-[var(--shadow-md)] transition-all duration-200',
+          'flex w-[440px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-2xl transition-all duration-200 ease-out',
           className,
         )}
         style={{
@@ -146,37 +147,37 @@ export default function AlertModal({
         }}
       >
         {/* Header */}
-        <div className="flex flex-col items-center gap-4 p-5">
-          <div className={cn('flex items-center justify-center rounded-[10px] p-2.5', p.bg)}>
-            <span className={cn('flex size-5 items-center justify-center', p.icon)}>
+        <div className="flex flex-col items-center gap-3.5 p-6 pb-5 text-center">
+          <div className={cn('flex items-center justify-center rounded-[16px] p-3.5', p.bg)}>
+            <span className={cn('flex size-6 items-center justify-center', p.icon)}>
               {icon ?? statusIcon[status]}
             </span>
           </div>
-          <div className="flex flex-col items-center gap-1 text-center">
-            <h2 className="text-label-md text-text-strong-950">{title}</h2>
+          <div className="flex flex-col items-center gap-1">
+            <h2 className="text-[17px] font-semibold tracking-tight text-zinc-900 dark:text-white">{title}</h2>
             {description && (
-              <p className="text-paragraph-sm text-text-sub-600">{description}</p>
+              <p className="text-paragraph-sm text-zinc-500 dark:text-zinc-400 max-w-sm leading-normal">{description}</p>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 border-t border-stroke-soft-200 px-5 py-4">
-          {showDontShowAgain && (
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-6 py-3.5">
+          {showDontShowAgain ? (
             <Checkbox
               label={dontShowAgainLabel}
               checked={dontShowAgain}
               onChange={(e) => onDontShowAgainChange?.(e.target.checked)}
               wrapperClassName="shrink-0"
             />
-          )}
-          <div className="flex flex-1 items-center justify-end gap-3">
+          ) : <div />}
+          <div className="flex items-center justify-end gap-2.5">
             {!hideCancel && (
               <Button size="small" mode="stroke" variant="neutral" onClick={onCancel ?? onClose}>
                 {cancelLabel}
               </Button>
             )}
-            <Button size="small" variant={resolvedConfirmVariant} isLoading={isLoading} onClick={onConfirm}>
+            <Button size="small" mode="filled" variant={resolvedConfirmVariant} isLoading={isLoading} onClick={onConfirm}>
               {confirmLabel}
             </Button>
           </div>

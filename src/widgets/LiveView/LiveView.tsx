@@ -240,8 +240,8 @@ export function LiveView({
 
   if (!profileId) {
     return (
-      <div className="flex h-full items-center justify-center rounded-12 bg-bg-weak-50 px-6 text-center ring-1 ring-inset ring-stroke-soft-200">
-        <p className="m-0 text-paragraph-sm text-text-soft-400">
+      <div className="flex h-full items-center justify-center rounded-[24px] bg-[var(--color-surface-alt,#fafafa)] px-6 text-center border border-[var(--color-hairline,#e5e5e5)]">
+        <p className="m-0 text-paragraph-sm text-zinc-500 dark:text-zinc-400">
           {t("liveView.pickProfile")}
         </p>
       </div>
@@ -279,7 +279,7 @@ export function LiveView({
             >
               {recording ? "Stop recording" : "Record steps"}
             </Button>
-            <span className="text-paragraph-xs text-text-soft-400">
+            <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">
               {recording
                 ? "Everything you do is being written down"
                 : "Right-click to add a step · Shift+right-click opens the page's own menu"}
@@ -287,7 +287,7 @@ export function LiveView({
           </>
         )}
       </div>
-      <div className="flex flex-1 items-center justify-center overflow-hidden rounded-12 bg-bg-weak-50 ring-1 ring-inset ring-stroke-soft-200">
+      <div className="flex flex-1 items-center justify-center overflow-hidden rounded-[24px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)]">
         {/* A box the size of the frame's aspect ratio, grown to the largest that
             fits — so the browser fills the column, not a tiny letterboxed strip. */}
         <div className="max-h-full max-w-full" style={{ width: "100%", aspectRatio: `${dim.w} / ${dim.h}` }}>

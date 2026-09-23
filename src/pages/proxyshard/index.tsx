@@ -19,7 +19,7 @@ export function ProxyShardPage() {
       <PsAccountMetrics />
 
       <div className="mb-3.5 flex items-end justify-between gap-4">
-        <h1 className="m-0 text-title-h5 text-text-strong-950">ProxyShard</h1>
+        <h1 className="m-0 text-page-title text-zinc-900 dark:text-white">ProxyShard</h1>
         <PsToolbar />
       </div>
 

@@ -40,7 +40,7 @@ function useHostScreen(): [number, number] | null {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-0.5 flex items-center gap-1.5 text-subheading-2xs text-primary-base">
+    <div className="mb-0.5 flex items-center gap-1.5 text-subheading-2xs font-semibold text-indigo-600 dark:text-indigo-400">
       {children}
     </div>
   );
@@ -148,8 +148,8 @@ export function InlineEditor({
   };
 
   return (
-    <div className="inline-editor relative border-t border-stroke-soft-200 bg-bg-weak-50 px-[18px] py-3.5 pl-[22px]">
-      <div className="absolute left-0 top-0 h-full w-[3px] bg-primary-base" />
+    <div className="inline-editor relative border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] dark:bg-[#121214] px-[18px] py-3.5 pl-[22px]">
+      <div className="absolute left-0 top-0 h-full w-[3px] bg-indigo-500" />
       <div className="grid grid-cols-3 gap-4">
         {/* ----- col 1: identity + hardware ----- */}
         <div className="flex flex-col gap-4">
@@ -157,7 +157,7 @@ export function InlineEditor({
           <Field label={t("inlineEditor.nameLabel")} value={f.name} onChange={(v) => u("name", v)} placeholder={t("inlineEditor.namePlaceholder")} />
 
           <label className="flex flex-col gap-1">
-            <span className="text-label-base font-medium text-text-strong-900">{t("inlineEditor.osLabel")}</span>
+            <span className="text-label-base font-medium text-zinc-900 dark:text-white">{t("inlineEditor.osLabel")}</span>
             <SegmentControl
               size="small"
               className="w-full *:flex-1"
@@ -201,7 +201,7 @@ export function InlineEditor({
             options={REFRESH_RATE_OPTIONS}
             format={(v) => `${v} Hz`}
           />
-          <p className="m-0 -mt-2 text-paragraph-xs text-text-soft-400">
+          <p className="m-0 -mt-2 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("inlineEditor.refreshRateHelp")}
           </p>
 
@@ -220,7 +220,7 @@ export function InlineEditor({
                 options={resolutionOptions}
                 format={(v) => (v ? String(v).replace("x", " × ") : t("inlineEditor.resolutionTemplate"))}
               />
-              <p className="m-0 -mt-2 text-paragraph-xs text-text-soft-400">
+              <p className="m-0 -mt-2 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
                 {hostScreen
                   ? t("inlineEditor.resolutionHelp", { w: hostScreen[0], h: hostScreen[1] })
                   : t("inlineEditor.resolutionHelpNoHost")}
@@ -229,7 +229,7 @@ export function InlineEditor({
           )}
 
           <label className="flex flex-col gap-1">
-            <span className="text-label-base font-medium text-text-strong-900">{t("inlineEditor.proxyLabel")}</span>
+            <span className="text-label-base font-medium text-zinc-900 dark:text-white">{t("inlineEditor.proxyLabel")}</span>
             <ProxySelect
               value={f.proxy_id}
               proxies={proxies}
@@ -324,7 +324,7 @@ export function InlineEditor({
           </div>
 
           <label className="flex flex-col gap-1">
-            <span className="text-label-base font-medium text-text-strong-900">{t("inlineEditor.geoLabel")}</span>
+            <span className="text-label-base font-medium text-zinc-900 dark:text-white">{t("inlineEditor.geoLabel")}</span>
             <SegmentControl
               size="small"
               className="w-full *:flex-1"
@@ -363,7 +363,7 @@ export function InlineEditor({
                 checked={f.android_media}
                 onChange={(checked) => u("android_media", checked)}
               />
-              <p className="m-0 -mt-1 text-paragraph-xs text-text-soft-400">
+              <p className="m-0 -mt-1 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
                 {t("inlineEditor.androidMediaHelp")}
               </p>
             </>
@@ -397,12 +397,12 @@ export function InlineEditor({
             </Button>
             {f.cookies_file && (
               <>
-                <span className="truncate text-paragraph-xs text-text-sub-600" title={f.cookies_file}>
+                <span className="truncate text-paragraph-xs text-zinc-600 dark:text-zinc-300" title={f.cookies_file}>
                   {f.cookies_file.split(/[/\\]/).pop()}
                 </span>
                 <button
                   type="button"
-                  className="text-paragraph-xs text-text-soft-400 hover:text-error-base"
+                  className="text-paragraph-xs text-zinc-400 hover:text-rose-500"
                   onClick={() => u("cookies_file", "")}
                 >
                   {t("inlineEditor.cookiesRemove")}
@@ -410,7 +410,7 @@ export function InlineEditor({
               </>
             )}
           </div>
-          <p className="m-0 text-paragraph-xs text-text-soft-400">
+          <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("inlineEditor.cookiesHelp")}
           </p>
 
@@ -423,7 +423,7 @@ export function InlineEditor({
           />
         </div>
       </div>
-      <div className="mt-4 flex justify-end gap-2.5 border-t border-stroke-soft-200 pt-3.5">
+      <div className="mt-4 flex justify-end gap-2.5 border-t border-[var(--color-hairline,#e5e5e5)] pt-3.5">
         <Button variant="neutral" mode="stroke" size="small" onClick={onCancel}>{t("inlineEditor.cancel")}</Button>
         <Button variant="primary" mode="filled" size="small" onClick={onSave}>
           {f.id ? t("inlineEditor.saveChanges") : t("inlineEditor.createProfile")}

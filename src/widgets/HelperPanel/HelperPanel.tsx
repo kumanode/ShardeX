@@ -51,16 +51,16 @@ export function HelperPanel({ profile }: { profile: string }) {
   return (
     <div
       onMouseDown={dragWindowOnMouseDown}
-      className="flex h-screen w-screen flex-col rounded-12 bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200"
+      className="flex h-screen w-screen flex-col rounded-[20px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-xl overflow-hidden"
     >
       <div className="flex shrink-0 select-none items-center gap-2 px-3 pt-2.5 pb-1">
-        <SyncIcon className="size-4 shrink-0 text-primary-base" />
-        <div className="flex-1 truncate text-label-xs text-text-strong-950">
+        <SyncIcon className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+        <div className="flex-1 truncate text-label-xs text-zinc-900 dark:text-white">
           {t("helperPanel.title")}
         </div>
         <button type="button" onMouseDown={(e) => e.stopPropagation()} onClick={() => void helperDismiss(profile)}
                 title={t("helperPanel.dismiss")}
-                className="rounded-4 px-1.5 text-paragraph-xs text-text-soft-400 hover:bg-bg-weak-50">
+                className="rounded-[6px] px-1.5 text-paragraph-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors">
           ✕
         </button>
       </div>
@@ -70,7 +70,7 @@ export function HelperPanel({ profile }: { profile: string }) {
         <div className="flex flex-wrap gap-1">
           {kinds.map((k) => (
             <span key={k}
-                  className="rounded-6 px-1.5 py-0.5 text-paragraph-xs text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200">
+                  className="rounded-[8px] px-2 py-0.5 text-paragraph-xs text-zinc-600 dark:text-zinc-300 border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)]">
               {LABELS[k] ?? k}
             </span>
           ))}
@@ -87,7 +87,7 @@ export function HelperPanel({ profile }: { profile: string }) {
             try { setFilled(await helperFill(profile)); } catch { /* shown by the next poll */ }
             setBusy(false);
           }}
-          className="w-full rounded-8 bg-primary-base py-1.5 text-label-xs text-static-white hover:bg-primary-darker disabled:opacity-50"
+          className="w-full rounded-[10px] bg-indigo-600 dark:bg-indigo-500 py-1.5 text-label-xs font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition-colors"
         >
           {filled > 1
             ? t("helperPanel.filledWindows", { n: filled })

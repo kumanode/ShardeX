@@ -20,7 +20,7 @@ export type TabsProps = {
 export default function Tabs({ items, value, variant = 'line', className }: TabsProps) {
   if (variant === 'pill') {
     return (
-      <div className={cn('inline-flex items-center gap-1 rounded-[10px] bg-bg-weak-50 p-1', className)}>
+      <div className={cn('inline-flex items-center gap-1 rounded-xl bg-bg-weak-50 p-1 ring-1 ring-inset ring-stroke-soft-200', className)}>
         {items.map((item) => {
           const active = item.value === value
           return (
@@ -30,7 +30,7 @@ export default function Tabs({ items, value, variant = 'line', className }: Tabs
               className={cn(
                 'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-label-sm transition-colors disabled:opacity-50',
                 active
-                  ? 'bg-bg-white-0 text-text-strong-950 shadow-[var(--shadow-xs)]'
+                  ? 'bg-bg-white-0 text-text-strong-950 ring-1 ring-inset ring-stroke-sub-300'
                   : 'text-text-sub-600 hover:text-text-strong-950',
               )}
             >
@@ -57,7 +57,7 @@ export default function Tabs({ items, value, variant = 'line', className }: Tabs
             )}
           >
             {item.icon && (
-              <span className={cn('flex size-5 items-center justify-center', active ? 'text-primary-base' : 'text-text-soft-400')}>
+              <span className={cn('flex size-5 items-center justify-center', active ? 'text-primary-base' : 'text-icon-soft-400')}>
                 {item.icon}
               </span>
             )}

@@ -26,6 +26,8 @@ mod modguard;
 mod runner;
 mod wasm;
 mod trash;
+mod credentials;
+mod keep_alive;
 
 use serde_json::Value;
 
@@ -501,6 +503,7 @@ pub fn save_profile_core(
         extensions: stored.meta.extensions,
         mobile: profile::claims_mobile(&stored.config),
         android_media: false,
+        dns_servers: None,
     })
 }
 
@@ -1104,6 +1107,12 @@ fn profile_set_folder(id: String, folder: String) -> Result<(), String> {
     profile::set_folder(&id, &folder).map_err(|e| e.to_string())
 }
 
+/// Set or clear a profile's per-profile DNS (a DoH template URL).
+#[tauri::command]
+fn profile_set_dns(id: String, servers: Option<String>) -> Result<(), String> {
+    profile::set_dns(&id, servers).map_err(|e| e.to_string())
+}
+
 /// Rename folder (retag profiles); returns count.
 #[tauri::command]
 fn folder_rename(old: String, new: String) -> Result<usize, String> {
@@ -1452,6 +1461,11 @@ pub(crate) async fn bus() -> Result<std::sync::Arc<sync_bus::Bus>, String> {
     .cloned()
 }
 
+fn keep_alive() -> &'static keep_alive::KeepAlive {
+    static KA: std::sync::OnceLock<keep_alive::KeepAlive> = std::sync::OnceLock::new();
+    KA.get_or_init(keep_alive::KeepAlive::new)
+}
+
 /// Opens (or re-focuses) the floating control panel for a group. Same bundle,
 /// addressed by hash — a 60px strip does not warrant its own vite entry point.
 fn open_sync_panel(app: &tauri::AppHandle, group: &str) {
@@ -1464,9 +1478,8 @@ fn open_sync_panel(app: &tauri::AppHandle, group: &str) {
     let url = format!("index.html#/?syncPanel={group}");
     let built = WebviewWindowBuilder::new(app, "sync-panel", WebviewUrl::App(url.into()))
         .title("ShardX Sync")
-        .inner_size(360.0, 168.0)
-        .resizable(true)
-        .min_inner_size(280.0, 120.0)
+        .inner_size(390.0, 290.0)
+        .min_inner_size(340.0, 220.0)
         .resizable(false)
         .always_on_top(true)
         .decorations(false)
@@ -1547,11 +1560,22 @@ async fn sync_launch(
     let b = bus().await?;
 
     let mut failed: Vec<String> = Vec::new();
+    let mut skipped: Vec<String> = Vec::new();
     for id in &profile_ids {
+        // Already-running profiles keep their window and join the group as-is
+        // instead of failing the whole launch.
+        if process::Tracker::shared().is_running(id) {
+            eprintln!("[launcher] sync group '{group}': {id} already running, reusing");
+            skipped.push(id.clone());
+            continue;
+        }
         if let Err(e) = launch::launch_profile_synced(
-            id, false, false, Some(&group), b.port, &b.token).await {
+            id, true, false, Some(&group), b.port, &b.token).await {
             failed.push(format!("{id}: {e}"));
         }
+    }
+    if skipped.len() + failed.len() == profile_ids.len() && !skipped.is_empty() && failed.is_empty() {
+        eprintln!("[launcher] sync group '{group}': all members already running — reusing group");
     }
     if failed.len() == profile_ids.len() {
         return Err(format!("nothing launched — {}", failed.join("; ")));
@@ -1561,8 +1585,121 @@ async fn sync_launch(
         eprintln!("[launcher] sync group '{group}': {} failed — {}",
                   failed.len(), failed.join("; "));
     }
+    if !skipped.is_empty() {
+        eprintln!("[launcher] sync group '{group}': {} reused (already running) — {}",
+                  skipped.len(), skipped.join(", "));
+    }
     open_sync_panel(&app, &group);
+    start_group_nav_watcher(group.clone(), profile_ids);
     Ok(group)
+}
+
+fn start_group_nav_watcher(group: String, profile_ids: Vec<String>) {
+    tokio::spawn(async move {
+        // Adaptive wait: instead of a fixed delay, attach to every member (or
+        // stop at a deadline) so a cold start on a large profile does not wait
+        // needlessly and a slow one is not missed.
+        let deadline = tokio::time::Instant::now() + tokio::time::Duration::from_secs(15);
+        loop {
+            for id in &profile_ids {
+                let _ = cdp::ensure_attached(id).await;
+            }
+            if profile_ids.iter().all(|id| cdp::is_attached(id))
+                || tokio::time::Instant::now() >= deadline
+            {
+                break;
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        }
+        eprintln!("[launcher] nav watcher: group '{group}' ready");
+
+        let last_url = std::sync::Arc::new(tokio::sync::Mutex::new(String::new()));
+
+        for id in profile_ids {
+            let id_clone = id.clone();
+            let group_clone = group.clone();
+            let last_url_clone = last_url.clone();
+
+            tokio::spawn(async move {
+                for _ in 0..10 {
+                    if cdp::ensure_attached(&id_clone).await.is_ok() {
+                        break;
+                    }
+                    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                }
+
+                if let Some(mut rx) = cdp::subscribe_events(&id_clone) {
+                    while let Ok(msg) = rx.recv().await {
+                        let Ok(b) = bus().await else { break };
+                        let members = b.members(&group_clone);
+                        if !members.contains(&id_clone) {
+                            break;
+                        }
+                        let st = b.status(&group_clone);
+
+                        let is_master = st.master.as_deref() == Some(&id_clone);
+                        let is_driving = st
+                            .members
+                            .iter()
+                            .any(|m| m.profile == id_clone && m.driving);
+                        let can_drive = is_master || (st.master.is_none() && (is_driving || members.len() <= 2));
+
+                        if !can_drive {
+                            continue;
+                        }
+
+                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&msg) {
+                            if val.get("method").and_then(|m| m.as_str())
+                                == Some("Page.frameNavigated")
+                            {
+                                let frame = val.get("params").and_then(|p| p.get("frame"));
+                                if frame.and_then(|f| f.get("parentId")).is_none() {
+                                    if let Some(url) =
+                                        frame.and_then(|f| f.get("url")).and_then(|u| u.as_str())
+                                    {
+                                        if url.starts_with("http://") || url.starts_with("https://")
+                                        {
+                                            let mut last = last_url_clone.lock().await;
+                                            if *last == url {
+                                                continue;
+                                            }
+                                            *last = url.to_string();
+                                            drop(last);
+
+                                            let delay_ms = st.delay_ms;
+                                            let mut follower_idx = 0usize;
+                                            for target_id in members {
+                                                if target_id != id_clone {
+                                                    let u = url.to_string();
+                                                    let stagger = if delay_ms > 0 {
+                                                        tokio::time::Duration::from_millis(
+                                                            (delay_ms as u64)
+                                                                + ((follower_idx as u64 * 35)
+                                                                    % (delay_ms as u64 + 10)),
+                                                        )
+                                                    } else {
+                                                        tokio::time::Duration::ZERO
+                                                    };
+                                                    follower_idx += 1;
+                                                    tokio::spawn(async move {
+                                                        if !stagger.is_zero() {
+                                                            tokio::time::sleep(stagger).await;
+                                                        }
+                                                        let _ = cdp::navigate_page(&target_id, &u)
+                                                            .await;
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
 }
 
 #[tauri::command]
@@ -1608,7 +1745,7 @@ async fn sync_stop(group: String) -> Result<(), String> {
     Ok(())
 }
 
-/// Holds one profile out of the group — a captcha, a different password.
+/// Holds a profile out of input mirroring without closing its window.
 #[tauri::command]
 async fn sync_set_excluded(
     group: String,
@@ -1616,6 +1753,119 @@ async fn sync_set_excluded(
     excluded: bool,
 ) -> Result<(), String> {
     bus().await?.set_excluded(&group, &profile, excluded);
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_set_master(group: String, profile: Option<String>) -> Result<(), String> {
+    let b = bus().await?;
+    b.set_master(&group, profile.clone());
+    if let Some(ref master_id) = profile {
+        let _ = cdp::ensure_attached(master_id).await;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_set_delay(group: String, delay_ms: u32) -> Result<(), String> {
+    bus().await?.set_delay(&group, delay_ms);
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_navigate(group: String, url: String) -> Result<(), String> {
+    let b = bus().await?;
+    let target_url = if !url.starts_with("http://") && !url.starts_with("https://") {
+        format!("https://{url}")
+    } else {
+        url
+    };
+    b.broadcast(&group, &format!("{{\"navigate\":\"{target_url}\"}}\n"));
+
+    let members = b.members(&group);
+    let st = b.status(&group);
+    let delay_ms = st.delay_ms;
+    let mut follower_idx = 0usize;
+
+    for id in members {
+        let u = target_url.clone();
+        let stagger = if delay_ms > 0 && follower_idx > 0 {
+            tokio::time::Duration::from_millis(
+                (delay_ms as u64) + ((follower_idx as u64 * 35) % (delay_ms as u64 + 10)),
+            )
+        } else {
+            tokio::time::Duration::ZERO
+        };
+        follower_idx += 1;
+        tokio::spawn(async move {
+            if !stagger.is_zero() {
+                tokio::time::sleep(stagger).await;
+            }
+            let _ = cdp::navigate_page(&id, &u).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_reload(group: String) -> Result<(), String> {
+    let b = bus().await?;
+    b.broadcast(&group, "{\"reload\":true}\n");
+
+    let members = b.members(&group);
+    for id in members {
+        tokio::spawn(async move {
+            let _ = cdp::reload_page(&id).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_new_tab(group: String, url: Option<String>) -> Result<(), String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    if members.is_empty() {
+        return Err("no members in group".into());
+    }
+    let target_url = url.unwrap_or_else(|| "about:blank".to_string());
+
+    // The engine mirrors tabs opened in a group window, so creating via CDP in
+    // every member doubles the tab: one from CDP, one from the mirror. Create
+    // in one window — the master if set, else the first member — and let the
+    // mirror do the rest.
+    let driver = match b.status(&group).master {
+        Some(m) if members.contains(&m) => m,
+        _ => members[0].clone(),
+    };
+
+    eprintln!(
+        "[sync] new_tab group '{group}' driver '{driver}' url '{target_url}'"
+    );
+    if let Err(e) = cdp::create_tab(&driver, Some(&target_url)).await {
+        // Fallback: mirror is bound to a real user tab action; if the driver
+        // window is gone the engine cannot help, so create everywhere.
+        eprintln!("[sync] driver create failed ({e}); creating everywhere");
+        for id in &members {
+            let u = target_url.clone();
+            let id = id.clone();
+            tokio::spawn(async move {
+                let _ = cdp::create_tab(&id, Some(&u)).await;
+            });
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_close_tab(group: String) -> Result<(), String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    for id in members {
+        tokio::spawn(async move {
+            let _ = cdp::close_active_tab(&id).await;
+        });
+    }
     Ok(())
 }
 
@@ -2089,6 +2339,259 @@ async fn ps_set_tag(id: i64, tag: String) -> Result<Value, String> {
     .map_err(|e| e.to_string())
 }
 
+// ---- credential store ----
+
+#[tauri::command]
+async fn credentials_status() -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "configured": credentials::is_configured(),
+        "unlocked": credentials::is_unlocked(),
+    }))
+}
+
+#[tauri::command]
+async fn credentials_setup(master_password: String) -> Result<(), String> {
+    credentials::setup(&master_password).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_unlock(master_password: String) -> Result<bool, String> {
+    credentials::unlock(&master_password).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_lock() -> Result<(), String> {
+    credentials::lock();
+    Ok(())
+}
+
+#[tauri::command]
+async fn credentials_list(profile_id: String) -> Result<Vec<credentials::Credential>, String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::list_for_profile(&profile_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_add(cred: credentials::Credential) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::add(&cred).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_update(cred: credentials::Credential) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::update(&cred).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_delete(id: String) -> Result<(), String> {
+    credentials::remove(&id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_providers() -> Result<Vec<credentials::ProviderTemplate>, String> {
+    Ok(credentials::providers())
+}
+
+/// Which built-in provider a page URL belongs to, if any.
+#[tauri::command]
+async fn credentials_detect_provider(url: String) -> Result<Option<String>, String> {
+    Ok(credentials::detect_provider(&url))
+}
+
+/// Keeps a profile's provider session alive by visiting it on a timer.
+#[tauri::command]
+async fn keep_alive_start(
+    profile_id: String,
+    provider: String,
+    minutes: u32,
+) -> Result<(), String> {
+    let url = credentials::provider_by_id(&provider)
+        .map(|p| p.keep_alive_url)
+        .ok_or_else(|| format!("unknown provider '{provider}'"))?;
+    keep_alive()
+        .start(&profile_id, &url, minutes)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn keep_alive_stop(profile_id: String) -> Result<(), String> {
+    keep_alive().stop(&profile_id);
+    Ok(())
+}
+
+#[tauri::command]
+async fn keep_alive_status(profile_id: String) -> Result<bool, String> {
+    Ok(keep_alive().is_running(&profile_id))
+}
+
+/// Fills the login form on the profile's current page from a stored account.
+/// Manual only: the operator presses the button.
+#[tauri::command]
+async fn credentials_autofill(profile_id: String, credential_id: String) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("Credential store terkunci. Buka Account Manager dan masukkan master password.".into());
+    }
+    let cred = credentials::get(&credential_id)
+        .map_err(|e| format!("Kredensial tidak ditemukan. Mungkin sudah dihapus? ({e})"))?;
+    if cred.profile_id != profile_id {
+        return Err(format!(
+            "Kredensial {} bukan milik profil {}. Satu kredensial hanya dipakai satu profil.",
+            cred.email, profile_id
+        ));
+    }
+    cdp::ensure_attached(&profile_id)
+        .await
+        .map_err(|e| format!("Browser tidak dapat dikontrol. Jalankan profil dulu. ({e})"))?;
+
+    // Fill email first; a multi-step provider (Google, X) then advances to its
+    // own password page, so the password field is looked up again after.
+    let email_filled = fill_field_kind(&profile_id, "email", &cred.email).await?;
+    if !email_filled {
+        let alt = fill_field_kind(&profile_id, "text", &cred.email).await?;
+        if !alt {
+            return Err(
+                "Tidak ada kolom email terdeteksi di halaman ini. Pastikan halaman login \
+                 provider sedang terbuka."
+                    .into(),
+            );
+        }
+    }
+
+    // Advance if the form is multi-step: try a Next/Continue button, else Enter.
+    let advanced = click_field_kind(&profile_id, "submit").await?;
+    if !advanced {
+        let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
+            .await;
+    }
+
+    // Look for the password field for up to ~8s (page transition).
+    let mut password_ok = false;
+    for _ in 0..16 {
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        if fill_field_kind(&profile_id, "password", &cred.password).await? {
+            password_ok = true;
+            break;
+        }
+    }
+    if !password_ok {
+        return Err(
+            "Kolom password tidak muncul. Provider mungkin mengubah alur loginnya, atau \
+             halaman belum selesai dimuat."
+                .into(),
+        );
+    }
+
+    let _ = click_field_kind(&profile_id, "submit").await;
+    let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
+        .await;
+    let _ = credentials::touch(&credential_id);
+    Ok(())
+}
+
+/// Locates a visible field of `kind` on the page (email / password / text /
+/// submit) and fills it through the browser's own input engine.
+async fn fill_field_kind(profile_id: &str, kind: &str, text: &str) -> Result<bool, String> {
+    let Some((x, y, w)) = locate_field(profile_id, kind).await? else {
+        return Ok(false);
+    };
+    let _ = cdp::browser_call(profile_id, "Motion.createPointer", serde_json::json!({ "x": x, "y": y }))
+        .await;
+    cdp::browser_call(
+        profile_id,
+        "Motion.glideTo",
+        serde_json::json!({ "x": x, "y": y, "targetWidth": w }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    cdp::browser_call(profile_id, "Motion.tap", serde_json::json!({})).await
+        .map_err(|e| e.to_string())?;
+    cdp::browser_call(
+        profile_id,
+        "Motion.enterText",
+        serde_json::json!({ "text": text, "allowTypos": false }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    let _ = cdp::browser_call(profile_id, "Motion.destroyPointer", serde_json::json!({})).await;
+    Ok(true)
+}
+
+/// Clicks a submit control if one is visible.
+async fn click_field_kind(profile_id: &str, kind: &str) -> Result<bool, String> {
+    let Some((x, y, w)) = locate_field(profile_id, kind).await? else {
+        return Ok(false);
+    };
+    let _ = cdp::browser_call(profile_id, "Motion.createPointer", serde_json::json!({ "x": x, "y": y }))
+        .await;
+    cdp::browser_call(
+        profile_id,
+        "Motion.glideTo",
+        serde_json::json!({ "x": x, "y": y, "targetWidth": w }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    cdp::browser_call(profile_id, "Motion.tap", serde_json::json!({})).await
+        .map_err(|e| e.to_string())?;
+    let _ = cdp::browser_call(profile_id, "Motion.destroyPointer", serde_json::json!({})).await;
+    Ok(true)
+}
+
+/// Returns the viewport centre of the first visible matching control.
+async fn locate_field(profile_id: &str, kind: &str) -> Result<Option<(f64, f64, f64)>, String> {
+    let script = format!(
+        r#"(function() {{
+            var kind = {kind:?};
+            function visible(el) {{
+                var r = el.getBoundingClientRect();
+                return r.width > 2 && r.height > 2 && r.top >= -50;
+            }}
+            var els = Array.prototype.slice.call(document.querySelectorAll('input, button, a, div[role=button], span[role=button]'));
+            var pick = null;
+            for (var i = 0; i < els.length; i++) {{
+                var el = els[i];
+                if (!visible(el)) continue;
+                var type = (el.getAttribute('type') || '').toLowerCase();
+                var name = ((el.getAttribute('name') || '') + ' ' + (el.getAttribute('autocomplete') || '') + ' ' + (el.id || '')).toLowerCase();
+                var isSubmit = el.tagName === 'BUTTON' || type === 'submit';
+                var text = (el.innerText || '').toLowerCase();
+                if (kind === 'email' && type === 'email') {{ pick = el; break; }}
+                if (kind === 'password' && type === 'password') {{ pick = el; break; }}
+                if (kind === 'text' && (type === 'text' || type === '') && name.indexOf('email') !== -1) {{ pick = el; break; }}
+                if (kind === 'submit' && isSubmit && (text.indexOf('next') !== -1 || text.indexOf('log') !== -1 || text.indexOf('sign') !== -1 || text.indexOf('continue') !== -1)) {{ pick = el; break; }}
+            }}
+            if (!pick) return null;
+            var r = pick.getBoundingClientRect();
+            return {{ x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }};
+        }})()"#
+    );
+    let res = cdp::page_call(
+        profile_id,
+        "Runtime.evaluate",
+        serde_json::json!({ "expression": script, "returnByValue": true }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    let val = res
+        .get("result")
+        .and_then(|r| r.get("value"))
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+    if val.is_null() {
+        return Ok(None);
+    }
+    let x = val.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let y = val.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let w = val.get("w").and_then(|v| v.as_f64()).unwrap_or(32.0);
+    Ok(Some((x, y, w)))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 /// Bring the main window back from the tray / minimized state and focus it.
 fn show_main_window(app: &tauri::AppHandle) {
@@ -2126,6 +2629,26 @@ pub fn run() {
             sync_stop,
             sync_set_excluded,
             sync_close_panel,
+            sync_set_master,
+            sync_set_delay,
+            sync_navigate,
+            sync_reload,
+            sync_new_tab,
+            sync_close_tab,
+            credentials_status,
+            credentials_setup,
+            credentials_unlock,
+            credentials_lock,
+            credentials_list,
+            credentials_add,
+            credentials_update,
+            credentials_delete,
+            credentials_providers,
+            credentials_detect_provider,
+            credentials_autofill,
+            keep_alive_start,
+            keep_alive_stop,
+            keep_alive_status,
             helper_profiles,
             helper_fields,
             helper_fill,
@@ -2184,6 +2707,7 @@ pub fn run() {
             clipboard_read,
             profile_set_pin,
             profile_set_folder,
+            profile_set_dns,
             folder_rename,
             folder_delete,
             host_platform,

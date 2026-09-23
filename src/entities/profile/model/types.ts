@@ -21,6 +21,8 @@ export type ProfileMeta = {
   extensions: string[];
   /// Phone/tablet fingerprint, decided in Rust by the core's own rule.
   mobile: boolean;
+  /// Custom DoH DNS URL per profile
+  dns_servers?: string | null;
 };
 
 export type ProfileForm = {
@@ -30,6 +32,7 @@ export type ProfileForm = {
   name: string;
   notes: string;
   proxy_id: string | null;
+  dns_servers?: string;
   /// "" = derive from the name, which is what the browser does on its own.
   color: string;
   /// Extension ids from the library.

@@ -195,6 +195,8 @@ export type ProfileStore = {
   bulkDelete: () => Promise<void>;
   bulkExport: () => Promise<void>;
   bulkImport: () => Promise<void>;
+  bulkBindProxy: (proxyId: string | null) => Promise<void>;
+  bulkSetFolder: (folder: string) => Promise<void>;
 };
 
 export const useProfile = create<ProfileStore>((set, get) => ({
@@ -617,7 +619,29 @@ export const useProfile = create<ProfileStore>((set, get) => ({
       toast.ok(n === 1
         ? t("useProfile.profileImportedOne")
         : t("useProfile.profilesImportedMany", { n }));
-    } catch (e) { toast.err(t("useProfile.importFailed", { e: String(e) })); }
+    } catch (e) { toast.err(String(e)); }
+  },
+
+  bulkBindProxy: async (proxyId: string | null) => {
+    const ids = [...get().selected];
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      try { await profileBindProxy(id, proxyId); } catch {}
+    }
+    get().clearSelected();
+    get().reload();
+    toast.ok(`Proxy updated for ${ids.length} profile(s)`);
+  },
+
+  bulkSetFolder: async (folder: string) => {
+    const ids = [...get().selected];
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      try { await profileSetFolder(id, folder); } catch {}
+    }
+    get().clearSelected();
+    get().reload();
+    toast.ok(`Moved ${ids.length} profile(s) to folder "${folder || "General"}"`);
   },
 }));
 

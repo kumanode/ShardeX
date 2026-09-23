@@ -11,9 +11,9 @@ import { PsResiGenerator } from "./PsResiGenerator";
 
 function TrafficStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col gap-[3px] rounded-md bg-bg-weak-50 px-3 py-2.5 ring-1 ring-inset ring-stroke-soft-200">
-      <span className="text-title-h6 text-text-strong-950">{value}</span>
-      <span className="text-subheading-2xs text-text-soft-400">{label}</span>
+    <div className="flex flex-col gap-1 rounded-[16px] bg-[var(--color-surface-alt,#fafafa)] px-3.5 py-3 border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
+      <span className="font-mono text-[22px] font-bold text-zinc-900 dark:text-white tabular-nums">{value}</span>
+      <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{label}</span>
     </div>
   );
 }
@@ -67,9 +67,9 @@ export function PsResidentialCard() {
   const pct = data && data.data > 0 ? Math.min(100, Math.round((data.data_spent / data.data) * 100)) : 0;
 
   return (
-    <div className="mb-3.5 rounded-lg bg-bg-white-0 p-[18px] shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
-      <div className="mb-2.5 flex items-center justify-between gap-3">
-        <h3 className="m-0 text-label-sm text-text-strong-950">{t("psResidentialCard.title")}</h3>
+    <div className="mb-4 rounded-[24px] bg-[var(--color-paper,#ffffff)] p-5 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("psResidentialCard.title")}</h3>
         <SegmentControl
           size="small"
           value={type}
@@ -84,8 +84,8 @@ export function PsResidentialCard() {
 
       {type !== "unmetered" ? (
         <>
-          {loading && <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psResidentialCard.loading")}</p>}
-          {err && !loading && <p className="m-0 text-paragraph-xs text-text-soft-400">{err}</p>}
+          {loading && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psResidentialCard.loading")}</p>}
+          {err && !loading && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{err}</p>}
           {data && !loading && (
             <>
               <div className="my-1 mb-3 grid grid-cols-3 gap-2.5">
@@ -94,12 +94,12 @@ export function PsResidentialCard() {
                 <TrafficStat value={fmtGB(data.data)} label={t("psResidentialCard.total")} />
               </div>
               <ProgressBar value={pct} color={pct > 90 ? "error" : pct > 70 ? "warning" : "primary"} />
-              <p className="m-0 mt-1 text-paragraph-xs text-text-soft-400">{t("psResidentialCard.percentUsed", { pct })}</p>
+              <p className="m-0 mt-1 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psResidentialCard.percentUsed", { pct })}</p>
             </>
           )}
         </>
       ) : (
-        <p className="m-0 text-paragraph-xs text-text-soft-400">
+        <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {order?.expires_at
             ? t("psResidentialCard.unlimitedPlanExpires", { date: order.expires_at.slice(0, 10) })
             : t("psResidentialCard.unlimitedPlan")}

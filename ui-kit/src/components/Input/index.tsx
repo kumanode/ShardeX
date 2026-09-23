@@ -49,11 +49,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
       <div
         className={cn(
-          'flex items-center gap-2 overflow-hidden rounded-[10px] bg-bg-white-0 text-text-strong-950 transition-shadow',
+          'flex items-center gap-2 overflow-hidden rounded-[18px] bg-bg-white-0 text-text-strong-950 transition-all',
           'ring-1 ring-inset ring-stroke-soft-200',
-          inputSize === 'medium' ? 'h-10 px-3' : 'h-9 px-2.5',
-          !disabled && !hasError && 'focus-within:ring-2 focus-within:ring-primary-base focus-within:shadow-[var(--ring-primary-focus)]',
-          hasError && 'ring-error-base focus-within:shadow-[var(--ring-error-focus)]',
+          inputSize === 'medium' ? 'h-10 px-3.5' : 'h-9 px-3',
+          !disabled && !hasError && 'focus-within:ring-1 focus-within:ring-[var(--color-ink,#0a0a0a)]',
+          hasError && 'ring-error-base',
           disabled && 'pointer-events-none bg-bg-weak-50 text-text-disabled-300 ring-stroke-soft-200',
           className,
         )}

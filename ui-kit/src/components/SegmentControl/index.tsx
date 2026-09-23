@@ -26,7 +26,7 @@ export default function SegmentControl({
     <div
       role="tablist"
       className={cn(
-        'inline-flex w-full items-center gap-1 rounded-[10px] bg-bg-weak-50 p-1',
+        'inline-flex w-full items-center gap-1 rounded-lg bg-bg-soft-200 p-1 ring-1 ring-inset ring-stroke-soft-200',
         className,
       )}
     >
@@ -41,10 +41,11 @@ export default function SegmentControl({
             disabled={item.disabled}
             onClick={() => onChange?.(item.value)}
             className={cn(
-              'inline-flex flex-1 items-center justify-center gap-1.5 rounded-md text-label-sm transition-all disabled:opacity-50',
+              'inline-flex flex-1 items-center justify-center gap-1.5 rounded-md text-label-xs outline-none transition-all disabled:opacity-50',
+              'focus-visible:shadow-[var(--ring-primary-focus)]',
               size === 'medium' ? 'h-8 px-3' : 'h-7 px-2.5',
               active
-                ? 'bg-bg-white-0 text-text-strong-950 shadow-[var(--shadow-xs)]'
+                ? 'bg-bg-white-0 text-text-strong-950 font-semibold shadow-xs ring-1 ring-inset ring-stroke-soft-200'
                 : 'text-text-sub-600 hover:text-text-strong-950',
             )}
           >

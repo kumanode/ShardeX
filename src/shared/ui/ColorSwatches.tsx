@@ -18,17 +18,17 @@ export function ColorSwatches({
   const t = useT();
   return (
     <div className="flex flex-col gap-1.5">
-      {label && <span className="text-label-base font-medium text-text-strong-900">{label}</span>}
+      {label && <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{label}</span>}
       <div className="flex flex-wrap items-center gap-1.5">
         <button
           type="button"
           title={t("colorSwatches.autoTitle")}
           onClick={() => onChange("")}
           className={cn(
-            "grid size-6 place-items-center rounded-full text-[9px] font-bold text-text-sub-600 ring-1 ring-inset transition-[box-shadow]",
+            "grid size-6 place-items-center rounded-full text-[9px] font-bold text-zinc-600 dark:text-zinc-300 ring-1 ring-inset transition-[box-shadow]",
             value === ""
-              ? "ring-2 ring-primary-base"
-              : "ring-stroke-soft-200 hover:ring-stroke-sub-300",
+              ? "ring-2 ring-indigo-500"
+              : "ring-[var(--color-hairline,#e5e5e5)] hover:ring-zinc-400 dark:hover:ring-zinc-600",
           )}
         >
           A
@@ -43,7 +43,7 @@ export function ColorSwatches({
             className={cn(
               "size-6 rounded-full transition-[box-shadow]",
               value.toLowerCase() === c.toLowerCase()
-                ? "ring-2 ring-text-strong-950 ring-offset-2 ring-offset-bg-weak-50"
+                ? "ring-2 ring-zinc-900 dark:ring-white ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
                 : "ring-1 ring-inset ring-black/10 hover:ring-black/25",
             )}
           />

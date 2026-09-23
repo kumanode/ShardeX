@@ -19,8 +19,8 @@ export const launch = (profileId: string) => invoke<number>("launch", { profileI
 export const syncLaunch = (profileIds: string[], group?: string) =>
   invoke<string>("sync_launch", { profileIds, group });
 
-export type SyncMember = { profile: string; excluded: boolean; driving: boolean };
-export type SyncStatus = { group: string; members: SyncMember[]; paused: boolean };
+export type SyncMember = { profile: string; name: string; excluded: boolean; driving: boolean; is_master: boolean };
+export type SyncStatus = { group: string; members: SyncMember[]; paused: boolean; master: string | null; delay_ms: number };
 export type SyncLayout = "row" | "grid" | "cascade";
 
 export const syncStatus = (group: string) => invoke<SyncStatus>("sync_status", { group });
@@ -32,6 +32,18 @@ export const syncStop = (group: string) => invoke<void>("sync_stop", { group });
 export const syncSetExcluded = (group: string, profile: string, excluded: boolean) =>
   invoke<void>("sync_set_excluded", { group, profile, excluded });
 export const syncClosePanel = () => invoke<void>("sync_close_panel");
+export const syncSetMaster = (group: string, profile: string | null) =>
+  invoke<void>("sync_set_master", { group, profile });
+export const syncSetDelay = (group: string, delayMs: number) =>
+  invoke<void>("sync_set_delay", { group, delayMs });
+export const syncNavigate = (group: string, url: string) =>
+  invoke<void>("sync_navigate", { group, url });
+export const syncReload = (group: string) =>
+  invoke<void>("sync_reload", { group });
+export const syncNewTab = (group: string, url?: string) =>
+  invoke<void>("sync_new_tab", { group, url });
+export const syncCloseTab = (group: string) =>
+  invoke<void>("sync_close_tab", { group });
 
 export type HelperField = { kind: string; select: boolean; x: number; y: number };
 export type HelperReport = { fields: HelperField[] } | null;

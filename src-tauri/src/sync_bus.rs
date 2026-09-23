@@ -12,6 +12,11 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::mpsc;
 
+struct OutgoingMsg {
+    send_at: tokio::time::Instant,
+    line: String,
+}
+
 /// One connected browser.
 struct Member {
     id: u64,
@@ -21,7 +26,7 @@ struct Member {
     excluded: bool,
     /// The box this window may occupy: the layout's only input besides the screen.
     win: WindowBox,
-    tx: mpsc::UnboundedSender<String>,
+    tx: mpsc::UnboundedSender<OutgoingMsg>,
 }
 
 #[derive(Default)]
@@ -35,6 +40,10 @@ struct State {
     /// group name -> layout last asked for and the area it used. Remembered so a
     /// window that comes up after the layout was chosen is placed too.
     arranged: HashMap<String, (Layout, (i32, i32, i32, i32))>,
+    /// group name -> master profile name (if set)
+    master: HashMap<String, String>,
+    /// group name -> delay in milliseconds (0 = realtime)
+    delay_ms: HashMap<String, u32>,
     /// profile -> what the page helper last found there.
     helper: HashMap<String, serde_json::Value>,
     /// profile -> the field set the panel was dismissed for. Closing the panel
@@ -52,9 +61,12 @@ pub struct Bus {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemberStatus {
     pub profile: String,
+    pub name: String,
     pub excluded: bool,
     /// True for the window that published most recently — the one driving.
     pub driving: bool,
+    /// True if this profile is designated as the master window.
+    pub is_master: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,6 +74,8 @@ pub struct GroupStatus {
     pub group: String,
     pub members: Vec<MemberStatus>,
     pub paused: bool,
+    pub master: Option<String>,
+    pub delay_ms: u32,
 }
 
 #[derive(Deserialize)]
@@ -175,12 +189,22 @@ impl Bus {
         }
         let group = hello.hello;
 
-        let (tx, mut rx) = mpsc::unbounded_channel::<String>();
+        let (tx, mut rx) = mpsc::unbounded_channel::<OutgoingMsg>();
         let id = {
             let mut st = self.state.lock().unwrap();
             st.next_id += 1;
             let id = st.next_id;
-            st.groups.entry(group.clone()).or_default().push(Member {
+            let members = st.groups.entry(group.clone()).or_default();
+            // One connection per profile: a stale entry from a crashed window
+            // (or a duplicate connect) is replaced, never accumulated.
+            if let Some(existing) = members.iter().position(|m| m.profile == hello.profile) {
+                eprintln!(
+                    "[bus] profile {} re-joined group {} — replacing stale member",
+                    hello.profile, group
+                );
+                members.swap_remove(existing);
+            }
+            members.push(Member {
                 id,
                 profile: hello.profile.clone(),
                 excluded: false,
@@ -191,7 +215,10 @@ impl Bus {
             if *st.paused.get(&group).unwrap_or(&false) {
                 let members = st.groups.get(&group).unwrap();
                 if let Some(m) = members.iter().find(|m| m.id == id) {
-                    let _ = m.tx.send("{\"suspended\":true}\n".to_string());
+                    let _ = m.tx.send(OutgoingMsg {
+                        send_at: tokio::time::Instant::now(),
+                        line: "{\"suspended\":true}\n".to_string(),
+                    });
                 }
             }
             id
@@ -210,8 +237,12 @@ impl Bus {
         }
 
         let writer = tokio::spawn(async move {
-            while let Some(line) = rx.recv().await {
-                if write_half.write_all(line.as_bytes()).await.is_err() {
+            while let Some(msg) = rx.recv().await {
+                let now = tokio::time::Instant::now();
+                if msg.send_at > now {
+                    tokio::time::sleep(msg.send_at - now).await;
+                }
+                if write_half.write_all(msg.line.as_bytes()).await.is_err() {
                     return;
                 }
             }
@@ -242,6 +273,11 @@ impl Bus {
                 members.retain(|m| m.id != id);
                 if members.is_empty() {
                     st.groups.remove(&group);
+                    st.master.remove(&group);
+                    st.delay_ms.remove(&group);
+                } else if st.master.get(&group).map(String::as_str) == Some(&hello.profile) {
+                    // The master window closed; release master lock so remaining windows stay in sync.
+                    st.master.remove(&group);
                 }
             }
             // The window is gone, so its offer goes with it.
@@ -255,7 +291,20 @@ impl Bus {
         if *st.paused.get(group).unwrap_or(&false) {
             return;
         }
+        // If master is set, ensure the sender is the master.
+        if let Some(master) = st.master.get(group) {
+            let sender_is_master = st
+                .groups
+                .get(group)
+                .and_then(|ms| ms.iter().find(|m| m.id == from))
+                .map(|m| &m.profile == master)
+                .unwrap_or(false);
+            if !sender_is_master {
+                return;
+            }
+        }
         st.driving.insert(group.to_string(), from);
+        let delay_ms = st.delay_ms.get(group).copied().unwrap_or(0);
         let Some(members) = st.groups.get(group) else {
             return;
         };
@@ -264,10 +313,25 @@ impl Bus {
             return;
         }
         let framed = format!("{line}\n");
+        let now = tokio::time::Instant::now();
+        let mut follower_idx = 0usize;
         for m in members {
             // Never back to the sender — that is the echo to avoid.
             if m.id != from && !m.excluded {
-                let _ = m.tx.send(framed.clone());
+                let send_at = if delay_ms > 0 {
+                    let base = std::time::Duration::from_millis(delay_ms as u64);
+                    let stagger = std::time::Duration::from_millis(
+                        (follower_idx as u64 * 35) % (delay_ms as u64 + 10),
+                    );
+                    now + base + stagger
+                } else {
+                    now
+                };
+                follower_idx += 1;
+                let _ = m.tx.send(OutgoingMsg {
+                    send_at,
+                    line: framed.clone(),
+                });
             }
         }
     }
@@ -367,7 +431,10 @@ impl Bus {
             let line = format!(
                 "{{\"bounds\":{{\"x\":{x},\"y\":{y},\"w\":{w},\"h\":{h}}},\"activate\":true}}\n"
             );
-            let _ = m.tx.send(line);
+            let _ = m.tx.send(OutgoingMsg {
+                send_at: tokio::time::Instant::now(),
+                line,
+            });
         }
     }
 
@@ -377,7 +444,10 @@ impl Bus {
         let st = self.state.lock().unwrap();
         if let Some(members) = st.groups.get(group) {
             for m in members {
-                let _ = m.tx.send("{\"close\":true}\n".to_string());
+                let _ = m.tx.send(OutgoingMsg {
+                    send_at: tokio::time::Instant::now(),
+                    line: "{\"close\":true}\n".to_string(),
+                });
             }
         }
     }
@@ -441,7 +511,14 @@ impl Bus {
         };
         let mut told = 0;
         for m in members {
-            if !m.excluded && m.tx.send("{\"fill\":true}\n".to_string()).is_ok() {
+            if !m.excluded
+                && m.tx
+                    .send(OutgoingMsg {
+                        send_at: tokio::time::Instant::now(),
+                        line: "{\"fill\":true}\n".to_string(),
+                    })
+                    .is_ok()
+            {
                 told += 1;
             }
         }
@@ -465,10 +542,66 @@ impl Bus {
         for members in st.groups.values() {
             for m in members {
                 if m.profile == profile {
-                    let _ = m.tx.send("{\"fill\":true}\n".to_string());
+                    let _ = m.tx.send(OutgoingMsg {
+                        send_at: tokio::time::Instant::now(),
+                        line: "{\"fill\":true}\n".to_string(),
+                    });
                 }
             }
         }
+    }
+
+    pub fn set_master(&self, group: &str, profile: Option<String>) {
+        let mut st = self.state.lock().unwrap();
+        if let Some(p) = profile {
+            st.master.insert(group.to_string(), p);
+        } else {
+            st.master.remove(group);
+        }
+    }
+
+    pub fn set_delay(&self, group: &str, delay_ms: u32) {
+        let mut st = self.state.lock().unwrap();
+        if delay_ms > 0 {
+            st.delay_ms.insert(group.to_string(), delay_ms);
+        } else {
+            st.delay_ms.remove(group);
+        }
+    }
+
+    pub fn broadcast(&self, group: &str, line: &str) {
+        let st = self.state.lock().unwrap();
+        let Some(members) = st.groups.get(group) else {
+            return;
+        };
+        let framed = if line.ends_with('\n') {
+            line.to_string()
+        } else {
+            format!("{line}\n")
+        };
+        let now = tokio::time::Instant::now();
+        for m in members {
+            if !m.excluded {
+                let _ = m.tx.send(OutgoingMsg {
+                    send_at: now,
+                    line: framed.clone(),
+                });
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn members(&self, group: &str) -> Vec<String> {
+        let st = self.state.lock().unwrap();
+        let mut res = Vec::new();
+        if let Some(ms) = st.groups.get(group) {
+            for m in ms {
+                if !res.contains(&m.profile) {
+                    res.push(m.profile.clone());
+                }
+            }
+        }
+        res
     }
 
     pub fn set_excluded(&self, group: &str, profile: &str, excluded: bool) {
@@ -478,7 +611,10 @@ impl Bus {
                 if m.profile == profile {
                     m.excluded = excluded;
                     // Tell the window too, so it stops performing.
-                    let _ = m.tx.send(format!("{{\"suspended\":{excluded}}}\n"));
+                    let _ = m.tx.send(OutgoingMsg {
+                        send_at: tokio::time::Instant::now(),
+                        line: format!("{{\"suspended\":{excluded}}}\n"),
+                    });
                 }
             }
         }
@@ -487,22 +623,41 @@ impl Bus {
     pub fn status(&self, group: &str) -> GroupStatus {
         let st = self.state.lock().unwrap();
         let driving = st.driving.get(group).copied().unwrap_or(0);
+        let master = st.master.get(group).cloned();
+        let delay_ms = st.delay_ms.get(group).copied().unwrap_or(0);
         GroupStatus {
             group: group.to_string(),
             members: st
                 .groups
                 .get(group)
                 .map(|ms| {
+                    let mut seen = std::collections::HashSet::new();
                     ms.iter()
-                        .map(|m| MemberStatus {
-                            profile: m.profile.clone(),
-                            excluded: m.excluded,
-                            driving: m.id == driving,
+                        .filter(|m| seen.insert(m.profile.clone()))
+                        .map(|m| {
+                            let name = crate::profile::load_raw(&m.profile)
+                                .ok()
+                                .and_then(|p| {
+                                    p.config
+                                        .get("name")
+                                        .and_then(|v| v.as_str())
+                                        .map(String::from)
+                                })
+                                .unwrap_or_else(|| m.profile.clone());
+                            MemberStatus {
+                                profile: m.profile.clone(),
+                                name,
+                                excluded: m.excluded,
+                                driving: m.id == driving,
+                                is_master: master.as_deref() == Some(&m.profile),
+                            }
                         })
                         .collect()
                 })
                 .unwrap_or_default(),
             paused: *st.paused.get(group).unwrap_or(&false),
+            master,
+            delay_ms,
         }
     }
 
@@ -513,8 +668,12 @@ impl Bus {
         st.paused.insert(group.to_string(), paused);
         if let Some(members) = st.groups.get(group) {
             let line = format!("{{\"suspended\":{paused}}}\n");
+            let now = tokio::time::Instant::now();
             for m in members {
-                let _ = m.tx.send(line.clone());
+                let _ = m.tx.send(OutgoingMsg {
+                    send_at: now,
+                    line: line.clone(),
+                });
             }
         }
     }

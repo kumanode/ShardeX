@@ -34,11 +34,15 @@ export function App() {
       <WhatsNewGate />
       <FirstRunGate>
         <div
-          className="grid overflow-hidden bg-bg-weak-50 [grid-template-columns:240px_1fr] [@media(min-width:1700px)]:[grid-template-columns:280px_1fr]"
-          style={{ height: "100vh", paddingTop: "var(--titlebar-h)" }}
+          className="grid overflow-hidden [grid-template-columns:240px_1fr] [@media(min-width:1700px)]:[grid-template-columns:280px_1fr]"
+          style={{
+            height: "100vh",
+            paddingTop: "var(--titlebar-h)",
+            background: "var(--surface-canvas, #f5f5f5)",
+          }}
         >
           <Sidebar />
-          <main className="overflow-y-auto px-7 py-6">
+          <main className="overflow-y-auto px-8 py-7">
             {section === "browsers" && <BrowsersPage />}
             {section === "proxies" && <ProxiesPage />}
             {section === "proxyshard" && <ProxyShardPage />}

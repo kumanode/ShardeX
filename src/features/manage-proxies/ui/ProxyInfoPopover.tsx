@@ -43,33 +43,33 @@ export function ProxyInfoPopover({
 
   return (
     <div
-      className="proxy-popover fixed z-250 flex max-h-[480px] w-[340px] animate-[fadeUp_0.12s_ease-out] flex-col overflow-hidden rounded-12 bg-bg-white-0 shadow-[var(--shadow-md)] ring-1 ring-inset ring-stroke-soft-200"
+      className="proxy-popover fixed z-250 flex max-h-[480px] w-[340px] animate-[fadeUp_0.12s_ease-out] flex-col overflow-hidden rounded-[20px] bg-[var(--color-paper,#ffffff)] shadow-2xl border border-[var(--color-hairline,#e5e5e5)]"
       style={{ left, top }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex flex-col gap-1.5 px-4 py-3.5">
         {latest?.ip ? (
           <>
-            <div className="flex items-center gap-2.5 text-paragraph-sm text-text-strong-950">
-              <span className="inline-grid w-5 place-items-center text-icon-soft-400"><GlobeIcon className="size-4" /></span>
+            <div className="flex items-center gap-2.5 text-paragraph-sm text-zinc-800 dark:text-zinc-200">
+              <span className="inline-grid w-5 place-items-center text-zinc-400 dark:text-zinc-500"><GlobeIcon className="size-4" /></span>
               <span className="mono">{latest.ip}</span>
             </div>
-            <div className="flex items-center gap-2.5 text-paragraph-sm text-text-strong-950">
-              <span className="inline-grid w-5 place-items-center text-icon-soft-400">
+            <div className="flex items-center gap-2.5 text-paragraph-sm text-zinc-800 dark:text-zinc-200">
+              <span className="inline-grid w-5 place-items-center text-zinc-400 dark:text-zinc-500">
                 {latest.country_code ? <CountryFlag cc={latest.country_code} height={14} /> : <GlobeIcon className="size-4" />}
               </span>
               <span>{[latest.region, latest.city].filter(Boolean).join(", ") || latest.country || "—"}</span>
             </div>
             {latest.timezone && (
-              <div className="flex items-center gap-2.5 text-paragraph-sm text-text-strong-950">
-                <span className="inline-grid w-5 place-items-center text-icon-soft-400"><ClockIcon className="size-4" /></span>
+              <div className="flex items-center gap-2.5 text-paragraph-sm text-zinc-800 dark:text-zinc-200">
+                <span className="inline-grid w-5 place-items-center text-zinc-400 dark:text-zinc-500"><ClockIcon className="size-4" /></span>
                 <span>{latest.timezone}</span>
               </div>
             )}
             {latest.isp && (
-              <div className="flex items-center gap-2.5 text-paragraph-sm text-text-strong-950">
-                <span className="inline-grid w-5 place-items-center text-icon-soft-400"><BuildingIcon className="size-4" /></span>
-                <span className="text-paragraph-xs text-text-soft-400">{latest.isp}</span>
+              <div className="flex items-center gap-2.5 text-paragraph-sm text-zinc-800 dark:text-zinc-200">
+                <span className="inline-grid w-5 place-items-center text-zinc-400 dark:text-zinc-500"><BuildingIcon className="size-4" /></span>
+                <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{latest.isp}</span>
               </div>
             )}
             <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -94,25 +94,25 @@ export function ProxyInfoPopover({
             )}
           </>
         ) : (
-          <div className="text-paragraph-xs text-text-soft-400">{t("proxyInfoPopover.notTested")}</div>
+          <div className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("proxyInfoPopover.notTested")}</div>
         )}
       </div>
-      <div className="border-b border-t border-stroke-soft-200 bg-bg-weak-50 px-4 py-2 text-center text-subheading-2xs text-text-soft-400">{t("proxyInfoPopover.historyTitle")}</div>
+      <div className="border-b border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.06em] text-zinc-500 dark:text-zinc-400">{t("proxyInfoPopover.historyTitle")}</div>
       <div className="flex-1 overflow-y-auto py-1">
-        {history.length === 0 && <div className="px-4 py-2.5 text-paragraph-xs text-text-soft-400">{t("proxyInfoPopover.historyEmpty")}</div>}
+        {history.length === 0 && <div className="px-4 py-2.5 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("proxyInfoPopover.historyEmpty")}</div>}
         {history.map((s, i) => (
-          <div key={`${s.ip}-${s.first_seen}-${i}`} className="border-b border-stroke-soft-200 px-4 py-2 last:border-b-0">
-            <div className="flex items-center gap-2 text-paragraph-sm text-text-strong-950">
+          <div key={`${s.ip}-${s.first_seen}-${i}`} className="border-b border-[var(--color-hairline,#e5e5e5)] px-4 py-2 last:border-b-0">
+            <div className="flex items-center gap-2 text-paragraph-sm text-zinc-800 dark:text-zinc-200">
               <span className="mono">{s.ip || "—"}</span>
               {s.country_code && (
                 <>
                   <CountryFlag cc={s.country_code} />
-                  <span className="text-paragraph-xs text-text-sub-600">{s.country_code}</span>
+                  <span className="text-paragraph-xs text-zinc-600 dark:text-zinc-300">{s.country_code}</span>
                 </>
               )}
-              {s.city && <span className="text-paragraph-xs text-text-soft-400">{s.city}</span>}
+              {s.city && <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{s.city}</span>}
             </div>
-            <div className="mt-0.5 text-[11px] text-text-disabled-300">
+            <div className="mt-0.5 text-[11px] text-zinc-400 dark:text-zinc-500">
               {fmtTs(s.first_seen)}
               {s.first_seen !== s.last_seen && <> → {fmtTs(s.last_seen)}</>}
               {s.udp_ms != null && <> · UDP ✓</>}

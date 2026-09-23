@@ -42,16 +42,16 @@ export function TemplatePicker({
       maxWidthClassName="max-w-[880px]"
     >
       {tpls.length === 0 ? (
-        <div className="rounded-10 bg-bg-weak-50 px-4 py-8 text-center text-paragraph-sm text-text-sub-600">
+        <div className="rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] px-4 py-8 text-center text-paragraph-sm text-zinc-500 dark:text-zinc-400">
           No {host} fingerprints in the library yet. Add some on the
           Fingerprints page (or drop JSONs into the library folder).
         </div>
       ) : (
-        <div className="grid max-h-[60vh] grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 overflow-y-auto">
+        <div className="grid max-h-[60vh] grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 overflow-y-auto p-1">
           {tpls.map((t) => (
             <button
               key={t.id}
-              className="relative flex cursor-pointer flex-col gap-1.5 overflow-hidden rounded-10 bg-bg-white-0 px-4 py-3.5 pb-3 text-left ring-1 ring-inset ring-stroke-soft-200 transition-all hover:bg-bg-weak-50 hover:ring-primary-base active:translate-y-px"
+              className="relative flex cursor-pointer flex-col gap-1.5 overflow-hidden rounded-[18px] bg-[var(--color-paper,#ffffff)] px-4 py-3.5 pb-3 text-left border border-[var(--color-hairline,#e5e5e5)] shadow-xs transition-all hover:bg-[var(--color-surface-alt,#fafafa)] hover:border-zinc-400 dark:hover:border-zinc-500 active:translate-y-px"
               onClick={() => onPick(t.id)}
             >
               <div
@@ -59,14 +59,14 @@ export function TemplatePicker({
                 style={{ background: t.tag_color }}
               />
               <div className="mt-1 flex items-center justify-between gap-2 text-subheading-2xs">
-                <span className="text-primary-base">{t.platform}</span>
+                <span className="text-zinc-900 dark:text-white font-semibold">{t.platform}</span>
                 <span className="flex items-center gap-1.5">
                   {compatById[t.id] && <IncompatibleBadge compat={compatById[t.id]} />}
-                  <span className="text-text-soft-400">Chrome {t.chrome}</span>
+                  <span className="font-mono text-zinc-500 dark:text-zinc-400">Chrome {t.chrome}</span>
                 </span>
               </div>
-              <div className="mt-0.5 text-label-sm text-text-strong-950">{t.label}</div>
-              <div className="mono text-[11.5px] text-text-soft-400">{t.gpu}</div>
+              <div className="mt-0.5 text-label-sm font-semibold text-zinc-900 dark:text-white">{t.label}</div>
+              <div className="font-mono text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate">{t.gpu}</div>
             </button>
           ))}
         </div>

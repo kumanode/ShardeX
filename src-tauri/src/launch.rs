@@ -220,6 +220,14 @@ pub async fn launch_profile_synced(
         cmd.arg("--hide-crash-restore-bubble");
     }
 
+    // Per-profile DNS. ponytail: Chromium has no plain "use these DNS servers"
+    // switch, so this rides its DoH support (a URL). Upgrade to a resolver-IP
+    // flag if the engine ever adds one.
+    if let Some(dns) = stored.meta.dns_servers.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        cmd.arg("--dns-over-https-mode=secure");
+        cmd.arg(format!("--dns-over-https-templates={dns}"));
+    }
+
     if let Some(p) = bound_proxy.as_ref() {
         cmd.arg(format!("--proxy-server={}", p.to_proxy_server_arg()));
 

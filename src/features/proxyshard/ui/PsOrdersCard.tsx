@@ -64,9 +64,9 @@ export function PsOrdersCard() {
   const visible = orders.filter((o) => isDcIsp(o.product_name));
 
   return (
-    <div className="mb-3.5 rounded-lg bg-bg-white-0 p-[18px] shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
-      <div className="mb-2.5 flex items-center justify-between gap-3">
-        <h3 className="m-0 text-label-sm text-text-strong-950">{t("psOrdersCard.title")}</h3>
+    <div className="mb-4 rounded-[24px] bg-[var(--color-paper,#ffffff)] p-5 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("psOrdersCard.title")}</h3>
         <div className="flex items-center gap-2">
           <div className="w-[130px]">
             <Select
@@ -81,20 +81,20 @@ export function PsOrdersCard() {
               ]}
             />
           </div>
-          <Button variant="neutral" mode="stroke" size="xsmall" onlyIcon onClick={() => load()} title={t("psOrdersCard.refreshTitle")}>
-            <RefreshIcon className="size-4" />
+          <Button variant="neutral" mode="stroke" size="small" onlyIcon className="h-9 w-9" onClick={() => load()} title={t("psOrdersCard.refreshTitle")}>
+            <RefreshIcon className="size-[18px]" />
           </Button>
         </div>
       </div>
-      {loading && <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psOrdersCard.loading")}</p>}
-      {!loading && visible.length === 0 && <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psOrdersCard.emptyState")}</p>}
+      {loading && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psOrdersCard.loading")}</p>}
+      {!loading && visible.length === 0 && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psOrdersCard.emptyState")}</p>}
       {!loading && visible.length > 0 && (
-        <div className="mt-1 overflow-hidden rounded-10 ring-1 ring-inset ring-stroke-soft-200">
+        <div className="mt-1 overflow-hidden rounded-[18px] border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]">
           {visible.map((o) => (
-            <div key={o.order_id} className="flex items-center justify-between gap-3 border-b border-stroke-soft-200 px-4 py-3 last:border-b-0">
+            <div key={o.order_id} className="flex items-center justify-between gap-3 border-b border-[var(--color-hairline,#e5e5e5)] px-4 py-3 last:border-b-0 hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors">
               <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-label-xs text-text-strong-950">{o.product_name}</span>
-                <span className="text-paragraph-xs text-text-soft-400">
+                <span className="text-label-xs font-semibold text-zinc-900 dark:text-white">{o.product_name}</span>
+                <span className="font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
                   #{o.order_id} · {o.cycle_name}
                   {o.tag && o.tag !== "none" ? ` · ${o.tag}` : ""}
                   {o.expires_at ? ` · ${t("psOrdersCard.until", { date: o.expires_at.slice(0, 10) })}` : ""}
@@ -104,18 +104,18 @@ export function PsOrdersCard() {
                 <Button
                   variant="neutral"
                   mode="stroke"
-                  size="2xsmall"
-                  leftIcon={<DownloadIcon className="size-3.5" />}
+                  size="xsmall"
+                  leftIcon={<DownloadIcon className="size-4" />}
                   onClick={() => setImporting(o)}
                   title={t("psOrdersCard.importTitle")}
                 >
                   {t("psOrdersCard.importButton")}
                 </Button>
-                <Button variant="neutral" mode="stroke" size="2xsmall" onlyIcon onClick={() => setTagging(o)} title={t("psOrdersCard.editTagTitle")}>
-                  <EditIcon className="size-3.5" />
+                <Button variant="neutral" mode="stroke" size="xsmall" onlyIcon onClick={() => setTagging(o)} title={t("psOrdersCard.editTagTitle")}>
+                  <EditIcon className="size-4" />
                 </Button>
                 {status === "on-hold" && (
-                  <Button variant="neutral" mode="stroke" size="2xsmall" disabled={busy[o.order_id]} onClick={() => renew(o)}>
+                  <Button variant="neutral" mode="stroke" size="xsmall" disabled={busy[o.order_id]} onClick={() => renew(o)}>
                     {t("psOrdersCard.renew")}
                   </Button>
                 )}
@@ -127,7 +127,7 @@ export function PsOrdersCard() {
       {!loading && (offset > 0 || hasNext) && (
         <div className="mt-3 flex items-center justify-center gap-3.5">
           <Button variant="neutral" mode="stroke" size="2xsmall" disabled={offset <= 0} onClick={() => go(false)}>{t("psOrdersCard.prev")}</Button>
-          <span className="text-paragraph-xs text-text-soft-400">{t("psOrdersCard.page", { n: Math.floor(offset / PS_ORDERS_PAGE) + 1 })}</span>
+          <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psOrdersCard.page", { n: Math.floor(offset / PS_ORDERS_PAGE) + 1 })}</span>
           <Button variant="neutral" mode="stroke" size="2xsmall" disabled={!hasNext} onClick={() => go(true)}>{t("psOrdersCard.next")}</Button>
         </div>
       )}

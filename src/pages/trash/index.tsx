@@ -28,8 +28,8 @@ export function TrashPage() {
 
       <div className="mb-3.5 flex items-end justify-between gap-4">
         <div>
-          <h1 className="m-0 text-title-h5 text-text-strong-950">{t("trash.title")}</h1>
-          <p className="m-0 mt-1 max-w-[70ch] text-paragraph-xs text-text-soft-400">
+          <h1 className="m-0 text-page-title text-zinc-900 dark:text-white">{t("trash.title")}</h1>
+          <p className="m-0 mt-1 max-w-[70ch] text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("trash.intro")}
           </p>
         </div>
@@ -44,9 +44,9 @@ export function TrashPage() {
         )}
       </div>
 
-      <div className="overflow-hidden rounded-12 bg-bg-white-0 shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
+      <div className="overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
         {items.length > 0 && (
-          <div className="grid grid-cols-[1fr_120px_150px_120px_180px] items-center gap-3 border-b border-stroke-soft-200 bg-bg-weak-50 px-4 py-2 text-subheading-2xs text-text-soft-400">
+          <div className="grid grid-cols-[1fr_120px_150px_120px_190px] items-center gap-3 border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] px-5 py-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-zinc-500 dark:text-zinc-300">
             <div>{t("trash.colName")}</div>
             <div>{t("trash.colFolder")}</div>
             <div>{t("trash.colDeleted")}</div>
@@ -59,34 +59,35 @@ export function TrashPage() {
           return (
             <div
               key={e.id}
-              className="grid grid-cols-[1fr_120px_150px_120px_180px] items-center gap-3 border-t border-stroke-soft-200 px-4 py-2.5 first:border-t-0 transition-colors hover:bg-bg-weak-50"
+              className="grid grid-cols-[1fr_120px_150px_120px_190px] items-center gap-3 border-t border-[var(--color-hairline,#e5e5e5)] px-5 py-3 first:border-t-0 transition-colors hover:bg-[var(--color-surface-alt,#fafafa)]"
             >
               <div className="min-w-0">
-                <div className="truncate text-label-xs text-text-strong-950">{e.name}</div>
-                <div className="mono truncate text-[10.5px] text-text-disabled-300">{e.id.slice(0, 8)}</div>
+                <div className="truncate text-label-xs font-semibold text-zinc-900 dark:text-white">{e.name}</div>
+                <div className="font-mono truncate text-[11px] text-zinc-500 dark:text-zinc-400">{e.id.slice(0, 8)}</div>
               </div>
-              <div className="truncate text-paragraph-xs text-text-sub-600">
-                {e.folder || <span className="text-text-soft-400">—</span>}
+              <div className="truncate text-paragraph-xs font-medium text-zinc-700 dark:text-zinc-300">
+                {e.folder || <span className="font-mono text-zinc-400 dark:text-zinc-500">-</span>}
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-paragraph-xs text-text-soft-400">{fmtTs(`@${e.deleted_at}`)}</span>
+                <span className="font-mono text-paragraph-xs text-zinc-500 dark:text-zinc-400">{fmtTs(`@${e.deleted_at}`)}</span>
                 <Badge color={left <= 1 ? "error" : "gray"} variant="filled" size="small">
                   {left === 0 ? t("trash.expiresToday") : t("trash.daysLeft", { n: left })}
                 </Badge>
               </div>
-              <div className="text-paragraph-xs text-text-sub-600">{fmtBytes(e.size_bytes)}</div>
-              <div className="flex justify-end gap-2">
+              <div className="font-mono text-paragraph-xs font-semibold text-zinc-700 dark:text-zinc-200">{fmtBytes(e.size_bytes)}</div>
+              <div className="flex justify-end gap-1.5">
                 <Button
-                  variant="neutral" mode="stroke" size="2xsmall"
+                  variant="neutral" mode="stroke" size="xsmall"
                   disabled={busy === e.id} isLoading={busy === e.id}
-                  leftIcon={<RestoreIcon className="size-3.5" />}
+                  leftIcon={<RestoreIcon className="size-4" />}
                   onClick={() => restore(e)}
                 >
                   {t("trash.restore")}
                 </Button>
                 <Button
-                  variant="error" mode="ghost" size="2xsmall"
-                  leftIcon={<DeleteIcon className="size-3.5" />}
+                  variant="error" mode="stroke" size="xsmall"
+                  className="hover:!bg-rose-500/10"
+                  leftIcon={<DeleteIcon className="size-4 text-rose-500" />}
                   onClick={() => purge(e)}
                 >
                   {t("trash.delete")}
@@ -97,11 +98,11 @@ export function TrashPage() {
         })}
         {items.length === 0 && (
           <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-            <div className="grid size-14 place-items-center rounded-[14px] bg-primary-alpha-10 text-primary-base ring-1 ring-inset ring-primary-alpha-24">
-              <NavTrashIcon className="size-6" />
+            <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-rose-500/10 text-rose-500 border border-rose-500/25">
+              <NavTrashIcon className="size-7" />
             </div>
-            <h3 className="m-0 text-label-sm text-text-strong-950">{t("trash.emptyTitle")}</h3>
-            <p className="m-0 max-w-[420px] text-paragraph-sm text-text-sub-600">
+            <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("trash.emptyTitle")}</h3>
+            <p className="m-0 max-w-[420px] text-paragraph-sm text-zinc-500 dark:text-zinc-400">
               {t("trash.emptyHint")}
             </p>
           </div>

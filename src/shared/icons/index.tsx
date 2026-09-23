@@ -114,9 +114,16 @@ export const FilterIcon = make(HugeFilterIcon);
 export const CloseIcon = make(Cancel01Icon);
 export const PauseIcon = make(HugePauseIcon);
 
-export function ShardLogo() {
+export function ShardLogo({ className = "w-5 h-[18px]", size }: { className?: string; size?: number }) {
   return (
-    <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width={size ?? 20}
+      height={size ? (size * 18) / 20 : 18}
+      viewBox="0 0 20 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
       <path d="M7.1026 1.22343C6.98443 0.677185 6.2319 0.606146 6.01306 1.12057L0.0492018 15.1396C-0.195534 15.7149 0.52929 16.2093 0.978164 15.7733L7.72968 9.21451C8.29604 8.66432 8.5387 7.86224 8.37197 7.09148L7.1026 1.22343Z" fill="currentColor" />
       <path d="M11.0907 8.41685C10.2971 8.17551 9.69576 7.52597 9.5178 6.71782L8.19207 0.697569C8.07126 0.148991 8.73239 -0.226919 9.14425 0.15617L19.579 9.86215C20.024 10.2761 19.6021 11.0053 19.0201 10.8283L11.0907 8.41685Z" fill="currentColor" />
       <path d="M2.19142 17.6237C1.61701 17.7849 1.20788 17.0735 1.63752 16.6605L8.48546 10.0776C9.07995 9.50612 9.93635 9.29698 10.7283 9.52988L18.7299 11.8828C19.2823 12.0453 19.2774 12.8273 18.723 12.9829L2.19142 17.6237Z" fill="currentColor" />
@@ -124,9 +131,16 @@ export function ShardLogo() {
   );
 }
 
-export function ShardMini() {
+export function ShardMini({ className = "size-4", size }: { className?: string; size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width={size ?? 16}
+      height={size ?? 16}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
       <g clipPath="url(#clip0_1_20)">
         <path d="M5.74972 1.8432C5.65406 1.40067 5.04487 1.34312 4.86772 1.75987L0.03983 13.117C-0.15829 13.5831 0.428473 13.9836 0.791847 13.6304L6.25736 8.31696C6.71585 7.87124 6.91228 7.22145 6.77731 6.59704L5.74972 1.8432Z" fill="currentColor" />
         <path d="M8.97817 7.67076C8.33573 7.47524 7.84895 6.94903 7.70489 6.29433L6.63167 1.41719C6.53388 0.97277 7.06908 0.668236 7.40248 0.978586L15.8497 8.84163C16.2099 9.17696 15.8684 9.76774 15.3972 9.62434L8.97817 7.67076Z" fill="currentColor" />

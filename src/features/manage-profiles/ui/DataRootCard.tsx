@@ -69,16 +69,16 @@ export function DataRootCard() {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="m-0 text-paragraph-xs text-text-soft-400">
+      <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
         {t("dataRootCard.intro")}
       </p>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-label-xs text-text-sub-600">
-          {t("dataRootCard.currentLocation")}{info && !info.custom && <span className="text-text-soft-400">{t("dataRootCard.defaultSuffix")}</span>}
+        <span className="text-label-xs font-medium text-zinc-700 dark:text-zinc-300">
+          {t("dataRootCard.currentLocation")}{info && !info.custom && <span className="text-zinc-500 dark:text-zinc-400">{t("dataRootCard.defaultSuffix")}</span>}
         </span>
         <div className="flex items-center gap-2">
-          <span className="mono min-w-0 flex-1 truncate rounded-8 bg-bg-weak-50 px-[11px] py-[9px] text-paragraph-xs text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200">
+          <span className="font-mono min-w-0 flex-1 truncate rounded-[14px] bg-[var(--color-surface-alt,#fafafa)] px-3.5 py-2 text-paragraph-xs font-medium text-zinc-700 dark:text-zinc-200 border border-[var(--color-hairline,#e5e5e5)]">
             {info?.path ?? "…"}
           </span>
           <Button
@@ -98,18 +98,18 @@ export function DataRootCard() {
       </label>
 
       {progress && (
-        <div className="flex flex-col gap-1.5 rounded-8 bg-bg-weak-50 p-3 ring-1 ring-inset ring-stroke-soft-200">
+        <div className="flex flex-col gap-1.5 rounded-[16px] bg-[var(--color-surface-alt,#fafafa)] p-3 border border-[var(--color-hairline,#e5e5e5)]">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-label-xs text-text-strong-950">
+            <span className="text-label-xs text-zinc-800 dark:text-zinc-200">
               {PHASE_LABEL[progress.phase]}
             </span>
-            <span className="mono text-paragraph-xs text-text-soft-400">
+            <span className="mono text-paragraph-xs text-zinc-400 dark:text-zinc-500">
               {progress.total > 0 ? `${progress.done} / ${progress.total}` : ""}
             </span>
           </div>
           <ProgressBar value={progress.percent} max={100} />
           {progress.current && (
-            <span className="mono truncate text-[10.5px] text-text-disabled-300">
+            <span className="mono truncate text-[10.5px] text-zinc-500 dark:text-zinc-400">
               {progress.current}
             </span>
           )}

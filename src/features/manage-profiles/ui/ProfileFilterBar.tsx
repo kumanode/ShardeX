@@ -30,6 +30,7 @@ export function ProfileFilterBar() {
         variant={active > 0 ? "primary" : "neutral"}
         mode="stroke"
         size="small"
+        className={active > 0 ? "!border-indigo-500/40 !bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400" : ""}
         leftIcon={<FilterIcon className="size-4" />}
         onClick={() => setOpen((v) => !v)}
       >
@@ -39,7 +40,7 @@ export function ProfileFilterBar() {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-20 mt-1.5 flex w-[260px] flex-col gap-3 rounded-xl bg-bg-white-0 p-3 shadow-[var(--shadow-md)] ring-1 ring-stroke-soft-200">
+          <div className="absolute right-0 z-20 mt-1.5 flex w-[260px] flex-col gap-3 rounded-[18px] bg-[var(--color-paper,#ffffff)] p-3.5 shadow-[var(--shadow-subtle)] border border-[var(--color-hairline,#e5e5e5)]">
             <CSSelect
               title={t("profileFilterBar.orderTitle")}
               value={sort}
@@ -95,10 +96,10 @@ export function ProfileFilterBar() {
                       title={c}
                       onClick={() => setFilters({ country: filters.country === c ? "" : c })}
                       className={cn(
-                        "rounded-4 px-1 py-0.5 ring-1 ring-inset transition-colors",
+                        "rounded-[6px] px-1 py-0.5 border transition-colors",
                         filters.country === c
-                          ? "ring-primary-base"
-                          : "ring-transparent hover:ring-stroke-soft-200",
+                          ? "border-indigo-500 bg-indigo-500/10"
+                          : "border-transparent hover:border-[var(--color-hairline,#e5e5e5)]",
                       )}
                     >
                       <CountryFlag cc={c} />
@@ -111,7 +112,7 @@ export function ProfileFilterBar() {
               <Button
                 variant="neutral"
                 mode="ghost"
-                size="2xsmall"
+                size="xsmall"
                 onClick={() => { clearFilters(); setSort("added"); }}
               >
                 {t("profileFilterBar.clear")}

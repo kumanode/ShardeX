@@ -33,27 +33,27 @@ export function FolderModal({
       cancelLabel={t("folderModal.cancel")}
       onCancel={onClose}
     >
-      <div className="flex flex-col gap-3 py-4">
+      <div className="flex flex-col gap-3 py-1">
         {showList && (
           <>
-            <span className="text-label-xs text-text-sub-600">{t("folderModal.existingFolders")}</span>
-            <div className="flex max-h-[220px] flex-col gap-1 overflow-y-auto">
+            <span className="text-label-xs font-medium text-zinc-600 dark:text-zinc-300">{t("folderModal.existingFolders")}</span>
+            <div className="flex max-h-[220px] flex-col gap-1 overflow-y-auto pr-0.5">
               {existing.map((f) => (
                 <Button
                   key={f}
                   variant="neutral"
                   mode="stroke"
                   size="small"
-                  className="w-full justify-start"
-                  leftIcon={<FolderIcon className="size-4 text-icon-soft-400" />}
+                  className="w-full justify-start rounded-[12px] !h-9 text-zinc-800 dark:text-zinc-200 hover:bg-[var(--color-surface-alt,#fafafa)]"
+                  leftIcon={<FolderIcon className="size-4 text-zinc-400 dark:text-zinc-500" />}
                   onClick={() => onPick(f)}
                 >
                   {f}
                 </Button>
               ))}
             </div>
-            <div className="my-0.5 flex items-center gap-2.5 text-paragraph-xs text-text-soft-400 [&::before]:h-px [&::before]:flex-1 [&::before]:bg-stroke-soft-200 [&::before]:content-[''] [&::after]:h-px [&::after]:flex-1 [&::after]:bg-stroke-soft-200 [&::after]:content-['']">
-            <span>{t("folderModal.orCreateNew")}</span>
+            <div className="my-1 flex items-center gap-2.5 text-paragraph-xs text-zinc-400 dark:text-zinc-500 [&::before]:h-px [&::before]:flex-1 [&::before]:bg-[var(--color-hairline,#e5e5e5)] [&::before]:content-[''] [&::after]:h-px [&::after]:flex-1 [&::after]:bg-[var(--color-hairline,#e5e5e5)] [&::after]:content-['']">
+              <span>{t("folderModal.orCreateNew")}</span>
             </div>
           </>
         )}

@@ -11,7 +11,7 @@ export function ToastHost() {
       {items.map((t) => (
         <div
           key={t.id}
-          className="pointer-events-auto min-w-[280px] max-w-[520px] animate-[toastIn_0.2s_cubic-bezier(.2,.9,.3,1)] shadow-[var(--shadow-md)]"
+          className="pointer-events-auto min-w-[280px] max-w-[520px] animate-[toastIn_0.2s_cubic-bezier(.2,.9,.3,1)] shadow-[var(--shadow-card)] rounded-[16px] border border-[var(--color-hairline,#e5e5e5)] overflow-hidden"
         >
           <Alert
             status={t.kind === "ok" ? "success" : t.kind === "err" ? "error" : "information"}

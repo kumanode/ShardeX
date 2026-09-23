@@ -9,17 +9,17 @@ function PlatformIcon({ platform }: { platform: string }) {
   // Before the switch, and on a prefix: navigator.platform on a handset is
   // "Linux armv8l", which an equality switch sends to the default Apple icon.
   if (p.startsWith("android") || p.startsWith("linux arm")) {
-    return <AndroidOsIcon className="size-4 text-warning-base" />;
+    return <AndroidOsIcon className="size-5 text-warning-base" />;
   }
   switch (p) {
     case "macos":
-      return <AppleOsIcon className="size-4 text-primary-base" />;
+      return <AppleOsIcon className="size-5 text-indigo-600 dark:text-indigo-400" />;
     case "windows":
-      return <WindowsOsIcon className="size-4 text-information-base" />;
+      return <WindowsOsIcon className="size-5 text-information-base" />;
     case "linux":
-      return <LinuxOsIcon className="size-4 text-success-base" />;
+      return <LinuxOsIcon className="size-5 text-success-base" />;
     default:
-      return <AppleOsIcon className="size-4 text-primary-base" />;
+      return <AppleOsIcon className="size-5 text-indigo-600 dark:text-indigo-400" />;
   }
 }
 
@@ -30,7 +30,7 @@ export function FingerprintLibrary() {
 
   if (isEmpty) {
     return (
-      <div className="rounded-12 bg-bg-white-0 px-6 py-14 text-center text-paragraph-sm text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200">
+      <div className="rounded-[24px] bg-[var(--color-paper,#ffffff)] px-6 py-14 text-center text-paragraph-sm text-zinc-500 dark:text-zinc-400 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
         {t("fingerprintLibrary.emptyState")}
       </div>
     );
@@ -40,9 +40,9 @@ export function FingerprintLibrary() {
     <div className="flex flex-col gap-[22px]">
       {groups.map(([platform, list]) => (
         <div key={platform} className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-2.5 border-b border-stroke-soft-200 pb-2">
+          <div className="flex items-center gap-2.5 border-b border-[var(--color-hairline,#e5e5e5)] pb-2.5">
             <PlatformIcon platform={platform} />
-            <h3 className="m-0 text-label-sm text-text-strong-950">{platform}</h3>
+            <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">{platform}</h3>
             <Badge color="gray" variant="filled" size="small">{list.length}</Badge>
           </div>
           <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">

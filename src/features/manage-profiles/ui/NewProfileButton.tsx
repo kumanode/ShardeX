@@ -7,7 +7,14 @@ export function NewProfileButton() {
   const t = useT();
   const newProfile = useProfile((s) => s.newProfile);
   return (
-    <Button variant="primary" mode="filled" size="small" leftIcon={<AddIcon className="size-4" />} onClick={newProfile}>
+    <Button
+      variant="primary"
+      mode="filled"
+      size="small"
+      leftIcon={<AddIcon className="size-4" />}
+      onClick={newProfile}
+      className="!bg-indigo-600 hover:!bg-indigo-500 !text-white shadow-sm shadow-indigo-600/25 font-medium"
+    >
       {t("newProfileButton.label")}
     </Button>
   );

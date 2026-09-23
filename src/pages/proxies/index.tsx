@@ -31,11 +31,13 @@ export function ProxiesPage() {
   return (
     <section className="flex flex-col">
       <Topbar crumbs={[t("proxies.crumbWorkspace"), t("proxies.crumbProxies")]} search={search} onSearch={setSearch} />
+
       <div className="mb-3.5 flex items-end justify-between gap-4">
-        <h1 className="m-0 text-title-h5 text-text-strong-950">{t("proxies.title")}</h1>
+        <h1 className="m-0 text-page-title text-zinc-900 dark:text-white">{t("proxies.title")}</h1>
         <ProxyToolbar />
       </div>
       <ProxyTable />
+
       {editing && (
         <ProxyEditor
           initial={editing}

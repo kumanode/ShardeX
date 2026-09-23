@@ -58,13 +58,13 @@ export default function Badge({ status, className, ...rest }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex min-w-24 items-center justify-center gap-1 rounded-lg py-1 pl-1 pr-2 text-center text-label-xs font-medium',
+        'inline-flex min-w-20 items-center justify-center gap-1.5 rounded-full py-0.5 pl-1.5 pr-2.5 text-center text-label-xs font-medium',
         statusToColor[status as BadgeStatus] ?? fallbackColor,
         className,
       )}
       {...rest}
     >
-      <HugeiconsIcon icon={statusToIcon[status as BadgeStatus] ?? fallbackIcon} size={16} className="size-4 shrink-0" />
+      <HugeiconsIcon icon={statusToIcon[status as BadgeStatus] ?? fallbackIcon} size={14} className="size-3.5 shrink-0" />
       <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
     </span>
   )
