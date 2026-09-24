@@ -1,4 +1,4 @@
-// ShardX Launcher — Tauri backend.
+// ShardX Launcher â€” Tauri backend.
 
 mod profile_icon;
 mod api;
@@ -46,13 +46,13 @@ pub fn main_window() -> Option<tauri::WebviewWindow> {
         .or_else(|| app.webview_windows().into_values().next())
 }
 
-/// Tell any open UI window that the on-disk store changed out-of-band — i.e. a
+/// Tell any open UI window that the on-disk store changed out-of-band â€” i.e. a
 /// profile/proxy created or removed through the automation API or MCP, which
 /// writes straight to disk without the React state ever knowing.  The view
 /// listens for `store-changed` and reloads, so the new items appear without an
 /// app restart.  `kind` ("profiles" | "proxies" | "automation") is informational; the UI
 /// reloads both lists regardless.  No-op when headless (no window).
-/// A warning the user has to see — shown as a toast. stderr is not a place a
+/// A warning the user has to see â€” shown as a toast. stderr is not a place a
 /// user looks, and a profile silently running on the host's clock is worth an
 /// interruption.
 pub fn notify_warning(text: impl Into<String>) {
@@ -140,7 +140,7 @@ const MACOS_PLATFORM_VERSIONS: &[&str] = &[
     "26.0", "26.0.1", "26.1",
 ];
 
-// Win 10 21H1+ ("10.0.0"), Win 11 21H2..25H2 ("13"–"17"); weighted to 22H2/23H2/24H2.
+// Win 10 21H1+ ("10.0.0"), Win 11 21H2..25H2 ("13"â€“"17"); weighted to 22H2/23H2/24H2.
 const WINDOWS_PLATFORM_VERSIONS: &[&str] = &[
     "10.0.0",
     "13.0.0",
@@ -238,7 +238,7 @@ fn host_ram_gb() -> Option<u32> {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
-        // 0x08000000 = CREATE_NO_WINDOW — suppress the brief console flash a GUI
+        // 0x08000000 = CREATE_NO_WINDOW â€” suppress the brief console flash a GUI
         // app gets when shelling out to a console-subsystem binary.
         let out = std::process::Command::new("wmic")
             .args(["ComputerSystem", "get", "TotalPhysicalMemory"])
@@ -253,7 +253,7 @@ fn host_ram_gb() -> Option<u32> {
     None
 }
 
-/// Physical RAM rounded to Chrome's {8,16,32} deviceMemory bucket; unknown → 16.
+/// Physical RAM rounded to Chrome's {8,16,32} deviceMemory bucket; unknown â†’ 16.
 fn host_ram_bucket_gb() -> u32 {
     match host_ram_gb() {
         Some(gb) if gb >= 32 => 32,
@@ -263,7 +263,7 @@ fn host_ram_bucket_gb() -> u32 {
     }
 }
 
-/// Pick (hardware_concurrency, device_memory): Mac → curated table, Win/Linux → host-bracketed.
+/// Pick (hardware_concurrency, device_memory): Mac â†’ curated table, Win/Linux â†’ host-bracketed.
 pub(crate) fn randomize_hardware(payload: &mut serde_json::Map<String, Value>) {
     let model = payload
         .get("_meta")
@@ -332,12 +332,12 @@ pub fn clamp_screen_to_real_display(
         .flatten()
         .or_else(|| window.current_monitor().ok().flatten())
     else {
-        eprintln!("[launcher] display: no monitor info — screen clamp skipped");
+        eprintln!("[launcher] display: no monitor info â€” screen clamp skipped");
         return;
     };
     let scale = monitor.scale_factor();
     if scale <= 0.0 {
-        eprintln!("[launcher] display: bad scale_factor {scale} — screen clamp skipped");
+        eprintln!("[launcher] display: bad scale_factor {scale} â€” screen clamp skipped");
         return;
     }
     let phys = monitor.size();
@@ -352,7 +352,7 @@ pub fn clamp_screen_to_real_display(
     }
 
     let Some(scr) = payload.get("screen").and_then(|v| v.as_object()) else {
-        eprintln!("[launcher] display: profile has no `screen` block — clamp skipped");
+        eprintln!("[launcher] display: profile has no `screen` block â€” clamp skipped");
         return;
     };
     let fp_w = scr.get("width").and_then(|v| v.as_i64()).unwrap_or(0);
@@ -367,13 +367,13 @@ pub fn clamp_screen_to_real_display(
     //
     // This used to be the macOS rule only, and Windows/Linux overwrote the
     // declared screen with the host display on every start. That handed every
-    // profile on one machine the SAME high-entropy pair — on a 5120x1440
-    // monitor, all of them said 5120x1440 — which is the opposite of what a
+    // profile on one machine the SAME high-entropy pair â€” on a 5120x1440
+    // monitor, all of them said 5120x1440 â€” which is the opposite of what a
     // per-profile screen is for, and it ignored what the profile's own API
     // caller had asked for.
     if real_w >= fp_w && real_h >= fp_h {
         eprintln!(
-            "[launcher] display: real {real_w}x{real_h} >= fp {fp_w}x{fp_h} — keeping FP screen"
+            "[launcher] display: real {real_w}x{real_h} >= fp {fp_w}x{fp_h} â€” keeping FP screen"
         );
         return;
     }
@@ -407,7 +407,7 @@ pub fn clamp_screen_to_real_display(
     }
     eprintln!(
         "[launcher] display: CLAMPED screen to real {real_w}x{real_h} \
-         (avail {avail_w}x{avail_h}, dpr {scale}) — FP claimed {fp_w}x{fp_h}"
+         (avail {avail_w}x{avail_h}, dpr {scale}) â€” FP claimed {fp_w}x{fp_h}"
     );
 }
 
@@ -467,7 +467,7 @@ pub fn save_profile_core(
             if sent != on_disk {
                 return Err(format!(
                     "This profile changed after you opened it (rev {on_disk}, you have {sent}) \
-                     — probably through the API or another window. Reopen it and apply your \
+                     â€” probably through the API or another window. Reopen it and apply your \
                      changes to the current version."
                 ));
             }
@@ -554,7 +554,7 @@ async fn automation_launch(app: tauri::AppHandle, profile_id: String) -> Result<
     #[cfg(feature = "automation")]
     {
         if migrate::in_progress() {
-            return Err("profiles are being moved — try again when that finishes".into());
+            return Err("profiles are being moved â€” try again when that finishes".into());
         }
         // CDP cannot be turned on for a live process, so attaching to one opened
         // without it would give a focused window with no frames and no control.
@@ -567,7 +567,7 @@ async fn automation_launch(app: tauri::AppHandle, profile_id: String) -> Result<
             );
         }
         let b = bus().await?;
-        // (enable_cdp, headless) — the studio needs a visible window with CDP on.
+        // (enable_cdp, headless) â€” the studio needs a visible window with CDP on.
         let out = launch::launch_profile_synced(&profile_id, true, false, None, b.port, &b.token)
             .await
             .map_err(|e| e.to_string())?;
@@ -582,7 +582,7 @@ async fn automation_launch(app: tauri::AppHandle, profile_id: String) -> Result<
 }
 
 /// Attaches to a profile already running with CDP on; frames arrive as
-/// `automation:frame`. Only bodies are gated — Tauri's command list takes no `#[cfg]`.
+/// `automation:frame`. Only bodies are gated â€” Tauri's command list takes no `#[cfg]`.
 #[tauri::command]
 async fn automation_attach(app: tauri::AppHandle, profile_id: String) -> Result<(), String> {
     #[cfg(feature = "automation")]
@@ -691,12 +691,12 @@ fn automation_display() -> serde_json::Value {
             "This is a Wayland session with no X display for the browser to fall back to, so it \
              runs as a Wayland window: it cannot place itself, arranging browsers does nothing, \
              and the launcher cannot keep the Fleet window above the others either. Install \
-             XWayland, or log in with an Xorg session. Recording and running still work — the \
+             XWayland, or log in with an Xorg session. Recording and running still work â€” the \
              live view comes over the debugging connection, not off the screen."
         } else if !panels {
             "This is a Wayland session. Browsers still arrange themselves, because they run \
              through XWayland, but the launcher cannot keep its own Fleet window above the \
-             others or place it — a Wayland application is not allowed to. Log in with an Xorg \
+             others or place it â€” a Wayland application is not allowed to. Log in with an Xorg \
              session if you need that."
         } else {
             ""
@@ -859,7 +859,7 @@ fn automation_run_status(project_id: String) -> Option<serde_json::Value> {
     }
 }
 
-/// Every run going right now — what the fleet window shows.
+/// Every run going right now â€” what the fleet window shows.
 #[tauri::command]
 fn automation_fleet() -> Vec<serde_json::Value> {
     #[cfg(feature = "automation")]
@@ -872,7 +872,7 @@ fn automation_fleet() -> Vec<serde_json::Value> {
 }
 
 /// Opens (or re-focuses) the fleet window: one row per browser in a run.
-/// `async` for the same reason as `helper_show` — a webview built on the main
+/// `async` for the same reason as `helper_show` â€” a webview built on the main
 /// thread deadlocks Windows.
 #[tauri::command]
 async fn automation_fleet_window(app: tauri::AppHandle) {
@@ -988,7 +988,7 @@ fn extension_import(paths: Vec<String>) -> Result<Vec<extensions::ExtensionEntry
 }
 
 /// Import from a Web Store link, a bare extension id, or a direct .crx / .zip
-/// URL — the launcher fetches the file itself.
+/// URL â€” the launcher fetches the file itself.
 #[tauri::command]
 async fn extension_import_url(url: String) -> Result<extensions::ExtensionEntry, String> {
     extensions::import_url(&url).await.map_err(|e| format!("{e:#}"))
@@ -1119,7 +1119,7 @@ fn folder_rename(old: String, new: String) -> Result<usize, String> {
     profile::rename_folder(&old, &new).map_err(|e| e.to_string())
 }
 
-/// Delete folder; `delete_profiles` true → remove, false → unfile.
+/// Delete folder; `delete_profiles` true â†’ remove, false â†’ unfile.
 #[tauri::command]
 fn folder_delete(folder: String, delete_profiles: bool) -> Result<usize, String> {
     profile::delete_folder(&folder, delete_profiles).map_err(|e| e.to_string())
@@ -1201,7 +1201,7 @@ pub fn build_fingerprint_config(
     Ok(merged)
 }
 
-/// Add the UI's default noise block (every vector present, disabled, seed 0 —
+/// Add the UI's default noise block (every vector present, disabled, seed 0 â€”
 /// the sentinel `save_raw` fills per-profile) when a config carries none, so
 /// API/SDK profiles match UI profiles and get a unique seed instead of none.
 pub fn ensure_default_noise(cfg: &mut serde_json::Map<String, Value>) {
@@ -1284,7 +1284,7 @@ fn fingerprint_list() -> Result<Vec<fingerprints::LibraryEntry>, String> {
 }
 
 /// What this machine's GPU can actually do. Cached; `force` re-asks the engine.
-/// Slow on the first call — it starts the engine off-screen — so the UI asks once.
+/// Slow on the first call â€” it starts the engine off-screen â€” so the UI asks once.
 #[tauri::command]
 async fn gpu_caps(force: bool) -> Result<gpu_caps::HostGlCaps, String> {
     gpu_caps::probe(force).await.map_err(|e| e.to_string())
@@ -1434,7 +1434,7 @@ async fn launch(profile_id: String) -> Result<u32, String> {
     // UI launches: no CDP, headed. The bus goes along even with no group so the
     // page helper has somewhere to report.
     if migrate::in_progress() {
-        return Err("profiles are being moved — try again when that finishes".into());
+        return Err("profiles are being moved â€” try again when that finishes".into());
     }
     let b = bus().await?;
     launch::launch_profile_synced(&profile_id, false, false, None, b.port, &b.token)
@@ -1467,7 +1467,7 @@ fn keep_alive() -> &'static keep_alive::KeepAlive {
 }
 
 /// Opens (or re-focuses) the floating control panel for a group. Same bundle,
-/// addressed by hash — a 60px strip does not warrant its own vite entry point.
+/// addressed by hash â€” a 60px strip does not warrant its own vite entry point.
 fn open_sync_panel(app: &tauri::AppHandle, group: &str) {
     use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
@@ -1478,15 +1478,15 @@ fn open_sync_panel(app: &tauri::AppHandle, group: &str) {
     let url = format!("index.html#/?syncPanel={group}");
     let built = WebviewWindowBuilder::new(app, "sync-panel", WebviewUrl::App(url.into()))
         .title("ShardX Sync")
-        .inner_size(390.0, 290.0)
-        .min_inner_size(340.0, 220.0)
+        .inner_size(390.0, 330.0)
+        .min_inner_size(340.0, 240.0)
         .resizable(false)
         .always_on_top(true)
         .decorations(false)
         .skip_taskbar(true)
         .build();
     if let Err(e) = built {
-        // Not fatal — the group is synchronising, it just has no panel.
+        // Not fatal â€” the group is synchronising, it just has no panel.
         eprintln!("[launcher] sync panel unavailable: {e}");
     }
 }
@@ -1520,7 +1520,7 @@ async fn sync_launch(
     }
     if !mobile.is_empty() && !desktop.is_empty() {
         return Err(format!(
-            "a sync group must be all-mobile or all-desktop — mobile: {}; desktop: {}",
+            "a sync group must be all-mobile or all-desktop â€” mobile: {}; desktop: {}",
             mobile.join(", "),
             desktop.join(", ")
         ));
@@ -1551,7 +1551,7 @@ async fn sync_launch(
                 .map(|(n, s)| format!("{n} ({s})"))
                 .collect();
             return Err(format!(
-                "a mobile sync group must be all one screen size — {}",
+                "a mobile sync group must be all one screen size â€” {}",
                 listed.join(", ")
             ));
         }
@@ -1575,18 +1575,18 @@ async fn sync_launch(
         }
     }
     if skipped.len() + failed.len() == profile_ids.len() && !skipped.is_empty() && failed.is_empty() {
-        eprintln!("[launcher] sync group '{group}': all members already running — reusing group");
+        eprintln!("[launcher] sync group '{group}': all members already running â€” reusing group");
     }
     if failed.len() == profile_ids.len() {
-        return Err(format!("nothing launched — {}", failed.join("; ")));
+        return Err(format!("nothing launched â€” {}", failed.join("; ")));
     }
     // A partial launch is still a usable group; just say what did not make it.
     if !failed.is_empty() {
-        eprintln!("[launcher] sync group '{group}': {} failed — {}",
+        eprintln!("[launcher] sync group '{group}': {} failed â€” {}",
                   failed.len(), failed.join("; "));
     }
     if !skipped.is_empty() {
-        eprintln!("[launcher] sync group '{group}': {} reused (already running) — {}",
+        eprintln!("[launcher] sync group '{group}': {} reused (already running) â€” {}",
                   skipped.len(), skipped.join(", "));
     }
     open_sync_panel(&app, &group);
@@ -1649,46 +1649,89 @@ fn start_group_nav_watcher(group: String, profile_ids: Vec<String>) {
                         }
 
                         if let Ok(val) = serde_json::from_str::<serde_json::Value>(&msg) {
-                            if val.get("method").and_then(|m| m.as_str())
-                                == Some("Page.frameNavigated")
+                            let method = val.get("method").and_then(|m| m.as_str());
+                            if method == Some("Page.frameNavigated")
+                                || method == Some("Page.navigatedWithinDocument")
                             {
-                                let frame = val.get("params").and_then(|p| p.get("frame"));
-                                if frame.and_then(|f| f.get("parentId")).is_none() {
-                                    if let Some(url) =
+                                let url_opt = if method == Some("Page.frameNavigated") {
+                                    let frame = val.get("params").and_then(|p| p.get("frame"));
+                                    if frame.and_then(|f| f.get("parentId")).is_none() {
                                         frame.and_then(|f| f.get("url")).and_then(|u| u.as_str())
-                                    {
-                                        if url.starts_with("http://") || url.starts_with("https://")
-                                        {
-                                            let mut last = last_url_clone.lock().await;
-                                            if *last == url {
-                                                continue;
-                                            }
-                                            *last = url.to_string();
-                                            drop(last);
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    val.get("params").and_then(|p| p.get("url")).and_then(|u| u.as_str())
+                                };
 
-                                            let delay_ms = st.delay_ms;
-                                            let mut follower_idx = 0usize;
-                                            for target_id in members {
-                                                if target_id != id_clone {
-                                                    let u = url.to_string();
-                                                    let stagger = if delay_ms > 0 {
-                                                        tokio::time::Duration::from_millis(
-                                                            (delay_ms as u64)
-                                                                + ((follower_idx as u64 * 35)
-                                                                    % (delay_ms as u64 + 10)),
-                                                        )
-                                                    } else {
-                                                        tokio::time::Duration::ZERO
-                                                    };
-                                                    follower_idx += 1;
-                                                    tokio::spawn(async move {
-                                                        if !stagger.is_zero() {
-                                                            tokio::time::sleep(stagger).await;
-                                                        }
-                                                        let _ = cdp::navigate_page(&target_id, &u)
-                                                            .await;
-                                                    });
-                                                }
+                                if let Some(url) = url_opt {
+                                    let valid_scheme = url.starts_with("http://")
+                                        || url.starts_with("https://")
+                                        || url.starts_with("chrome-extension://")
+                                        || url.starts_with("chrome://");
+                                    if valid_scheme {
+                                        let mut last = last_url_clone.lock().await;
+                                        if *last == url {
+                                            continue;
+                                        }
+                                        *last = url.to_string();
+                                        drop(last);
+
+                                        let delay_ms = st.delay_ms;
+                                        let mut follower_idx = 0usize;
+                                        for target_id in members.iter().cloned() {
+                                            if target_id != id_clone {
+                                                let u = url.to_string();
+                                                let stagger = if delay_ms > 0 {
+                                                    tokio::time::Duration::from_millis(
+                                                        (delay_ms as u64)
+                                                            + ((follower_idx as u64 * 35)
+                                                                % (delay_ms as u64 + 10)),
+                                                    )
+                                                } else {
+                                                    tokio::time::Duration::ZERO
+                                                };
+                                                follower_idx += 1;
+                                                tokio::spawn(async move {
+                                                    if !stagger.is_zero() {
+                                                        tokio::time::sleep(stagger).await;
+                                                    }
+                                                    let _ = cdp::navigate_page(&target_id, &u)
+                                                        .await;
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if method == Some("Target.targetDestroyed") {
+                                for target_id in members.iter().cloned() {
+                                    if target_id != id_clone {
+                                        tokio::spawn(async move {
+                                            let _ = cdp::close_active_tab(&target_id).await;
+                                        });
+                                    }
+                                }
+                            } else if method == Some("Target.targetCreated") {
+                                if let Some(target_info) =
+                                    val.get("params").and_then(|p| p.get("targetInfo"))
+                                {
+                                    let ty = target_info.get("type").and_then(|t| t.as_str());
+                                    let url = target_info
+                                        .get("url")
+                                        .and_then(|u| u.as_str())
+                                        .unwrap_or("");
+                                    if ty == Some("page")
+                                        && (url.starts_with("http://")
+                                            || url.starts_with("https://")
+                                            || url.starts_with("chrome-extension://"))
+                                    {
+                                        for target_id in members.iter().cloned() {
+                                            if target_id != id_clone {
+                                                let u = url.to_string();
+                                                tokio::spawn(async move {
+                                                    let _ = cdp::create_tab(&target_id, Some(&u))
+                                                        .await;
+                                                });
                                             }
                                         }
                                     }
@@ -1713,7 +1756,7 @@ async fn sync_set_paused(group: String, paused: bool) -> Result<(), String> {
     Ok(())
 }
 
-/// Lays the group's windows out on the primary display's work area — under the
+/// Lays the group's windows out on the primary display's work area â€” under the
 /// menu bar or behind the dock means moving them by hand anyway.
 #[tauri::command]
 async fn sync_arrange(
@@ -1772,14 +1815,27 @@ async fn sync_set_delay(group: String, delay_ms: u32) -> Result<(), String> {
     Ok(())
 }
 
+fn normalize_navigate_input(input: &str) -> String {
+    let trimmed = input.trim();
+    if trimmed.starts_with("http://")
+        || trimmed.starts_with("https://")
+        || trimmed.starts_with("chrome-extension://")
+        || trimmed.starts_with("chrome://")
+        || trimmed.starts_with("about:")
+    {
+        trimmed.to_string()
+    } else if trimmed.contains('.') && !trimmed.contains(' ') {
+        format!("https://{trimmed}")
+    } else {
+        let encoded: String = url::form_urlencoded::byte_serialize(trimmed.as_bytes()).collect();
+        format!("https://www.google.com/search?q={encoded}")
+    }
+}
+
 #[tauri::command]
 async fn sync_navigate(group: String, url: String) -> Result<(), String> {
     let b = bus().await?;
-    let target_url = if !url.starts_with("http://") && !url.starts_with("https://") {
-        format!("https://{url}")
-    } else {
-        url
-    };
+    let target_url = normalize_navigate_input(&url);
     b.broadcast(&group, &format!("{{\"navigate\":\"{target_url}\"}}\n"));
 
     let members = b.members(&group);
@@ -1808,6 +1864,78 @@ async fn sync_navigate(group: String, url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn sync_open_extension(group: String, keyword_or_id: String) -> Result<(), String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    if members.is_empty() {
+        return Err("no members in group".into());
+    }
+
+    let trimmed = keyword_or_id.trim();
+    let url = if trimmed.starts_with("chrome-extension://") {
+        trimmed.to_string()
+    } else {
+        let exts = crate::extensions::list().unwrap_or_default();
+        let target_ext = exts.into_iter().find(|e| {
+            e.id == trimmed
+                || e.name.to_lowercase().contains(&trimmed.to_lowercase())
+        });
+
+        if let Some(ext) = target_ext {
+            format!("chrome-extension://{}/home.html", ext.id)
+        } else {
+            format!("chrome-extension://{trimmed}/home.html")
+        }
+    };
+
+    for id in members {
+        let u = url.clone();
+        tokio::spawn(async move {
+            let _ = cdp::create_tab(&id, Some(&u)).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_unlock_wallets(group: String, password: String) -> Result<usize, String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    let mut count = 0;
+
+    for id in members {
+        let pwd = password.clone();
+        tokio::spawn(async move {
+            if let Ok(true) = fill_field_kind(&id, "password", &pwd).await {
+                let _ = click_field_kind(&id, "submit").await;
+                let _ = cdp::browser_call(&id, "Motion.pressKey", serde_json::json!({ "key": "Enter" })).await;
+            }
+        });
+        count += 1;
+    }
+    Ok(count)
+}
+
+#[tauri::command]
+async fn sync_arrange_popups(group: String) -> Result<usize, String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    let mut activated = 0;
+
+    for id in members {
+        if let Ok(popups) = cdp::list_extension_popups(&id).await {
+            for p in popups {
+                if let Some(tid) = p.get("targetId").and_then(|v| v.as_str()) {
+                    let _ = cdp::activate_target(&id, tid).await;
+                    activated += 1;
+                }
+            }
+        }
+    }
+    Ok(activated)
+}
+
+#[tauri::command]
 async fn sync_reload(group: String) -> Result<(), String> {
     let b = bus().await?;
     b.broadcast(&group, "{\"reload\":true}\n");
@@ -1832,7 +1960,7 @@ async fn sync_new_tab(group: String, url: Option<String>) -> Result<(), String> 
 
     // The engine mirrors tabs opened in a group window, so creating via CDP in
     // every member doubles the tab: one from CDP, one from the mirror. Create
-    // in one window — the master if set, else the first member — and let the
+    // in one window â€” the master if set, else the first member â€” and let the
     // mirror do the rest.
     let driver = match b.status(&group).master {
         Some(m) if members.contains(&m) => m,
@@ -1889,7 +2017,7 @@ async fn helper_fields(profile: String) -> Result<serde_json::Value, String> {
 }
 
 /// The operator accepted the offer; nothing fills without this. In a group every
-/// member fills with its own person — the command travels, the data does not.
+/// member fills with its own person â€” the command travels, the data does not.
 #[tauri::command]
 async fn helper_fill(profile: String) -> Result<usize, String> {
     let b = bus().await?;
@@ -1946,7 +2074,7 @@ fn helper_close(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// The operator closed the panel themselves — a refusal about this page.
+/// The operator closed the panel themselves â€” a refusal about this page.
 /// `helper_close` is the other case: the page moved on, which silences nothing.
 #[tauri::command]
 async fn helper_dismiss(app: tauri::AppHandle, profile: String) -> Result<(), String> {
@@ -2037,7 +2165,7 @@ fn settings_load_error() -> Option<String> {
 #[tauri::command]
 fn settings_save(mut value: settings::Settings) -> Result<(), String> {
     // Saving on top of a file we could not read would write the defaults this
-    // form was filled from over whatever the file actually held — the data
+    // form was filled from over whatever the file actually held â€” the data
     // root among them, which is where every profile lives. The banner says
     // the file was not read; until it is fixed or moved aside, nothing here
     // gets written.
@@ -2045,11 +2173,11 @@ fn settings_save(mut value: settings::Settings) -> Result<(), String> {
         return Err(format!(
             "Settings were not saved: the file could not be read, so what is on \
              screen are defaults, not your settings. Writing them would lose \
-             whatever the file holds — including where your profiles live. Fix \
+             whatever the file holds â€” including where your profiles live. Fix \
              or delete it first. ({err})"
         ));
     }
-    // Owned by the migration, not the form — which round-trips the whole struct
+    // Owned by the migration, not the form â€” which round-trips the whole struct
     // and would reset it while the data sits on another disk.
     if let Ok(cur) = settings::load() {
         value.data_root = cur.data_root;
@@ -2108,7 +2236,7 @@ fn ps_set_key(key: String) -> Result<(), String> {
     psapi::set_key(key).map_err(|e| e.to_string())
 }
 
-/// Account profile (email, active_orders, wallet_balance cents) — also acts
+/// Account profile (email, active_orders, wallet_balance cents) â€” also acts
 /// as the "is the key valid?" probe.
 #[tauri::command]
 async fn ps_me() -> Result<Value, String> {
@@ -2179,8 +2307,8 @@ async fn ps_resi_isps(
     region: String,
     city: String,
 ) -> Result<Value, String> {
-    // Registered in every configuration — the handler list is one literal and
-    // cannot be gated per entry — so say so when the code behind it is absent.
+    // Registered in every configuration â€” the handler list is one literal and
+    // cannot be gated per entry â€” so say so when the code behind it is absent.
     #[cfg(not(feature = "automation"))]
     {
         let _ = (tier, country, region, city);
@@ -2635,6 +2763,9 @@ pub fn run() {
             sync_reload,
             sync_new_tab,
             sync_close_tab,
+            sync_open_extension,
+            sync_unlock_wallets,
+            sync_arrange_popups,
             credentials_status,
             credentials_setup,
             credentials_unlock,
@@ -2787,7 +2918,7 @@ pub fn run() {
                     #[cfg(target_os = "macos")]
                     let builder = builder.icon_as_template(true);
                     builder
-                        .tooltip("ShardX Launcher")
+                        .tooltip("ShardeX")
                         .menu(&menu)
                         .show_menu_on_left_click(false)
                         .on_menu_event(|app, e| match e.id.as_ref() {

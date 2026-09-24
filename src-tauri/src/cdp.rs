@@ -271,7 +271,6 @@ where
         });
     }
 
-    // Auto-attach to all page targets with flatten: true
     let _ = session
         .call(
             "Target.setAutoAttach",
@@ -280,6 +279,14 @@ where
                 "waitForDebuggerOnStart": false,
                 "flatten": true
             }),
+            None,
+        )
+        .await;
+
+    let _ = session
+        .call(
+            "Target.setDiscoverTargets",
+            json!({ "discover": true }),
             None,
         )
         .await;
@@ -447,6 +454,7 @@ pub async fn create_tab(profile_id: &str, url: Option<&str>) -> Result<String> {
         Some(u) if !u.is_empty() => {
             if u.starts_with("http://")
                 || u.starts_with("https://")
+                || u.starts_with("chrome-extension://")
                 || u.starts_with("chrome://")
                 || u.starts_with("about:")
             {
@@ -470,6 +478,82 @@ pub async fn create_tab(profile_id: &str, url: Option<&str>) -> Result<String> {
         .unwrap_or_default()
         .to_string();
     Ok(target_id)
+}
+
+/// Lists all interactive targets (page, popup, extension popup).
+pub async fn list_page_targets(profile_id: &str) -> Result<Vec<Value>> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    let res = s.call("Target.getTargets", json!({}), None).await?;
+    let targets = res
+        .get("targetInfos")
+        .and_then(|t| t.as_array())
+        .cloned()
+        .unwrap_or_default();
+    Ok(targets
+        .into_iter()
+        .filter(|t| {
+            let ty = t.get("type").and_then(|v| v.as_str()).unwrap_or("");
+            ty == "page" || ty == "other"
+        })
+        .collect())
+}
+
+/// Activates a specific target by its targetId.
+pub async fn activate_target(profile_id: &str, target_id: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    s.call("Target.activateTarget", json!({ "targetId": target_id }), None).await?;
+    Ok(())
+}
+
+/// Closes a target by targetId.
+#[allow(dead_code)]
+pub async fn close_target(profile_id: &str, target_id: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    s.call("Target.closeTarget", json!({ "targetId": target_id }), None).await?;
+    Ok(())
+}
+
+/// Closes tab at a given index on the profile.
+#[allow(dead_code)]
+pub async fn close_tab_by_index(profile_id: &str, index: usize) -> Result<()> {
+    let targets = list_page_targets(profile_id).await?;
+    if let Some(target) = targets.get(index) {
+        if let Some(tid) = target.get("targetId").and_then(|v| v.as_str()) {
+            return close_target(profile_id, tid).await;
+        }
+    }
+    Ok(())
+}
+
+/// Activates tab at a given index on the profile.
+#[allow(dead_code)]
+pub async fn activate_tab_by_index(profile_id: &str, index: usize) -> Result<()> {
+    let targets = list_page_targets(profile_id).await?;
+    if let Some(target) = targets.get(index) {
+        if let Some(tid) = target.get("targetId").and_then(|v| v.as_str()) {
+            return activate_target(profile_id, tid).await;
+        }
+    }
+    Ok(())
+}
+
+/// Returns all open extension popup targets for a profile.
+pub async fn list_extension_popups(profile_id: &str) -> Result<Vec<Value>> {
+    let targets = list_page_targets(profile_id).await?;
+    Ok(targets
+        .into_iter()
+        .filter(|t| {
+            let url = t.get("url").and_then(|v| v.as_str()).unwrap_or("");
+            url.starts_with("chrome-extension://")
+                && (url.contains("notification")
+                    || url.contains("popup")
+                    || url.contains("prompt")
+                    || url.contains("home.html"))
+        })
+        .collect())
 }
 
 /// Closes the active/last page tab in the browser.
@@ -958,5 +1042,24 @@ impl EventWait {
                 Err(_) => return false,
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_target_filter_page_and_extension() {
+        let targets = vec![
+            json!({ "targetId": "1", "type": "page", "url": "https://uniswap.org" }),
+            json!({ "targetId": "2", "type": "page", "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/notification.html" }),
+            json!({ "targetId": "3", "type": "service_worker", "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/background.js" }),
+        ];
+        let pages: Vec<&Value> = targets.iter().filter(|t| {
+            let ty = t.get("type").and_then(|v| v.as_str()).unwrap_or("");
+            ty == "page" || ty == "other"
+        }).collect();
+        assert_eq!(pages.len(), 2);
     }
 }

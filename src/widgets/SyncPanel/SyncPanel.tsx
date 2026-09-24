@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   syncStatus, syncSetPaused, syncArrange, syncStop, syncSetExcluded,
   syncClosePanel, syncSetMaster, syncSetDelay, syncNavigate, syncReload,
-  syncNewTab, syncCloseTab,
+  syncNewTab, syncCloseTab, syncOpenExtension, syncUnlockWallets, syncArrangePopups,
   type SyncStatus, type SyncLayout,
 } from "../../entities/profile/model/api";
 import {
@@ -44,11 +44,41 @@ function LayoutCascadeIcon({ className = "size-3" }: { className?: string }) {
   );
 }
 
+function WalletIcon({ className = "size-3" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 4.5A1.5 1.5 0 013.5 3h9A1.5 1.5 0 0114 4.5v7a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 11.5v-7z" />
+      <path d="M11 8.5a1 1 0 100-2 1 1 0 000 2z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function KeyIcon({ className = "size-3" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="6" cy="6" r="3.25" />
+      <path d="M8.5 8.5L14 14M11.5 11.5L13.5 9.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LayersIcon({ className = "size-3" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2.5 5.5L8 2.5l5.5 3L8 8.5l-5.5-3z" />
+      <path d="M2.5 8.5L8 11.5l5.5-3M2.5 11.5L8 14.5l5.5-3" />
+    </svg>
+  );
+}
+
 export function SyncPanel({ group }: { group: string }) {
   const t = useT();
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [urlInput, setUrlInput] = useState("");
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [walletNotice, setWalletNotice] = useState<string | null>(null);
   // Must survive the second before the first browser connects, and go once
   // they are all gone.
   const everHadMembers = useRef(false);
@@ -148,6 +178,34 @@ export function SyncPanel({ group }: { group: string }) {
     void run(() => syncNavigate(group, trimmed));
   };
 
+  const handleOpenWallet = (ext: string = "metamask") => {
+    void run(async () => {
+      await syncOpenExtension(group, ext);
+      setWalletNotice(t("syncPanel.openWallet"));
+      setTimeout(() => setWalletNotice(null), 3000);
+    });
+  };
+
+  const handleUnlockAll = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!unlockPassword) return;
+    void run(async () => {
+      const count = await syncUnlockWallets(group, unlockPassword);
+      setShowUnlockModal(false);
+      setUnlockPassword("");
+      setWalletNotice(t("syncPanel.unlockedCount", { count }));
+      setTimeout(() => setWalletNotice(null), 3000);
+    });
+  };
+
+  const handleTilePopups = () => {
+    void run(async () => {
+      await syncArrangePopups(group);
+      setWalletNotice(t("syncPanel.tilePopups"));
+      setTimeout(() => setWalletNotice(null), 2500);
+    });
+  };
+
   return (
     <div
       onMouseDown={dragWindowOnMouseDown}
@@ -156,11 +214,11 @@ export function SyncPanel({ group }: { group: string }) {
       {/* ── Top Bar: Drag Header & Primary Controls ── */}
       <div className="flex shrink-0 items-center justify-between gap-1.5 px-3 pt-2 pb-1.5 border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]">
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <div className="flex size-6 shrink-0 items-center justify-center rounded-[7px] bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-2xs">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-[7px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-2xs">
             <SyncIcon className="size-3" />
           </div>
           <span className="text-[12px] font-semibold text-[var(--color-ink,#0a0a0a)] tracking-tight shrink-0">
-            ShardX Sync
+            ShardeX Sync
           </span>
           <span className="inline-flex items-center rounded-full bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] px-1.5 py-0.2 text-[9px] font-medium text-[var(--color-mid-gray,#737373)] font-mono shrink-0">
             {members.length}
@@ -351,6 +409,92 @@ export function SyncPanel({ group }: { group: string }) {
           ))}
         </div>
       </div>
+
+      {/* ── Airdrop Wallet & Popups Row ── */}
+      <div
+        onMouseDown={(e) => e.stopPropagation()}
+        className="flex shrink-0 items-center justify-between gap-1 px-3 py-1 border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]"
+      >
+        <span className="text-[10px] font-medium text-[var(--color-mid-gray,#737373)] shrink-0 w-11 flex items-center gap-0.5">
+          <WalletIcon className="size-3 text-indigo-500" />
+          {t("syncPanel.walletLabel")}
+        </span>
+        <div className="flex items-center gap-1 flex-1">
+          <button
+            type="button"
+            disabled={busy || members.length === 0}
+            onClick={() => handleOpenWallet("metamask")}
+            title={t("syncPanel.openWallet")}
+            className="flex-1 flex items-center justify-center gap-1 rounded-[7px] py-0.8 px-1.5 text-[9.5px] font-medium text-[var(--color-ink,#0a0a0a)] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] hover:border-zinc-400 dark:hover:border-zinc-500 shadow-2xs disabled:opacity-40 transition-all cursor-pointer disabled:cursor-not-allowed"
+          >
+            <WalletIcon className="size-3 text-zinc-500" />
+            <span className="truncate">{t("syncPanel.openWallet")}</span>
+          </button>
+          <button
+            type="button"
+            disabled={busy || members.length === 0}
+            onClick={() => setShowUnlockModal(!showUnlockModal)}
+            title={t("syncPanel.unlockWallets")}
+            className={`flex-1 flex items-center justify-center gap-1 rounded-[7px] py-0.8 px-1.5 text-[9.5px] font-medium border shadow-2xs disabled:opacity-40 transition-all cursor-pointer disabled:cursor-not-allowed ${
+              showUnlockModal
+                ? "bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                : "text-[var(--color-ink,#0a0a0a)] bg-[var(--color-surface-alt,#fafafa)] border-[var(--color-hairline,#e5e5e5)] hover:border-zinc-400"
+            }`}
+          >
+            <KeyIcon className="size-3 text-zinc-500" />
+            <span className="truncate">{t("syncPanel.unlockWallets")}</span>
+          </button>
+          <button
+            type="button"
+            disabled={busy || members.length === 0}
+            onClick={handleTilePopups}
+            title={t("syncPanel.tilePopups")}
+            className="flex items-center justify-center gap-1 rounded-[7px] py-0.8 px-2 text-[9.5px] font-medium text-[var(--color-ink,#0a0a0a)] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] hover:border-zinc-400 dark:hover:border-zinc-500 shadow-2xs disabled:opacity-40 transition-all cursor-pointer disabled:cursor-not-allowed shrink-0"
+          >
+            <LayersIcon className="size-3 text-zinc-500" />
+            <span>{t("syncPanel.tilePopups")}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Unlock All Wallets Inline Prompt ── */}
+      {showUnlockModal && (
+        <form
+          onSubmit={handleUnlockAll}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="flex shrink-0 items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 dark:bg-amber-400/10 border-b border-amber-500/20"
+        >
+          <input
+            type="password"
+            autoFocus
+            value={unlockPassword}
+            onChange={(e) => setUnlockPassword(e.target.value)}
+            placeholder={t("syncPanel.enterPassword")}
+            className="flex-1 h-6 rounded-[8px] bg-[var(--color-paper,#ffffff)] px-2 text-[10px] text-[var(--color-ink,#0a0a0a)] border border-amber-500/30 focus:outline-none focus:border-amber-500"
+          />
+          <button
+            type="submit"
+            disabled={!unlockPassword.trim() || busy}
+            className="h-6 rounded-[8px] bg-amber-600 text-white px-2.5 text-[10px] font-semibold hover:bg-amber-700 disabled:opacity-40 transition-all cursor-pointer"
+          >
+            {t("syncPanel.unlock")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowUnlockModal(false)}
+            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs px-1"
+          >
+            ✕
+          </button>
+        </form>
+      )}
+
+      {/* ── Toast / Notice Banner ── */}
+      {walletNotice && (
+        <div className="shrink-0 px-3 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[9.5px] font-medium text-center border-b border-emerald-500/20 transition-all">
+          ✓ {walletNotice}
+        </div>
+      )}
 
       {/* ── Member Chips ── */}
       <div

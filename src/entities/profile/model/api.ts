@@ -44,6 +44,12 @@ export const syncNewTab = (group: string, url?: string) =>
   invoke<void>("sync_new_tab", { group, url });
 export const syncCloseTab = (group: string) =>
   invoke<void>("sync_close_tab", { group });
+export const syncOpenExtension = (group: string, keywordOrId: string) =>
+  invoke<void>("sync_open_extension", { group, keywordOrId });
+export const syncUnlockWallets = (group: string, password: string) =>
+  invoke<number>("sync_unlock_wallets", { group, password });
+export const syncArrangePopups = (group: string) =>
+  invoke<number>("sync_arrange_popups", { group });
 
 export type HelperField = { kind: string; select: boolean; x: number; y: number };
 export type HelperReport = { fields: HelperField[] } | null;
