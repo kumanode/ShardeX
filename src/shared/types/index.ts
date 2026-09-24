@@ -3,6 +3,7 @@ export type Section =
   | "browsers"
   | "proxies"
   | "proxyshard"
+  | "credentials"
   | "fingerprints"
   | "extensions"
   | "bookmarks"

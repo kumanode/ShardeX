@@ -51,6 +51,7 @@ import {
   FilterIcon as HugeFilterIcon,
   Cancel01Icon,
   WorkflowSquare03Icon,
+  SidebarLeft01Icon,
 } from "@hugeicons/core-free-icons";
 import type { ComponentProps } from "react";
 
@@ -74,6 +75,7 @@ export const NavExtensionsIcon = make(PuzzleIcon);
 export const NavBookmarksIcon = make(Bookmark02Icon);
 export const NavTrashIcon = make(Delete03Icon);
 export const NavAutomationIcon = make(WorkflowSquare03Icon);
+export const NavCredentialsIcon = make(Key01Icon);
 
 /* ── OS logos ── */
 export const AppleOsIcon = make(AppleIcon);
@@ -113,6 +115,7 @@ export const RestoreIcon = make(ArchiveRestoreIcon);
 export const FilterIcon = make(HugeFilterIcon);
 export const CloseIcon = make(Cancel01Icon);
 export const PauseIcon = make(HugePauseIcon);
+export const SidebarToggleIcon = make(SidebarLeft01Icon);
 
 export function ShardLogo({ className = "w-5 h-[18px]", size }: { className?: string; size?: number }) {
   return (

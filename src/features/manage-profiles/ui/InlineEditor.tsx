@@ -40,7 +40,7 @@ function useHostScreen(): [number, number] | null {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-0.5 flex items-center gap-1.5 text-subheading-2xs font-semibold text-indigo-600 dark:text-indigo-400">
+    <div className="mb-0.5 flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-ink,#0a0a0a)] dark:text-zinc-200">
       {children}
     </div>
   );
@@ -149,8 +149,8 @@ export function InlineEditor({
 
   return (
     <div className="inline-editor relative border-t border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] dark:bg-[#121214] px-[18px] py-3.5 pl-[22px]">
-      <div className="absolute left-0 top-0 h-full w-[3px] bg-indigo-500" />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="absolute left-0 top-0 h-full w-[3px] bg-[var(--color-ink,#0a0a0a)] dark:bg-white" />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {/* ----- col 1: identity + hardware ----- */}
         <div className="flex flex-col gap-4">
           <SectionHeading>{t("inlineEditor.identityHeading")}</SectionHeading>
@@ -425,7 +425,13 @@ export function InlineEditor({
       </div>
       <div className="mt-4 flex justify-end gap-2.5 border-t border-[var(--color-hairline,#e5e5e5)] pt-3.5">
         <Button variant="neutral" mode="stroke" size="small" onClick={onCancel}>{t("inlineEditor.cancel")}</Button>
-        <Button variant="primary" mode="filled" size="small" onClick={onSave}>
+        <Button
+          variant="neutral"
+          mode="filled"
+          size="small"
+          className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
+          onClick={onSave}
+        >
           {f.id ? t("inlineEditor.saveChanges") : t("inlineEditor.createProfile")}
         </Button>
       </div>

@@ -1,18 +1,18 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "@proxyshard/shardx-ui-kit";
-import { withUtm } from "../../../shared/lib/utils";
 import { useT } from "../../../shared/i18n";
+import { useNav } from "../../../shared/model/navigation";
+import { NavShopIcon } from "../../../shared/icons";
 
-/// Promo: routes to ProxyShard's UDP / p0f-spoofed residential pool — the
-/// proxies that actually make ShardX's QUIC + WebRTC stack work end-to-end.
 export function BuyProxiesButton() {
   const t = useT();
+  const setProxyTab = useNav((s) => s.setProxyTab);
   return (
     <Button
-      variant="primary"
-      mode="lighter"
+      variant="neutral"
+      mode="stroke"
       size="small"
-      onClick={() => { openUrl(withUtm("https://proxyshard.com")).catch(() => { }); }}
+      leftIcon={<NavShopIcon className="size-4" />}
+      onClick={() => setProxyTab("proxyshard")}
       title={t("buyProxiesButton.tooltip")}
     >
       {t("buyProxiesButton.label")} <span className="ml-1 opacity-70">{t("buyProxiesButton.badge")}</span>

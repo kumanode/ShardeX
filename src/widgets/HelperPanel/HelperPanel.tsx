@@ -54,7 +54,7 @@ export function HelperPanel({ profile }: { profile: string }) {
       className="flex h-screen w-screen flex-col rounded-[20px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-xl overflow-hidden"
     >
       <div className="flex shrink-0 select-none items-center gap-2 px-3 pt-2.5 pb-1">
-        <SyncIcon className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+        <SyncIcon className="size-4 shrink-0 text-[var(--color-ink,#0a0a0a)] dark:text-white" />
         <div className="flex-1 truncate text-label-xs text-zinc-900 dark:text-white">
           {t("helperPanel.title")}
         </div>
@@ -87,7 +87,7 @@ export function HelperPanel({ profile }: { profile: string }) {
             try { setFilled(await helperFill(profile)); } catch { /* shown by the next poll */ }
             setBusy(false);
           }}
-          className="w-full rounded-[10px] bg-indigo-600 dark:bg-indigo-500 py-1.5 text-label-xs font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition-colors"
+          className="w-full rounded-[10px] bg-[var(--color-ink,#0a0a0a)] dark:bg-white py-1.5 text-label-xs font-medium text-white dark:text-black hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer disabled:cursor-not-allowed"
         >
           {filled > 1
             ? t("helperPanel.filledWindows", { n: filled })

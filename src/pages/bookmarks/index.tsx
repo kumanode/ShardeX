@@ -118,7 +118,7 @@ export function BookmarksPage() {
                 className={cn(
                   "rounded-[16px] px-3 py-1.5 text-label-xs font-mono transition-colors",
                   folder === tab.id
-                    ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 font-semibold shadow-xs"
+                    ? "bg-[var(--color-ink,#0a0a0a)] text-white dark:bg-white dark:text-black border border-[var(--color-ink,#0a0a0a)] dark:border-white font-semibold shadow-xs"
                     : "text-zinc-600 dark:text-zinc-400 border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)] hover:bg-[var(--color-surface-alt,#fafafa)]",
                 )}
               >
@@ -128,7 +128,8 @@ export function BookmarksPage() {
           </div>
         </div>
         <Button
-          variant="primary" mode="filled" size="small"
+          variant="neutral" mode="filled" size="small"
+          className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
           leftIcon={<AddIcon className="size-4" />}
           onClick={() => setEditing(emptyBookmark(folder === "all" || folder === "__any__" ? "" : folder))}
         >
@@ -173,7 +174,7 @@ export function BookmarksPage() {
         ))}
         {shown.length === 0 && (
           <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-            <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-indigo-500/10 text-indigo-500 border border-indigo-500/25">
+            <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
               <NavBookmarksIcon className="size-7" />
             </div>
             <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">

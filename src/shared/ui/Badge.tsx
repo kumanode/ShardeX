@@ -24,10 +24,10 @@ const colorStyles: Record<BadgeColor, { bg: string; text: string; border: string
     dot: "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]",
   },
   primary: {
-    bg: "bg-indigo-500/10 dark:bg-indigo-500/15",
-    text: "text-indigo-600 dark:text-indigo-400",
-    border: "border-indigo-500/25 dark:border-indigo-500/30",
-    dot: "bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.5)]",
+    bg: "bg-[var(--color-canvas,#f5f5f5)] dark:bg-zinc-800",
+    text: "text-[var(--color-ink,#0a0a0a)] dark:text-zinc-100 font-semibold",
+    border: "border-[var(--color-hairline,#e5e5e5)] dark:border-zinc-700",
+    dot: "bg-[var(--color-ink,#0a0a0a)] dark:bg-white",
   },
   warning: {
     bg: "bg-amber-500/10 dark:bg-amber-500/15",

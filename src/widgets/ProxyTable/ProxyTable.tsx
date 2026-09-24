@@ -38,38 +38,42 @@ export function ProxyTable() {
   return (
     <>
       <div className="overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
-        <div className="p-cols w-full justify-between border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-zinc-500 dark:text-zinc-300">
-          <div>
-            <Checkbox
-              title={t("proxyTable.selectAllOnPage")}
-              checked={allPageSelected}
-              indeterminate={anyPageSelected && !allPageSelected}
-              onChange={(e) => selectProxy(e.target.checked, pagedProxies)}
-            />
+        <div className="w-full overflow-x-auto min-w-0">
+          <div className="min-w-[840px]">
+            <div className="p-cols w-full justify-between border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--color-mid-gray,#737373)]">
+              <div>
+                <Checkbox
+                  title={t("proxyTable.selectAllOnPage")}
+                  checked={allPageSelected}
+                  indeterminate={anyPageSelected && !allPageSelected}
+                  onChange={(e) => selectProxy(e.target.checked, pagedProxies)}
+                />
+              </div>
+              <div>{t("proxyTable.colName")}</div>
+              <div>{t("proxyTable.colType")}</div>
+              <div>{t("proxyTable.colHostPort")}</div>
+              <div>{t("proxyTable.colCountry")}</div>
+              <div>{t("proxyTable.colProfiles")}</div>
+              <div>{t("proxyTable.colTestResult")}</div>
+              <div></div>
+            </div>
+            {pagedProxies.map((p) => (
+              <ProxyRow
+                key={p.id}
+                proxy={p}
+                profileCount={profileCountByProxy[p.id] ?? 0}
+                onMenu={ctx.open}
+              />
+            ))}
           </div>
-          <div>{t("proxyTable.colName")}</div>
-          <div>{t("proxyTable.colType")}</div>
-          <div>{t("proxyTable.colHostPort")}</div>
-          <div>{t("proxyTable.colCountry")}</div>
-          <div>{t("proxyTable.colProfiles")}</div>
-          <div>{t("proxyTable.colTestResult")}</div>
-          <div></div>
         </div>
-        {pagedProxies.map((p) => (
-          <ProxyRow
-            key={p.id}
-            proxy={p}
-            profileCount={profileCountByProxy[p.id] ?? 0}
-            onMenu={ctx.open}
-          />
-        ))}
         {totalProxies === 0 && (
           <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-            <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-sky-500/10 text-sky-500 border border-sky-500/25">
+            <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
               <NavProxiesIcon className="size-7" />
             </div>
-            <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("proxyTable.emptyTitle")}</h3>
-            <p className="m-0 max-w-[420px] text-paragraph-sm text-zinc-500 dark:text-zinc-400">
+            <h3 className="m-0 text-title-h6 font-semibold text-[var(--color-ink,#0a0a0a)]">{t("proxyTable.emptyTitle")}</h3>
+            <p className="m-0 max-w-[420px] text-paragraph-sm text-[var(--color-mid-gray,#737373)]">
               {t("proxyTable.emptyHint")}
             </p>
             <div className="mt-2 flex gap-2">

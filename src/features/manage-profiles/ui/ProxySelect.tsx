@@ -99,8 +99,8 @@ export function ProxySelect({
         className={cn(
           "flex items-center gap-2 border-b border-[var(--color-hairline,#e5e5e5)] px-3 py-2.5 text-left text-paragraph-sm transition-colors",
           creating
-            ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold"
-            : "text-indigo-600 dark:text-indigo-400 hover:bg-[var(--color-surface-alt,#fafafa)]",
+            ? "bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] font-semibold"
+            : "text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-surface-alt,#fafafa)]",
         )}
       >
         <AddIcon className="size-4 shrink-0" />
@@ -193,7 +193,7 @@ function Row({ text, active, muted, onClick }: {
       className={cn(
         "flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-paragraph-sm transition-colors",
         active
-          ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-medium"
+          ? "bg-[var(--color-canvas,#f5f5f5)] dark:bg-zinc-800 text-[var(--color-ink,#0a0a0a)] dark:text-white font-medium"
           : cn(muted ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-700 dark:text-zinc-300", "hover:bg-zinc-100 dark:hover:bg-zinc-800"),
       )}
     >

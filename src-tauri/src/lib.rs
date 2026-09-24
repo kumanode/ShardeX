@@ -1450,6 +1450,20 @@ async fn launch(profile_id: String) -> Result<u32, String> {
 static BUS: tokio::sync::OnceCell<std::sync::Arc<sync_bus::Bus>> =
     tokio::sync::OnceCell::const_new();
 
+/// (last_create, last_close) timestamps per group to de-duplicate tab events
+static TAB_SYNC_COOLDOWN: tokio::sync::OnceCell<
+    std::sync::Arc<tokio::sync::Mutex<std::collections::HashMap<String, (tokio::time::Instant, tokio::time::Instant)>>>,
+> = tokio::sync::OnceCell::const_new();
+
+async fn tab_sync_cooldown() -> std::sync::Arc<tokio::sync::Mutex<std::collections::HashMap<String, (tokio::time::Instant, tokio::time::Instant)>>> {
+    TAB_SYNC_COOLDOWN
+        .get_or_init(|| async {
+            std::sync::Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new()))
+        })
+        .await
+        .clone()
+}
+
 pub(crate) async fn bus() -> Result<std::sync::Arc<sync_bus::Bus>, String> {
     BUS.get_or_try_init(|| async {
         // Fresh per run: tells a browser this launcher started it rather than
@@ -1637,14 +1651,18 @@ fn start_group_nav_watcher(group: String, profile_ids: Vec<String>) {
                         }
                         let st = b.status(&group_clone);
 
-                        let is_master = st.master.as_deref() == Some(&id_clone);
-                        let is_driving = st
-                            .members
-                            .iter()
-                            .any(|m| m.profile == id_clone && m.driving);
-                        let can_drive = is_master || (st.master.is_none() && (is_driving || members.len() <= 2));
+                        let is_driver = match &st.master {
+                            Some(master_id) => master_id == &id_clone,
+                            None => {
+                                let current_driver = st.members.iter().find(|m| m.driving).map(|m| &m.profile);
+                                match current_driver {
+                                    Some(driver_profile) => driver_profile == &id_clone,
+                                    None => members.first() == Some(&id_clone),
+                                }
+                            }
+                        };
 
-                        if !can_drive {
+                        if !is_driver {
                             continue;
                         }
 
@@ -1704,11 +1722,30 @@ fn start_group_nav_watcher(group: String, profile_ids: Vec<String>) {
                                     }
                                 }
                             } else if method == Some("Target.targetDestroyed") {
-                                for target_id in members.iter().cloned() {
-                                    if target_id != id_clone {
-                                        tokio::spawn(async move {
-                                            let _ = cdp::close_active_tab(&target_id).await;
-                                        });
+                                let is_recent_close = {
+                                    let cd = tab_sync_cooldown().await;
+                                    let map = cd.lock().await;
+                                    map.get(&group_clone)
+                                        .map(|(_, cl)| cl.elapsed() < tokio::time::Duration::from_millis(1500))
+                                        .unwrap_or(false)
+                                };
+
+                                if !is_recent_close {
+                                    {
+                                        let cd = tab_sync_cooldown().await;
+                                        let mut map = cd.lock().await;
+                                        let entry = map.entry(group_clone.clone()).or_insert_with(|| (
+                                            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                        ));
+                                        entry.1 = tokio::time::Instant::now();
+                                    }
+                                    for target_id in members.iter().cloned() {
+                                        if target_id != id_clone {
+                                            tokio::spawn(async move {
+                                                let _ = cdp::close_active_tab(&target_id).await;
+                                            });
+                                        }
                                     }
                                 }
                             } else if method == Some("Target.targetCreated") {
@@ -1716,22 +1753,50 @@ fn start_group_nav_watcher(group: String, profile_ids: Vec<String>) {
                                     val.get("params").and_then(|p| p.get("targetInfo"))
                                 {
                                     let ty = target_info.get("type").and_then(|t| t.as_str());
-                                    let url = target_info
-                                        .get("url")
-                                        .and_then(|u| u.as_str())
-                                        .unwrap_or("");
-                                    if ty == Some("page")
-                                        && (url.starts_with("http://")
-                                            || url.starts_with("https://")
-                                            || url.starts_with("chrome-extension://"))
-                                    {
-                                        for target_id in members.iter().cloned() {
-                                            if target_id != id_clone {
-                                                let u = url.to_string();
-                                                tokio::spawn(async move {
-                                                    let _ = cdp::create_tab(&target_id, Some(&u))
-                                                        .await;
-                                                });
+                                    if ty == Some("page") {
+                                        // Ignore tabs opened via in-page clicks or window.open,
+                                        // because mirrored mouse clicks already open them natively.
+                                        let has_opener = target_info.get("openerId").is_some();
+                                        if !has_opener {
+                                            let is_recent_create = {
+                                                let cd = tab_sync_cooldown().await;
+                                                let map = cd.lock().await;
+                                                map.get(&group_clone)
+                                                    .map(|(cr, _)| cr.elapsed() < tokio::time::Duration::from_millis(1500))
+                                                    .unwrap_or(false)
+                                            };
+
+                                            if !is_recent_create {
+                                                // Record cooldown so followers don't echo back
+                                                {
+                                                    let cd = tab_sync_cooldown().await;
+                                                    let mut map = cd.lock().await;
+                                                    let entry = map.entry(group_clone.clone()).or_insert_with(|| (
+                                                        tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                                        tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                                    ));
+                                                    entry.0 = tokio::time::Instant::now();
+                                                }
+
+                                                let raw_url = target_info.get("url").and_then(|u| u.as_str()).unwrap_or("");
+                                                let new_tab_url = if raw_url.is_empty()
+                                                    || raw_url.starts_with("chrome://")
+                                                    || raw_url == "about:blank"
+                                                {
+                                                    "about:blank".to_string()
+                                                } else {
+                                                    raw_url.to_string()
+                                                };
+
+                                                for target_id in members.iter().cloned() {
+                                                    if target_id != id_clone {
+                                                        let u = new_tab_url.clone();
+                                                        tokio::spawn(async move {
+                                                            let _ = cdp::create_tab(&target_id, Some(&u))
+                                                                .await;
+                                                        });
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -1817,6 +1882,9 @@ async fn sync_set_delay(group: String, delay_ms: u32) -> Result<(), String> {
 
 fn normalize_navigate_input(input: &str) -> String {
     let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return "about:blank".to_string();
+    }
     if trimmed.starts_with("http://")
         || trimmed.starts_with("https://")
         || trimmed.starts_with("chrome-extension://")
@@ -1830,6 +1898,34 @@ fn normalize_navigate_input(input: &str) -> String {
         let encoded: String = url::form_urlencoded::byte_serialize(trimmed.as_bytes()).collect();
         format!("https://www.google.com/search?q={encoded}")
     }
+}
+
+fn resolve_extension_entry_url(ext_id: &str) -> String {
+    if let Some(root) = crate::extensions::load_path(ext_id) {
+        if root.join("home.html").exists() {
+            return format!("chrome-extension://{ext_id}/home.html");
+        }
+        if root.join("index.html").exists() {
+            return format!("chrome-extension://{ext_id}/index.html");
+        }
+        if root.join("popup.html").exists() {
+            return format!("chrome-extension://{ext_id}/popup.html");
+        }
+        if let Ok(content) = std::fs::read_to_string(root.join("manifest.json")) {
+            if let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&content) {
+                let popup = manifest
+                    .get("action")
+                    .or_else(|| manifest.get("browser_action"))
+                    .and_then(|a| a.get("default_popup"))
+                    .and_then(|p| p.as_str());
+                if let Some(p) = popup {
+                    let clean_p = p.trim_start_matches('/');
+                    return format!("chrome-extension://{ext_id}/{clean_p}");
+                }
+            }
+        }
+    }
+    format!("chrome-extension://{ext_id}/home.html")
 }
 
 #[tauri::command]
@@ -1876,17 +1972,45 @@ async fn sync_open_extension(group: String, keyword_or_id: String) -> Result<(),
         trimmed.to_string()
     } else {
         let exts = crate::extensions::list().unwrap_or_default();
-        let target_ext = exts.into_iter().find(|e| {
-            e.id == trimmed
-                || e.name.to_lowercase().contains(&trimmed.to_lowercase())
+        let target_ext = exts.iter().find(|e| {
+            e.id == trimmed || e.name.to_lowercase().contains(&trimmed.to_lowercase())
+        }).or_else(|| {
+            let is_wallet_search = trimmed.eq_ignore_ascii_case("metamask")
+                || trimmed.eq_ignore_ascii_case("wallet");
+            if is_wallet_search {
+                exts.iter().find(|e| {
+                    let n = e.name.to_lowercase();
+                    n.contains("wallet")
+                        || n.contains("rabby")
+                        || n.contains("phantom")
+                        || n.contains("okx")
+                        || n.contains("backpack")
+                        || n.contains("keplr")
+                        || n.contains("subwallet")
+                        || n.contains("bitget")
+                })
+            } else {
+                None
+            }
         });
 
         if let Some(ext) = target_ext {
-            format!("chrome-extension://{}/home.html", ext.id)
+            resolve_extension_entry_url(&ext.id)
         } else {
             format!("chrome-extension://{trimmed}/home.html")
         }
     };
+
+    // Mark tab cooldown so watcher doesn't duplicate
+    {
+        let cd = tab_sync_cooldown().await;
+        let mut map = cd.lock().await;
+        let entry = map.entry(group.clone()).or_insert_with(|| (
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+        ));
+        entry.0 = tokio::time::Instant::now();
+    }
 
     for id in members {
         let u = url.clone();
@@ -1901,19 +2025,32 @@ async fn sync_open_extension(group: String, keyword_or_id: String) -> Result<(),
 async fn sync_unlock_wallets(group: String, password: String) -> Result<usize, String> {
     let b = bus().await?;
     let members = b.members(&group);
-    let mut count = 0;
+    if members.is_empty() {
+        return Ok(0);
+    }
 
+    let mut set = tokio::task::JoinSet::new();
     for id in members {
         let pwd = password.clone();
-        tokio::spawn(async move {
-            if let Ok(true) = fill_field_kind(&id, "password", &pwd).await {
+        set.spawn(async move {
+            let filled = fill_field_kind(&id, "password", &pwd).await.unwrap_or(false);
+            if filled {
                 let _ = click_field_kind(&id, "submit").await;
                 let _ = cdp::browser_call(&id, "Motion.pressKey", serde_json::json!({ "key": "Enter" })).await;
+                true
+            } else {
+                false
             }
         });
-        count += 1;
     }
-    Ok(count)
+
+    let mut unlocked = 0;
+    while let Some(res) = set.join_next().await {
+        if let Ok(true) = res {
+            unlocked += 1;
+        }
+    }
+    Ok(unlocked)
 }
 
 #[tauri::command]
@@ -1956,31 +2093,31 @@ async fn sync_new_tab(group: String, url: Option<String>) -> Result<(), String> 
     if members.is_empty() {
         return Err("no members in group".into());
     }
-    let target_url = url.unwrap_or_else(|| "about:blank".to_string());
-
-    // The engine mirrors tabs opened in a group window, so creating via CDP in
-    // every member doubles the tab: one from CDP, one from the mirror. Create
-    // in one window â€” the master if set, else the first member â€” and let the
-    // mirror do the rest.
-    let driver = match b.status(&group).master {
-        Some(m) if members.contains(&m) => m,
-        _ => members[0].clone(),
+    let target_url = match url {
+        Some(ref u) if !u.trim().is_empty() => normalize_navigate_input(u),
+        _ => "about:blank".to_string(),
     };
 
+    // Mark programmatic create cooldown so watcher doesn't double-create
+    {
+        let cd = tab_sync_cooldown().await;
+        let mut map = cd.lock().await;
+        let entry = map.entry(group.clone()).or_insert_with(|| (
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+        ));
+        entry.0 = tokio::time::Instant::now();
+    }
+
     eprintln!(
-        "[sync] new_tab group '{group}' driver '{driver}' url '{target_url}'"
+        "[sync] new_tab group '{group}' url '{target_url}' to {} members",
+        members.len()
     );
-    if let Err(e) = cdp::create_tab(&driver, Some(&target_url)).await {
-        // Fallback: mirror is bound to a real user tab action; if the driver
-        // window is gone the engine cannot help, so create everywhere.
-        eprintln!("[sync] driver create failed ({e}); creating everywhere");
-        for id in &members {
-            let u = target_url.clone();
-            let id = id.clone();
-            tokio::spawn(async move {
-                let _ = cdp::create_tab(&id, Some(&u)).await;
-            });
-        }
+    for id in members {
+        let u = target_url.clone();
+        tokio::spawn(async move {
+            let _ = cdp::create_tab(&id, Some(&u)).await;
+        });
     }
     Ok(())
 }
@@ -1989,6 +2126,21 @@ async fn sync_new_tab(group: String, url: Option<String>) -> Result<(), String> 
 async fn sync_close_tab(group: String) -> Result<(), String> {
     let b = bus().await?;
     let members = b.members(&group);
+    if members.is_empty() {
+        return Err("no members in group".into());
+    }
+
+    // Mark programmatic close cooldown so watcher doesn't close twice on followers
+    {
+        let cd = tab_sync_cooldown().await;
+        let mut map = cd.lock().await;
+        let entry = map.entry(group.clone()).or_insert_with(|| (
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+        ));
+        entry.1 = tokio::time::Instant::now();
+    }
+
     for id in members {
         tokio::spawn(async move {
             let _ = cdp::close_active_tab(&id).await;
@@ -2502,6 +2654,14 @@ async fn credentials_list(profile_id: String) -> Result<Vec<credentials::Credent
 }
 
 #[tauri::command]
+async fn credentials_list_all() -> Result<Vec<credentials::Credential>, String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::list_all().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn credentials_add(cred: credentials::Credential) -> Result<(), String> {
     if !credentials::is_unlocked() {
         return Err("credential store is locked".into());
@@ -2692,7 +2852,7 @@ async fn locate_field(profile_id: &str, kind: &str) -> Result<Option<(f64, f64, 
                 if (kind === 'email' && type === 'email') {{ pick = el; break; }}
                 if (kind === 'password' && type === 'password') {{ pick = el; break; }}
                 if (kind === 'text' && (type === 'text' || type === '') && name.indexOf('email') !== -1) {{ pick = el; break; }}
-                if (kind === 'submit' && isSubmit && (text.indexOf('next') !== -1 || text.indexOf('log') !== -1 || text.indexOf('sign') !== -1 || text.indexOf('continue') !== -1)) {{ pick = el; break; }}
+                if (kind === 'submit' && isSubmit && (text.indexOf('next') !== -1 || text.indexOf('log') !== -1 || text.indexOf('sign') !== -1 || text.indexOf('continue') !== -1 || text.indexOf('unlock') !== -1 || text.indexOf('buka') !== -1)) {{ pick = el; break; }}
             }}
             if (!pick) return null;
             var r = pick.getBoundingClientRect();
@@ -2771,6 +2931,7 @@ pub fn run() {
             credentials_unlock,
             credentials_lock,
             credentials_list,
+            credentials_list_all,
             credentials_add,
             credentials_update,
             credentials_delete,

@@ -27,10 +27,10 @@ export function ProfileFilterBar() {
   return (
     <div className="relative">
       <Button
-        variant={active > 0 ? "primary" : "neutral"}
-        mode="stroke"
+        variant="neutral"
+        mode={active > 0 ? "filled" : "stroke"}
         size="small"
-        className={active > 0 ? "!border-indigo-500/40 !bg-indigo-500/10 !text-indigo-600 dark:!text-indigo-400" : ""}
+        className={active > 0 ? "!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black !border-[var(--color-ink,#0a0a0a)] dark:!border-white" : ""}
         leftIcon={<FilterIcon className="size-4" />}
         onClick={() => setOpen((v) => !v)}
       >
@@ -98,7 +98,7 @@ export function ProfileFilterBar() {
                       className={cn(
                         "rounded-[6px] px-1 py-0.5 border transition-colors",
                         filters.country === c
-                          ? "border-indigo-500 bg-indigo-500/10"
+                          ? "border-[var(--color-ink,#0a0a0a)] dark:border-white bg-[var(--color-canvas,#f5f5f5)] shadow-xs"
                           : "border-transparent hover:border-[var(--color-hairline,#e5e5e5)]",
                       )}
                     >

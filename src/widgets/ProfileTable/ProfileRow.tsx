@@ -1,12 +1,13 @@
 import { useRef } from "react";
 import { Checkbox, cn } from "@proxyshard/shardx-ui-kit";
 import Badge from "../../shared/ui/Badge";
-import { PinIconApp } from "../../shared/icons";
+import { PinIconApp, KeyIcon } from "../../shared/icons";
 import type { ContextItem } from "../../shared/types";
 import { CountryFlag } from "../../shared/ui/CountryFlag";
 import { fmtTs, fmtUptime } from "../../shared/lib/utils";
 import { useT } from "../../shared/i18n";
 import { useProfile, type ProfileMeta } from "../../entities/profile";
+import { useCredentials } from "../../entities/credentials";
 import type { ProxyEntry } from "../../entities/proxy";
 import { ProfileInlineEditor, ProfileRowActions } from "../../features/manage-profiles";
 
@@ -35,6 +36,10 @@ export function ProfileRow({ profile, proxy, onMenu }: {
   const exportCookies = useProfile((s) => s.exportCookies);
   const importCookies = useProfile((s) => s.importCookies);
 
+  // Accounts vault integration
+  const profileCreds = useCredentials((s) => s.credentials.filter((c) => c.profile_id === p.id));
+  const autofill = useCredentials((s) => s.autofill);
+
   // Shift-presses are handled in mousedown only: a click on the checkbox's
   // <label> reaches the row twice, and applying the range twice would undo it.
   const shiftPress = useRef(false);
@@ -42,6 +47,14 @@ export function ProfileRow({ profile, proxy, onMenu }: {
   // Per-profile action menu shared by right-click and the ⋮ button.
   const menu = (): ContextItem[] => [
     { label: isRunning ? t("profileRow.menuStop") : t("profileRow.menuLaunch"), onClick: () => startStop(p) },
+    ...(isRunning && profileCreds.length > 0
+      ? [
+          {
+            label: `⚡ Autofill (${profileCreds[0].email})`,
+            onClick: () => autofill(p.id, profileCreds[0].id),
+          },
+        ]
+      : []),
     { label: t("profileRow.menuEdit"), onClick: () => expand(p.id) },
     { label: t("profileRow.menuClone"), onClick: () => cloneProfile(p.id) },
     { label: p.pinned ? t("profileRow.menuUnpin") : t("profileRow.menuPin"), onClick: () => togglePin(p) },
@@ -128,7 +141,20 @@ export function ProfileRow({ profile, proxy, onMenu }: {
             )}
             {p.name}
           </div>
-          <div className="mono mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-zinc-500 dark:text-zinc-300 font-medium">{p.id.slice(0, 8)}</div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="mono overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-zinc-500 dark:text-zinc-300 font-medium">
+              {p.id.slice(0, 8)}
+            </span>
+            {profileCreds.length > 0 && (
+              <span
+                className="inline-flex items-center gap-0.5 rounded-[6px] bg-indigo-500/10 px-1.5 py-0.2 font-mono text-[9.5px] font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                title={`${profileCreds.length} account(s) in vault`}
+              >
+                <KeyIcon className="size-2.5" />
+                <span>{profileCreds.length}</span>
+              </span>
+            )}
+          </div>
         </div>
         <div>
           <Badge

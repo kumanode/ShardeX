@@ -133,7 +133,7 @@ export function AutomationPage() {
 
         {projects.length === 0 ? (
           <div className="flex flex-col items-center gap-2.5 px-4 py-12 text-center">
-            <div className="grid size-12 place-items-center rounded-[18px] bg-amber-500/10 text-amber-500 border border-amber-500/25">
+            <div className="grid size-12 place-items-center rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
               <NavAutomationIcon className="size-6" />
             </div>
             <p className="m-0 text-paragraph-sm text-zinc-500 dark:text-zinc-400">

@@ -16,7 +16,7 @@ export function ProfileToolbar() {
   const [showBulkGen, setShowBulkGen] = useState(false);
 
   return (
-    <div className="flex items-center flex-none gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <BulkActionsBar />
       <ProfileFilterBar />
       <Button

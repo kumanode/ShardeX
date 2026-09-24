@@ -122,6 +122,24 @@ export function SyncPanel({ group }: { group: string }) {
   // a second "+" arriving in the same tick would open a second tab.
   const inFlight = useRef(false);
   const isPreview = group === "preview" || group === "fleet-preview";
+  const noticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (noticeTimeoutRef.current) clearTimeout(noticeTimeoutRef.current);
+    };
+  }, []);
+
+  const showNotice = (msg: string, durationMs: number = 3000) => {
+    if (noticeTimeoutRef.current) {
+      clearTimeout(noticeTimeoutRef.current);
+    }
+    setWalletNotice(msg);
+    noticeTimeoutRef.current = setTimeout(() => {
+      setWalletNotice(null);
+      noticeTimeoutRef.current = null;
+    }, durationMs);
+  };
 
   const run = async (fn: () => Promise<void>) => {
     if (inFlight.current) return;
@@ -178,11 +196,10 @@ export function SyncPanel({ group }: { group: string }) {
     void run(() => syncNavigate(group, trimmed));
   };
 
-  const handleOpenWallet = (ext: string = "metamask") => {
+  const handleOpenWallet = (ext: string = "wallet") => {
     void run(async () => {
       await syncOpenExtension(group, ext);
-      setWalletNotice(t("syncPanel.openWallet"));
-      setTimeout(() => setWalletNotice(null), 3000);
+      showNotice(t("syncPanel.openWallet"));
     });
   };
 
@@ -193,16 +210,14 @@ export function SyncPanel({ group }: { group: string }) {
       const count = await syncUnlockWallets(group, unlockPassword);
       setShowUnlockModal(false);
       setUnlockPassword("");
-      setWalletNotice(t("syncPanel.unlockedCount", { count }));
-      setTimeout(() => setWalletNotice(null), 3000);
+      showNotice(t("syncPanel.unlockedCount", { count }));
     });
   };
 
   const handleTilePopups = () => {
     void run(async () => {
       await syncArrangePopups(group);
-      setWalletNotice(t("syncPanel.tilePopups"));
-      setTimeout(() => setWalletNotice(null), 2500);
+      showNotice(t("syncPanel.tilePopups"), 2500);
     });
   };
 

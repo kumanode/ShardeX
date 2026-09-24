@@ -13,7 +13,7 @@ export function NewProfileButton() {
       size="small"
       leftIcon={<AddIcon className="size-4" />}
       onClick={newProfile}
-      className="!bg-indigo-600 hover:!bg-indigo-500 !text-white shadow-sm shadow-indigo-600/25 font-medium"
+      className="!bg-[var(--color-ink,#0a0a0a)] hover:!bg-[var(--color-ink-soft,#171717)] !text-[var(--color-paper,#ffffff)] dark:!bg-[var(--color-paper,#ffffff)] dark:!text-[var(--color-ink,#0a0a0a)] dark:hover:!bg-zinc-200 font-medium !rounded-[18px]"
     >
       {t("newProfileButton.label")}
     </Button>

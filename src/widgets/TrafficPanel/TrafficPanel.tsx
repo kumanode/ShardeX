@@ -40,9 +40,9 @@ const hostOf = (url: string) => {
 };
 
 const FIELD =
-  "h-8 w-full rounded-[8px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500 transition-colors";
+  "h-8 w-full rounded-[8px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-[var(--color-ink,#0a0a0a)] dark:focus:border-white transition-colors";
 const AREA =
-  "min-h-16 w-full rounded-[8px] bg-[var(--color-paper,#ffffff)] p-2 font-mono text-[11px] text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500 transition-colors";
+  "min-h-16 w-full rounded-[8px] bg-[var(--color-paper,#ffffff)] p-2 font-mono text-[11px] text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-[var(--color-ink,#0a0a0a)] dark:focus:border-white transition-colors";
 const LABEL = "text-subheading-2xs text-zinc-500 dark:text-zinc-400";
 
 const METHODS = ["", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];

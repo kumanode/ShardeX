@@ -13,11 +13,11 @@ export function TitleBar() {
     >
       {HOST_OS !== "macOS" && (
         <div className="pointer-events-none absolute left-3 flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-          <span className="text-indigo-600 dark:text-indigo-400 flex items-center">
+          <span className="text-[var(--color-ink,#0a0a0a)] dark:text-zinc-200 flex items-center">
             <ShardMini className="size-3.5" />
           </span>
           <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] uppercase text-[var(--color-mid-gray,#737373)]">
-            ShardX
+            ShardeX
           </span>
         </div>
       )}

@@ -30,6 +30,7 @@ export const credentialsUnlock = (masterPassword: string) =>
 export const credentialsLock = () => invoke<void>("credentials_lock");
 export const credentialsList = (profileId: string) =>
   invoke<Credential[]>("credentials_list", { profileId });
+export const credentialsListAll = () => invoke<Credential[]>("credentials_list_all");
 export const credentialsAdd = (cred: Credential) => invoke<void>("credentials_add", { cred });
 export const credentialsUpdate = (cred: Credential) =>
   invoke<void>("credentials_update", { cred });

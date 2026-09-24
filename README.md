@@ -6,7 +6,7 @@
   </picture>
 </p>
 
-<h1 align="center">ShardX Launcher</h1>
+<h1 align="center">ShardeX Launcher</h1>
 
 <p align="center">
   <strong>A free, open-source anti-detect browser launcher for web scraping and multi-accounting.</strong><br>

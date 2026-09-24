@@ -28,14 +28,14 @@ export function ProfileRowActions({ profile, onMore }: {
   return (
     <div className="flex justify-end items-center gap-1.5">
       <Button
-        variant={isRunning ? "error" : "primary"}
+        variant={isRunning ? "error" : "neutral"}
         mode={isRunning ? "lighter" : "filled"}
         size="small"
         fullRadius
         className={
           isRunning
             ? "min-w-[92px] h-9 !bg-rose-500/10 hover:!bg-rose-500/20 !text-rose-600 dark:!text-rose-400 !border !border-rose-500/30 font-medium"
-            : "min-w-[92px] h-9 !bg-emerald-600 hover:!bg-emerald-500 !text-white shadow-sm shadow-emerald-600/25 font-semibold"
+            : "min-w-[92px] h-9 !bg-[var(--color-ink,#0a0a0a)] dark:!bg-white !text-white dark:!text-black hover:opacity-90 font-medium shadow-xs"
         }
         leftIcon={
           isRunning
@@ -49,13 +49,13 @@ export function ProfileRowActions({ profile, onMore }: {
         {isRunning ? t("profileRowActions.stop") : isStarting ? t("profileRowActions.starting") : t("profileRowActions.start")}
       </Button>
       <Button
-        variant={p.pinned ? "primary" : "neutral"}
-        mode={p.pinned ? "lighter" : "stroke"}
+        variant="neutral"
+        mode="stroke"
         size="small"
         onlyIcon
         onClick={() => togglePin(p)}
         title={p.pinned ? t("profileRowActions.unpin") : t("profileRowActions.pinToTop")}
-        className={p.pinned ? "!text-amber-500 !bg-amber-500/10 !border-amber-500/30" : ""}
+        className={p.pinned ? "!text-[var(--color-ink,#0a0a0a)] dark:!text-white !bg-[var(--color-canvas,#f5f5f5)] !border-[var(--color-ink,#0a0a0a)] dark:!border-white" : ""}
         leftIcon={<PinIconApp className="size-[18px]" />}
       />
       <Button

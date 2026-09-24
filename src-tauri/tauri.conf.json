@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ShardX Launcher",
+  "productName": "ShardeX",
   "version": "2.0.3",
-  "identifier": "com.shardx.launcher",
+  "identifier": "com.shardex.launcher",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -12,11 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "ShardX Launcher",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1280,
-        "minHeight": 800,
+        "title": "ShardeX",
+        "width": 1200,
+        "height": 760,
+        "minWidth": 800,
+        "minHeight": 540,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "dragDropEnabled": false

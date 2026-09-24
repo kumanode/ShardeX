@@ -9,8 +9,8 @@ export function PsAccountMetrics() {
   const connected = usePsConnected();
 
   return (
-    <div className="grid grid-cols-3 gap-[10px] mb-4">
-      <Metric label={t("psAccountMetrics.account")} value={connected ? t("psAccountMetrics.connected") : "-"} accent={connected} pulse={connected} />
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 min-w-0">
+      <Metric label={t("psAccountMetrics.account")} value={connected ? t("psAccountMetrics.connected") : "-"} pulse={connected} />
       <Metric label={t("psAccountMetrics.balance")} value={me ? fmtCents(me.wallet_balance) : "-"} />
       <Metric label={t("psAccountMetrics.activeOrders")} value={me ? String(me.active_orders) : "-"} />
     </div>

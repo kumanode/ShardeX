@@ -4,17 +4,17 @@ import { useContextMenu } from "../../shared/hooks/useContextMenu";
 import { useT } from "../../shared/i18n";
 import { useProfile, useFolders } from "../../entities/profile";
 
-/* UI-kit "line" tab look with indigo active state */
+/* Monochromatic line tab look matching clinical blueprint design */
 const tabBase =
   "relative -mb-px flex flex-none cursor-pointer items-center gap-2 whitespace-nowrap border-0 border-b-2 bg-transparent px-3.5 py-2.5 text-[13px] transition-colors pointer-events-auto [&>*]:pointer-events-none";
-const tabActive = "border-b-indigo-600 dark:border-b-indigo-400 text-[var(--color-ink,#0a0a0a)] font-semibold";
+const tabActive = "border-b-[var(--color-ink,#0a0a0a)] dark:border-b-white text-[var(--color-ink,#0a0a0a)] font-semibold";
 const tabIdle = "border-b-transparent text-[var(--color-mid-gray,#737373)] hover:text-[var(--color-ink,#0a0a0a)]";
-const tabDrop = "bg-[var(--color-canvas,#f5f5f5)]! text-[var(--color-ink,#0a0a0a)]! outline outline-1 outline-dashed outline-indigo-500";
+const tabDrop = "bg-[var(--color-canvas,#f5f5f5)]! text-[var(--color-ink,#0a0a0a)]! outline outline-1 outline-dashed outline-[var(--color-ink,#0a0a0a)]";
 const badge = (active: boolean) =>
   cn(
     "rounded-[18px] px-2 py-0.5 text-[10px] font-semibold transition-colors",
     active
-      ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25"
+      ? "bg-[var(--color-ink,#0a0a0a)] text-white dark:bg-white dark:text-black"
       : "bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-mid-gray,#737373)] border border-[var(--color-hairline,#e5e5e5)]",
   );
 
@@ -116,7 +116,7 @@ export function FolderTabs() {
         </button>
       ))}
       <button
-        className="flex-none cursor-pointer whitespace-nowrap border-0 bg-transparent px-3 py-2 text-base font-normal leading-none text-zinc-400 dark:text-zinc-500 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
+        className="flex-none cursor-pointer whitespace-nowrap border-0 bg-transparent px-3 py-2 text-base font-normal leading-none text-zinc-400 dark:text-zinc-500 transition-colors hover:text-[var(--color-ink,#0a0a0a)] dark:hover:text-white"
         title={t("folderTabs.newFolder")}
         onClick={() => setFolderModal({ profileId: null })}
       >

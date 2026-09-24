@@ -91,7 +91,7 @@ export function FirstRunGate({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-1000 flex items-center justify-center bg-[var(--color-paper,#ffffff)] text-zinc-900 dark:text-white">
       <div className="w-[460px] px-9 py-8 text-center">
-        <div className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50 shadow-sm">
+        <div className="mx-auto mb-5 grid size-16 place-items-center rounded-[24px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
           <DownloadIcon className="size-8" />
         </div>
         <div className="mb-2 text-page-title">{t("firstRunGate.title")}</div>

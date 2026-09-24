@@ -318,6 +318,17 @@ pub fn list_for_profile(profile_id: &str) -> Result<Vec<Credential>> {
     Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
 }
 
+/// List all stored accounts across profiles, without decrypting the passwords.
+pub fn list_all() -> Result<Vec<Credential>> {
+    let conn = open()?;
+    let mut stmt = conn.prepare(
+        "SELECT id, profile_id, provider, email, password_enc, notes, created_at, last_used, keep_alive_minutes
+           FROM credentials ORDER BY created_at DESC",
+    )?;
+    let rows = stmt.query_map([], |r| row_to_credential(r, String::new()))?;
+    Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
+}
+
 pub fn get(id: &str) -> Result<Credential> {
     ensure_unlocked()?;
     let k = key()?;
@@ -370,6 +381,24 @@ pub fn providers() -> Vec<ProviderTemplate> {
             domains: vec!["discord.com".into(), "discordapp.com".into()],
             keep_alive_url: "https://discord.com/channels/@me".into(),
         },
+        ProviderTemplate {
+            id: "telegram".into(),
+            name: "Telegram".into(),
+            domains: vec!["web.telegram.org".into(), "telegram.org".into()],
+            keep_alive_url: "https://web.telegram.org/a/".into(),
+        },
+        ProviderTemplate {
+            id: "github".into(),
+            name: "GitHub".into(),
+            domains: vec!["github.com".into()],
+            keep_alive_url: "https://github.com/".into(),
+        },
+        ProviderTemplate {
+            id: "generic".into(),
+            name: "Custom / Generic".into(),
+            domains: vec![],
+            keep_alive_url: "".into(),
+        },
     ]
 }
 
@@ -407,6 +436,7 @@ mod tests {
     fn detects_provider_by_domain() {
         assert_eq!(detect_provider("https://x.com/i/flow/login").as_deref(), Some("x"));
         assert_eq!(detect_provider("https://discord.com/login").as_deref(), Some("discord"));
+        assert_eq!(detect_provider("https://github.com/login").as_deref(), Some("github"));
         assert!(detect_provider("https://example.com").is_none());
     }
 }

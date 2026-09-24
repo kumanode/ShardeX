@@ -13,13 +13,13 @@ function PlatformIcon({ platform }: { platform: string }) {
   }
   switch (p) {
     case "macos":
-      return <AppleOsIcon className="size-5 text-indigo-600 dark:text-indigo-400" />;
+      return <AppleOsIcon className="size-5 text-[var(--color-ink,#0a0a0a)] dark:text-white" />;
     case "windows":
       return <WindowsOsIcon className="size-5 text-information-base" />;
     case "linux":
       return <LinuxOsIcon className="size-5 text-success-base" />;
     default:
-      return <AppleOsIcon className="size-5 text-indigo-600 dark:text-indigo-400" />;
+      return <AppleOsIcon className="size-5 text-[var(--color-ink,#0a0a0a)] dark:text-white" />;
   }
 }
 

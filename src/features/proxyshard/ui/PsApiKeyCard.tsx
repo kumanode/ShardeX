@@ -28,7 +28,7 @@ export function PsApiKeyCard() {
         {t("psApiKeyCard.hintPart1")}<strong>{t("psApiKeyCard.hintApiKey")}</strong>{t("psApiKeyCard.hintPart2")}{" "}
         <a
           href="#"
-          className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+          className="text-[var(--color-ink,#0a0a0a)] dark:text-white underline font-medium"
           onClick={(e) => { e.preventDefault(); openUrl(DASHBOARD_URL).catch(() => {}); }}
         >{t("psApiKeyCard.hintDashboard")}</a>{t("psApiKeyCard.hintPart3")}<code>Authorization: Bearer …</code>{t("psApiKeyCard.hintPart4")}
       </p>
@@ -55,9 +55,10 @@ export function PsApiKeyCard() {
           />
         </div>
         <Button
-          variant="primary"
+          variant="neutral"
           mode="filled"
           size="small"
+          className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
           onClick={() => saveKey(draft)}
           disabled={draft.trim() === (key ?? "")}
         >

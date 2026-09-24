@@ -49,7 +49,7 @@ export function ProxyTestResult({ snap, kind, busy }: {
       )}
       {snap.tcp_ms != null && snap.ip && (
         <span
-          className="mono max-w-[15ch] overflow-hidden text-ellipsis whitespace-nowrap rounded-[8px] bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/20 px-1.5 py-px text-[11px] text-indigo-600 dark:text-indigo-400 font-medium"
+          className="mono max-w-[15ch] overflow-hidden text-ellipsis whitespace-nowrap rounded-[8px] bg-[var(--color-canvas,#f5f5f5)] dark:bg-zinc-800 border border-[var(--color-hairline,#e5e5e5)] dark:border-zinc-700 px-1.5 py-px text-[11px] text-[var(--color-ink,#0a0a0a)] dark:text-zinc-200 font-medium"
           title={snap.isp}
         >
           {snap.ip}

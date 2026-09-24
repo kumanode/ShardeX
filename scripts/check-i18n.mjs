@@ -21,13 +21,14 @@ const TEXT_PROPS = new Set([
 // Same in every language: product and protocol names, OS names, the language
 // picker's own entries, and samples of code or headers.
 const KEEP = new Set([
-  "ShardX", "ShardX Launcher", "ProxyShard", "Shard Helper", "MCP", "GPU", "CPU",
+  "ShardeX", "ShardeX Launcher", "ShardeX Sync", "ShardX", "ShardX Launcher", "ProxyShard", "Shard Helper", "MCP", "GPU", "CPU",
   "URL", "SQL", "UDP", "TCP", "HTTP", "HTTPS", "SOCKS5", "Canvas", "WebGL",
   "WebGPU", "WebRTC", "TLS", "CDP", "API", "JSON", "Cookie", "User-Agent",
   "macOS", "MacOS", "Windows", "Windows 10", "Windows 11", "Linux", "Android",
-  "iOS", "IOS", "X", "Y", "ISP", "Do Not Track",
+  "iOS", "IOS", "X", "Y", "ISP", "Do Not Track", "Launcher", "Expand Sidebar", "Collapse Sidebar", "Layout:",
   "Authorization: Bearer …", "Content-Type: application/json",
   "BlockedByClient / AccessDenied / …", "· UDP ✓", "· UDP ✗",
+  "Google / Gmail", "X / Twitter", "Discord", "Telegram", "GitHub", "Custom / Generic",
 ]);
 const KEEP_PREFIX = ["English (", "Deutsch", "Español", "Français", "Italiano",
   "Nederlands", "Polski", "Português", "Română", "Русский", "Українська",

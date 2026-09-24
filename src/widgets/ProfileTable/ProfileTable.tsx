@@ -68,48 +68,52 @@ export function ProfileTable() {
   return (
     <>
       <div className="overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
-        {/* Chrome voice: column headers are small-caps mono labels. */}
-        <div className="t-cols border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--color-mid-gray,#737373)]">
-          <div></div>
-          <div>
-            <Checkbox
-              title={t("profileTable.selectAllOnPage")}
-              // Header checkbox toggles only visible page rows; other pages preserved.
-              checked={allPageSelected}
-              indeterminate={anyPageSelected && !allPageSelected}
-              onChange={(e) => selectProfiles(e.target.checked, paged)}
-            />
+        <div className="w-full overflow-x-auto min-w-0">
+          <div className="min-w-[860px]">
+            {/* Chrome voice: column headers are small-caps mono labels. */}
+            <div className="t-cols border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--color-mid-gray,#737373)]">
+              <div></div>
+              <div>
+                <Checkbox
+                  title={t("profileTable.selectAllOnPage")}
+                  // Header checkbox toggles only visible page rows; other pages preserved.
+                  checked={allPageSelected}
+                  indeterminate={anyPageSelected && !allPageSelected}
+                  onChange={(e) => selectProfiles(e.target.checked, paged)}
+                />
+              </div>
+              <div>{t("profileTable.colName")}</div>
+              <div>{t("profileTable.colStatus")}</div>
+              <div>{t("profileTable.colProxy")}</div>
+              <div>{t("profileTable.colNotes")}</div>
+              <div>{t("profileTable.colTime")}</div>
+              <div>{t("profileTable.colLastRun")}</div>
+              <div></div>
+            </div>
+            {expanded === "__new__" && (
+              <div className="row-expanded row-new relative border-t border-[var(--color-hairline,#e5e5e5)] first:border-t-0">
+                <ProfileInlineEditor />
+              </div>
+            )}
+            {status === "loading" && paged.length === 0 ? (
+              <div className="p-4">
+                <SkeletonRows rows={6} />
+              </div>
+            ) : (
+              paged.map((p) => (
+                <ProfileRow
+                  key={p.id}
+                  profile={p}
+                  proxy={p.proxy_id ? proxyMap[p.proxy_id] ?? null : null}
+                  onMenu={ctx.open}
+                />
+              ))
+            )}
           </div>
-          <div>{t("profileTable.colName")}</div>
-          <div>{t("profileTable.colStatus")}</div>
-          <div>{t("profileTable.colProxy")}</div>
-          <div>{t("profileTable.colNotes")}</div>
-          <div>{t("profileTable.colTime")}</div>
-          <div>{t("profileTable.colLastRun")}</div>
-          <div></div>
         </div>
-        {expanded === "__new__" && (
-          <div className="row-expanded row-new relative border-t border-[var(--color-hairline,#e5e5e5)] first:border-t-0">
-            <ProfileInlineEditor />
-          </div>
-        )}
-        {status === "loading" && paged.length === 0 ? (
-          <div className="p-4">
-            <SkeletonRows rows={6} />
-          </div>
-        ) : (
-          paged.map((p) => (
-            <ProfileRow
-              key={p.id}
-              profile={p}
-              proxy={p.proxy_id ? proxyMap[p.proxy_id] ?? null : null}
-              onMenu={ctx.open}
-            />
-          ))
-        )}
         {visible.length === 0 && !expanded && (
           <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-            <div className="relative mb-2 flex size-14 items-center justify-center rounded-[18px] bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
+            <div className="relative mb-2 flex size-14 items-center justify-center rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
               <span className="scale-125"><NavBrowsersIcon className="size-6" /></span>
             </div>
             <h3 className="m-0 text-title-h6 font-semibold text-[var(--color-ink,#0a0a0a)]">{t("profileTable.emptyTitle")}</h3>
