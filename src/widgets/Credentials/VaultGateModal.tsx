@@ -3,7 +3,15 @@ import { KeyIcon, LockedIcon, EyeIcon, EyeOffIcon } from "../../shared/icons";
 import { useCredentials } from "../../entities/credentials";
 import { useT } from "../../shared/i18n";
 
-export function VaultGateModal() {
+type Props = {
+  /** "page" (default) — embedded in the credentials page, no skip.
+   *  "onboarding" — full-screen first-run wizard, shows skip + no-reset warning. */
+  variant?: "page" | "onboarding";
+  onSkip?: () => void;
+  onDone?: () => void;
+};
+
+export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
   const t = useT();
   const status = useCredentials((s) => s.status);
   const setup = useCredentials((s) => s.setup);
@@ -16,6 +24,7 @@ export function VaultGateModal() {
   const [error, setError] = useState<string | null>(null);
 
   const isSetup = !status?.configured;
+  const isOnboarding = variant === "onboarding";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,13 +40,17 @@ export function VaultGateModal() {
         return;
       }
       const ok = await setup(password);
-      if (!ok) {
+      if (ok) {
+        onDone?.();
+      } else {
         setError(t("credentials.errWrong"));
       }
     } else {
       if (!password) return;
       const ok = await unlock(password);
-      if (!ok) {
+      if (ok) {
+        onDone?.();
+      } else {
         setError(t("credentials.errWrong"));
       }
     }
@@ -55,12 +68,19 @@ export function VaultGateModal() {
             {t("credentials.vaultBadge")}
           </div>
           <h2 className="text-xl font-bold tracking-tight text-[var(--color-ink,#0a0a0a)]">
-            {isSetup ? t("credentials.createStore") : t("credentials.title")}
+            {isOnboarding && isSetup ? t("onboarding.vaultTitle") : isSetup ? t("credentials.createStore") : t("credentials.title")}
           </h2>
           <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--color-mid-gray,#737373)]">
-            {isSetup ? t("credentials.setupIntro") : t("credentials.unlockIntro")}
+            {isOnboarding && isSetup ? t("onboarding.vaultIntro") : isSetup ? t("credentials.setupIntro") : t("credentials.unlockIntro")}
           </p>
         </div>
+
+        {/* No-reset warning — onboarding only */}
+        {isOnboarding && isSetup && (
+          <div className="mb-4 rounded-[14px] bg-amber-500/10 border border-amber-500/20 p-3 text-[12.5px] font-medium text-amber-700 dark:text-amber-400">
+            {t("onboarding.vaultWarnNoReset")}
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (
@@ -129,6 +149,17 @@ export function VaultGateModal() {
               <span>{t("credentials.unlock")}</span>
             )}
           </button>
+
+          {/* Skip link — onboarding only */}
+          {isOnboarding && onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="mt-1 w-full cursor-pointer text-center text-[12.5px] text-[var(--color-mid-gray,#737373)] hover:text-[var(--color-ink,#0a0a0a)] transition-colors"
+            >
+              {t("onboarding.vaultSkip")} — {t("onboarding.vaultLaterHint")}
+            </button>
+          )}
         </form>
 
         {/* Security badge footer */}

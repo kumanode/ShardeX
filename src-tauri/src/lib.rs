@@ -2724,19 +2724,19 @@ async fn keep_alive_status(profile_id: String) -> Result<bool, String> {
 #[tauri::command]
 async fn credentials_autofill(profile_id: String, credential_id: String) -> Result<(), String> {
     if !credentials::is_unlocked() {
-        return Err("Credential store terkunci. Buka Account Manager dan masukkan master password.".into());
+        return Err("Credential store is locked. Open Account Manager and enter the master password.".into());
     }
     let cred = credentials::get(&credential_id)
-        .map_err(|e| format!("Kredensial tidak ditemukan. Mungkin sudah dihapus? ({e})"))?;
+        .map_err(|e| format!("Credential not found. Maybe it was deleted? ({e})"))?;
     if cred.profile_id != profile_id {
         return Err(format!(
-            "Kredensial {} bukan milik profil {}. Satu kredensial hanya dipakai satu profil.",
+            "Credential {} does not belong to profile {}. One credential is bound to a single profile.",
             cred.email, profile_id
         ));
     }
     cdp::ensure_attached(&profile_id)
         .await
-        .map_err(|e| format!("Browser tidak dapat dikontrol. Jalankan profil dulu. ({e})"))?;
+        .map_err(|e| format!("Browser could not be controlled. Launch the profile first. ({e})"))?;
 
     // Fill email first; a multi-step provider (Google, X) then advances to its
     // own password page, so the password field is looked up again after.
@@ -2745,8 +2745,8 @@ async fn credentials_autofill(profile_id: String, credential_id: String) -> Resu
         let alt = fill_field_kind(&profile_id, "text", &cred.email).await?;
         if !alt {
             return Err(
-                "Tidak ada kolom email terdeteksi di halaman ini. Pastikan halaman login \
-                 provider sedang terbuka."
+                "No email field was detected on this page. Make sure the provider's login \
+                 page is open."
                     .into(),
             );
         }
@@ -2770,8 +2770,8 @@ async fn credentials_autofill(profile_id: String, credential_id: String) -> Resu
     }
     if !password_ok {
         return Err(
-            "Kolom password tidak muncul. Provider mungkin mengubah alur loginnya, atau \
-             halaman belum selesai dimuat."
+            "The password field did not appear. The provider may have changed its login flow, \
+             or the page has not finished loading."
                 .into(),
         );
     }
