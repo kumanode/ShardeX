@@ -56,6 +56,7 @@ export function fromStored(stored: any): ProfileForm {
   f.id = stored?._meta?.id ?? "";
   f.rev = stored?._meta?.rev ?? 0;
   f.proxy_id = stored?._meta?.proxy_id ?? null;
+  f.dns_servers = stored?._meta?.dns_servers ?? "";
   f.name = stored?.name ?? "";
   f.notes = stored?.notes ?? "";
   f.color = stored?._meta?.color ?? "";
@@ -115,6 +116,7 @@ export function toStored(f: ProfileForm, lib: FingerprintEntry | null): any {
     ...(f.color ? { color: f.color } : {}),
     extensions: f.extensions,
     ...(f.android_media ? { android_media: true } : {}),
+    ...(f.dns_servers ? { dns_servers: f.dns_servers } : {}),
   };
   base.name = f.name || "untitled";
   base.notes = f.notes;

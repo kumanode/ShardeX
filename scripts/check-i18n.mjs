@@ -5,8 +5,9 @@
 // product names, protocol names, the endonyms in the language picker.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SRC = join(ROOT, "src");
 const LOCALES = join(SRC, "shared/i18n/locales");
 
@@ -20,13 +21,14 @@ const TEXT_PROPS = new Set([
 // Same in every language: product and protocol names, OS names, the language
 // picker's own entries, and samples of code or headers.
 const KEEP = new Set([
-  "ShardX", "ShardX Launcher", "ProxyShard", "Shard Helper", "MCP", "GPU", "CPU",
+  "ShardeX", "ShardeX Launcher", "ShardeX Sync", "ShardX", "ShardX Launcher", "ProxyShard", "Shard Helper", "MCP", "GPU", "CPU",
   "URL", "SQL", "UDP", "TCP", "HTTP", "HTTPS", "SOCKS5", "Canvas", "WebGL",
   "WebGPU", "WebRTC", "TLS", "CDP", "API", "JSON", "Cookie", "User-Agent",
   "macOS", "MacOS", "Windows", "Windows 10", "Windows 11", "Linux", "Android",
-  "iOS", "IOS", "X", "Y", "ISP", "Do Not Track",
+  "iOS", "IOS", "X", "Y", "ISP", "Do Not Track", "Launcher", "Expand Sidebar", "Collapse Sidebar", "Layout:",
   "Authorization: Bearer …", "Content-Type: application/json",
   "BlockedByClient / AccessDenied / …", "· UDP ✓", "· UDP ✗",
+  "Google / Gmail", "X / Twitter", "Discord", "Telegram", "GitHub", "Custom / Generic",
 ]);
 const KEEP_PREFIX = ["English (", "Deutsch", "Español", "Français", "Italiano",
   "Nederlands", "Polski", "Português", "Română", "Русский", "Українська",
@@ -83,7 +85,7 @@ for (const file of files) {
   for (const m of src.matchAll(/\b([a-zA-Z-]+)\s*[=:]\s*\{?"([^"\\]{2,400})"\}?/g)) {
     if (TEXT_PROPS.has(m[1]) && human(m[2])) problems.push([rel, at(m.index), `${m[1]}="${m[2]}"`]);
   }
-  for (const m of src.matchAll(/"((?:palette|helperKinds)\.[A-Za-z0-9_.]+)"/g)) called.add(m[1]);
+  for (const m of src.matchAll(/"((?:palette|helperKinds|fingerprint)\.[A-Za-z0-9_.]+)"/g)) called.add(m[1]);
 }
 
 const en = JSON.parse(readFileSync(join(LOCALES, "en.json"), "utf8"));

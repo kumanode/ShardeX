@@ -22,13 +22,13 @@ export function PsApiKeyCard() {
   useEffect(() => { setDraft(key ?? ""); }, [key]);
 
   return (
-    <div className="mb-3.5 rounded-lg bg-bg-white-0 p-[18px] shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
-      <h3 className="m-0 mb-1 text-label-sm text-text-strong-950">{t("psApiKeyCard.title")}</h3>
-      <p className="m-0 mb-2 text-paragraph-xs text-text-soft-400">
+    <div className="mb-4 rounded-[24px] bg-[var(--color-paper,#ffffff)] p-5 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+      <h3 className="m-0 mb-1.5 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("psApiKeyCard.title")}</h3>
+      <p className="m-0 mb-2 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
         {t("psApiKeyCard.hintPart1")}<strong>{t("psApiKeyCard.hintApiKey")}</strong>{t("psApiKeyCard.hintPart2")}{" "}
         <a
           href="#"
-          className="text-primary-base hover:underline"
+          className="text-[var(--color-ink,#0a0a0a)] dark:text-white underline font-medium"
           onClick={(e) => { e.preventDefault(); openUrl(DASHBOARD_URL).catch(() => {}); }}
         >{t("psApiKeyCard.hintDashboard")}</a>{t("psApiKeyCard.hintPart3")}<code>Authorization: Bearer …</code>{t("psApiKeyCard.hintPart4")}
       </p>
@@ -45,7 +45,7 @@ export function PsApiKeyCard() {
             rightIcon={
               <button
                 type="button"
-                className="pointer-events-auto flex size-6 cursor-pointer items-center justify-center rounded-6 border-0 bg-transparent text-icon-soft-400 transition-colors hover:bg-bg-weak-50 hover:text-icon-strong-950"
+                className="pointer-events-auto flex size-6 cursor-pointer items-center justify-center rounded-[8px] border-0 bg-transparent text-zinc-400 dark:text-zinc-500 transition-colors hover:bg-[var(--color-surface-alt,#fafafa)] hover:text-zinc-900 dark:hover:text-white"
                 title={showKey ? t("psApiKeyCard.hideKeyTitle") : t("psApiKeyCard.showKeyTitle")}
                 onClick={() => setShowKey((v) => !v)}
               >
@@ -55,9 +55,10 @@ export function PsApiKeyCard() {
           />
         </div>
         <Button
-          variant="primary"
+          variant="neutral"
           mode="filled"
           size="small"
+          className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
           onClick={() => saveKey(draft)}
           disabled={draft.trim() === (key ?? "")}
         >

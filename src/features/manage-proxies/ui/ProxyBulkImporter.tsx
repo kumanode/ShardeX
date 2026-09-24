@@ -118,7 +118,7 @@ export function ProxyBulkImporter({ onClose }: { onClose: () => void }) {
               onChange={(e) => setText(e.target.value)}
               placeholder={t("proxyBulkImporter.pastePlaceholder")}
             />
-            <p className="m-0 text-paragraph-xs text-text-soft-400">
+            <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
               {t("proxyBulkImporter.duplicatesNote")}
             </p>
           </>
@@ -160,11 +160,11 @@ export function ProxyBulkImporter({ onClose }: { onClose: () => void }) {
                 </Button>
               </div>
             </div>
-            <div className="max-h-[380px] overflow-y-auto py-2  overflow-x-hidden rounded-lg bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200">
+            <div className="max-h-[380px] overflow-y-auto overflow-x-hidden rounded-[16px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)]">
               {rows.map((r, i) => (
                 <div
                   key={`${r.entry.host}:${r.entry.port}:${i}`}
-                  className={`import-cols border-b border-stroke-soft-200 px-2.5 py-1.5 text-paragraph-xs last:border-b-0${r.status === "ok" ? " bg-success-alpha-16/20" : r.status === "fail" ? " bg-error-alpha-16/20 opacity-85" : ""}`}
+                  className={`import-cols border-b border-[var(--color-hairline,#e5e5e5)] px-2.5 py-1.5 text-paragraph-xs last:border-b-0${r.status === "ok" ? " bg-emerald-500/[0.04]" : r.status === "fail" ? " bg-red-500/[0.04] opacity-85" : ""}`}
                 >
                   <Checkbox
                     checked={r.selected}
@@ -179,13 +179,13 @@ export function ProxyBulkImporter({ onClose }: { onClose: () => void }) {
                   >
                     {r.entry.kind.toUpperCase()}
                   </Badge>
-                  <span className="mono min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-paragraph-xs text-text-strong-950" title={`${r.entry.host}:${r.entry.port}${r.entry.username ? " @" + r.entry.username : ""}`}>
+                  <span className="mono min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-paragraph-xs text-zinc-800 dark:text-zinc-200" title={`${r.entry.host}:${r.entry.port}${r.entry.username ? " @" + r.entry.username : ""}`}>
                     {r.entry.host}:{r.entry.port}
-                    {r.entry.username && <span className="text-text-soft-400"> · {r.entry.username}</span>}
+                    {r.entry.username && <span className="text-zinc-500 dark:text-zinc-400">· {r.entry.username}</span>}
                   </span>
                   <div className="inline-flex items-center justify-end gap-1.5">
-                    {r.status === "idle" && <span className="text-text-soft-400">{t("proxyBulkImporter.notTested")}</span>}
-                    {r.status === "testing" && <span className="text-text-soft-400">{t("proxyBulkImporter.testingRow")}</span>}
+                    {r.status === "idle" && <span className="text-zinc-400 dark:text-zinc-500">{t("proxyBulkImporter.notTested")}</span>}
+                    {r.status === "testing" && <span className="text-zinc-400 dark:text-zinc-500">{t("proxyBulkImporter.testingRow")}</span>}
                     {r.status === "ok" && (
                       <>
                         <Badge color="success" variant="filled" size="small" title={t("proxyBulkImporter.tcpTime", { ms: String(r.tcp_ms) })}>{t("proxyBulkImporter.active")}</Badge>
@@ -195,7 +195,7 @@ export function ProxyBulkImporter({ onClose }: { onClose: () => void }) {
                         {r.country && (
                           <>
                             <CountryFlag cc={r.country} />
-                            <span className="text-text-sub-600">{r.country}</span>
+                            <span className="text-zinc-600 dark:text-zinc-300">{r.country}</span>
                           </>
                         )}
                       </>

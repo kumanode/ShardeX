@@ -76,6 +76,10 @@ pub struct ProfileMeta {
     /// Whether this profile answers media questions the Android way.
     #[serde(default)]
     pub android_media: bool,
+    /// Per-profile DNS override, comma-separated servers (`1.1.1.1,1.0.0.1`).
+    /// None = the engine's own resolver.
+    #[serde(default)]
+    pub dns_servers: Option<String>,
 }
 
 /// On-disk `<profiles_dir>/<id>.json`: FingerprintConfig + `_meta` envelope.
@@ -127,6 +131,9 @@ pub struct StoredMeta {
     /// Blending in and playing video pull apart here, so the operator chooses.
     #[serde(default, skip_serializing_if = "is_false")]
     pub android_media: bool,
+    /// Per-profile DNS override as a DoH template URL. None = engine default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_servers: Option<String>,
     /// Bumped by every write. An editor sends back the number it opened, so a
     /// save landing on top of someone else's is refused instead of silent.
     #[serde(default)]
@@ -236,6 +243,7 @@ pub fn list_all() -> Result<Vec<ProfileMeta>> {
             extensions: stored.meta.extensions,
             mobile: claims_mobile(&stored.config),
             android_media: stored.meta.android_media,
+            dns_servers: stored.meta.dns_servers.clone(),
         });
     }
     // Pinned first, then newest-first by created_at; name fallback for same-second ties.
@@ -481,6 +489,7 @@ pub fn clone_profile(id: &str) -> Result<ProfileMeta> {
         extensions: src.meta.extensions,
         mobile: claims_mobile(&src.config),
         android_media: src.meta.android_media,
+        dns_servers: src.meta.dns_servers.clone(),
     })
 }
 
@@ -500,6 +509,19 @@ pub fn set_folder(id: &str, folder: &str) -> Result<()> {
     let _guard = file_lock();
     let mut p = load_raw(id)?;
     p.meta.folder = folder.trim().to_string();
+    let path = path_for(&p.meta.id)?;
+    let body = serde_json::to_string_pretty(&p)?;
+    write_atomic(&path, body.as_bytes())?;
+    Ok(())
+}
+
+/// Set (or clear) the profile's DNS override.
+pub fn set_dns(id: &str, servers: Option<String>) -> Result<()> {
+    let _guard = file_lock();
+    let mut p = load_raw(id)?;
+    p.meta.dns_servers = servers
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
     let path = path_for(&p.meta.id)?;
     let body = serde_json::to_string_pretty(&p)?;
     write_atomic(&path, body.as_bytes())?;

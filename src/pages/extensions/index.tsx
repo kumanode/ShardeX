@@ -12,33 +12,36 @@ function Card({ e }: { e: ExtensionEntry }) {
   const t = useT();
   const remove = useExtensions((s) => s.remove);
   return (
-    <article className="flex flex-col gap-2.5 rounded-xl bg-bg-white-0 p-3.5 ring-1 ring-inset ring-stroke-soft-200">
-      <div className="flex items-start gap-2.5">
-        {e.icon ? (
-          <img src={e.icon} alt="" className="size-10 shrink-0 rounded-lg object-contain" />
-        ) : (
-          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-alpha-10 text-primary-base">
-            <NavExtensionsIcon className="size-5" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <h3 className="m-0 truncate text-label-xs text-text-strong-950" title={e.name}>{e.name}</h3>
-          <div className="mt-0.5 flex items-center gap-1.5 text-paragraph-xs text-text-soft-400">
-            {e.version && <span>v{e.version}</span>}
-            <span>·</span>
-            <span>{fmtBytes(e.size_bytes)}</span>
+    <article className="flex flex-col justify-between gap-3 rounded-[20px] bg-[var(--color-paper,#ffffff)] p-4 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)] transition-all hover:bg-[var(--color-surface-alt,#fafafa)] hover:shadow-md">
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-start gap-3">
+          {e.icon ? (
+            <img src={e.icon} alt="" className="size-10 shrink-0 rounded-lg object-contain" />
+          ) : (
+            <div className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+              <NavExtensionsIcon className="size-5" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <h3 className="m-0 truncate text-label-xs font-semibold text-zinc-900 dark:text-white" title={e.name}>{e.name}</h3>
+            <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+              {e.version && <span>v{e.version}</span>}
+              <span>·</span>
+              <span>{fmtBytes(e.size_bytes)}</span>
+            </div>
           </div>
         </div>
+        <p className="m-0 line-clamp-3 min-h-[2.4em] text-paragraph-xs text-zinc-600 dark:text-zinc-300">
+          {e.description || <span className="text-zinc-400 dark:text-zinc-500">{t("extensions.noDescription")}</span>}
+        </p>
       </div>
-      <p className="m-0 line-clamp-3 min-h-[2.4em] text-paragraph-xs text-text-sub-600">
-        {e.description || <span className="text-text-soft-400">{t("extensions.noDescription")}</span>}
-      </p>
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-1 border-t border-[var(--color-hairline,#e5e5e5)]">
         <Button
           variant="error"
-          mode="ghost"
-          size="2xsmall"
-          leftIcon={<DeleteIcon className="size-3.5" />}
+          mode="stroke"
+          size="xsmall"
+          className="hover:!bg-rose-500/10"
+          leftIcon={<DeleteIcon className="size-4 text-rose-500" />}
           onClick={() => remove(e)}
         >
           {t("extensions.remove")}
@@ -74,7 +77,7 @@ function LinkDialog({ onClose }: { onClose: () => void }) {
           placeholder="https://chromewebstore.google.com/detail/…"
           mono
         />
-        <p className="m-0 text-paragraph-xs text-text-soft-400">
+        <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {t("extensions.linkHelp")}
         </p>
       </div>
@@ -113,8 +116,8 @@ export function ExtensionsPage() {
 
       <div className="mb-3.5 flex items-end justify-between gap-4">
         <div>
-          <h1 className="m-0 text-title-h5 text-text-strong-950">{t("extensions.title")}</h1>
-          <p className="m-0 mt-1 max-w-[70ch] text-paragraph-xs text-text-soft-400">
+          <h1 className="m-0 text-page-title text-zinc-900 dark:text-white">{t("extensions.title")}</h1>
+          <p className="m-0 mt-1 max-w-[70ch] text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("extensions.pageHelp")}
           </p>
         </div>
@@ -134,7 +137,8 @@ export function ExtensionsPage() {
             {t("extensions.fromLink")}
           </Button>
           <Button
-            variant="primary" mode="filled" size="small" disabled={busy} isLoading={busy}
+            variant="neutral" mode="filled" size="small" disabled={busy} isLoading={busy}
+            className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
             leftIcon={<AddIcon className="size-4" />}
             onClick={importFiles}
           >
@@ -144,19 +148,19 @@ export function ExtensionsPage() {
       </div>
 
       {shown.length === 0 ? (
-        <div className="flex flex-col items-center gap-2.5 rounded-lg bg-bg-white-0 px-6 py-14 text-center ring-1 ring-inset ring-stroke-soft-200">
-          <div className="grid size-14 place-items-center rounded-[14px] bg-primary-alpha-10 text-primary-base ring-1 ring-inset ring-primary-alpha-24">
-            <NavExtensionsIcon className="size-6" />
+        <div className="flex flex-col items-center gap-2.5 rounded-[24px] bg-[var(--color-paper,#ffffff)] px-6 py-14 text-center border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+          <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
+            <NavExtensionsIcon className="size-7" />
           </div>
-          <h3 className="m-0 text-label-sm text-text-strong-950">
+          <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">
             {items.length === 0 ? t("extensions.emptyTitle") : t("extensions.noMatchTitle")}
           </h3>
-          <p className="m-0 max-w-[420px] text-paragraph-sm text-text-sub-600">
+          <p className="m-0 max-w-[420px] text-paragraph-sm text-zinc-500 dark:text-zinc-400">
             {t("extensions.emptyHelp")}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2.5 pb-6">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3 pb-6">
           {shown.map((e) => <Card key={e.id} e={e} />)}
         </div>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Alert, ProgressBar } from "@proxyshard/shardx-ui-kit";
+import { DownloadIcon } from "../../shared/icons";
 import { useT } from "../../shared/i18n";
 import type { RtStatus, RtProgress } from "../../shared/types";
 
@@ -88,10 +89,13 @@ export function FirstRunGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-bg-weak-50 text-text-strong-950">
+    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-[var(--color-paper,#ffffff)] text-zinc-900 dark:text-white">
       <div className="w-[460px] px-9 py-8 text-center">
-        <div className="mb-2 text-title-h6">{t("firstRunGate.title")}</div>
-        <div className="mb-6 text-paragraph-xs text-text-soft-400">
+        <div className="mx-auto mb-5 grid size-16 place-items-center rounded-[24px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
+          <DownloadIcon className="size-8" />
+        </div>
+        <div className="mb-2 text-page-title">{t("firstRunGate.title")}</div>
+        <div className="mb-6 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {t("firstRunGate.downloadNote", {
             size: prog?.total ? fmt(prog.total) : "150 MB",
           })}
@@ -99,8 +103,8 @@ export function FirstRunGate({ children }: { children: ReactNode }) {
 
         {prog && (
           <>
-            <div className="mb-1.5 text-left text-paragraph-xs text-text-soft-400">
-              {prog.label} —{" "}
+            <div className="mb-1.5 text-left text-paragraph-xs text-zinc-500 dark:text-zinc-400">
+              {prog.label}:{" "}
               {prog.phase === "download"
                 ? `${fmt(prog.received)} / ${fmt(prog.total)}  (${prog.percent}%)`
                 : t("firstRunGate.extracting")}
@@ -109,7 +113,7 @@ export function FirstRunGate({ children }: { children: ReactNode }) {
           </>
         )}
         {!prog && !err && (
-          <div className="text-paragraph-xs text-text-soft-400">{t("firstRunGate.contactingCdn")}</div>
+          <div className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("firstRunGate.contactingCdn")}</div>
         )}
         {err && (
           <Alert status="error" variant="light" className="mt-3 text-left">

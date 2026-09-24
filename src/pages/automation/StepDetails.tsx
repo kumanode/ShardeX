@@ -54,7 +54,7 @@ function ProjectField({
   const value = String(block.params[name] ?? "");
   return (
     <select
-      className="h-8 flex-1 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+      className="h-8 flex-1 rounded-8 bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none rounded-[10px] focus:border-indigo-500"
       value={value}
       onChange={(e) => {
         onParam(block.id, name, e.target.value);
@@ -91,7 +91,7 @@ function ProjectStepField({
   const entries = (chosen?.blocks ?? []).filter((b) => b.kind === "flow.entry");
   return (
     <select
-      className="h-8 flex-1 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base disabled:opacity-50"
+      className="h-8 flex-1 rounded-8 bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none rounded-[10px] focus:border-indigo-500 disabled:opacity-50"
       disabled={!chosen}
       value={String(block.params[name] ?? "")}
       onChange={(e) => onParam(block.id, name, e.target.value)}
@@ -199,9 +199,9 @@ function BranchField({
   const kind = branchKind(value);
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-subheading-2xs text-text-soft-400">{title}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-zinc-500 dark:text-zinc-400">{title}</span>
       <select
-        className="h-8 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+        className="h-8 rounded-8 bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none rounded-[10px] focus:border-indigo-500"
         value={kind}
         onChange={(e) => {
           const k = e.target.value;
@@ -228,7 +228,7 @@ function BranchField({
 
       {kind === "goto" && (
         <select
-          className="h-8 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+          className="h-8 rounded-8 bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none rounded-[10px] focus:border-indigo-500"
           value={(value as { goto: string }).goto}
           onChange={(e) => onChange({ goto: e.target.value })}
         >
@@ -243,7 +243,7 @@ function BranchField({
       {kind === "retry" && (
         <input
           type="number" min={1} max={50}
-          className="h-8 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+          className="h-8 rounded-8 bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none rounded-[10px] focus:border-indigo-500"
           value={(value as { retry: number }).retry}
           onChange={(e) => onChange({ retry: Math.max(1, Number(e.target.value) || 1) })}
         />
@@ -258,7 +258,7 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
   const t = useT();
   if (!block) {
     return (
-      <p className="m-0 py-8 text-center text-paragraph-xs text-text-soft-400">
+      <p className="m-0 py-8 text-center text-paragraph-xs text-zinc-500 dark:text-zinc-400">
         {t("stepDetails.emptyState")}
       </p>
     );
@@ -268,11 +268,11 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
   return (
     <div className="flex flex-col gap-2">
       <div>
-        <div className="text-label-sm text-text-strong-950">
+        <div className="text-label-sm font-semibold text-zinc-900 dark:text-white">
           {block.label || (spec?.label ? t(spec.label) : "") || block.kind}
         </div>
         {spec?.about && (
-          <div className="text-paragraph-xs text-text-soft-400">{t(spec.about)}</div>
+          <div className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t(spec.about)}</div>
         )}
       </div>
 
@@ -284,9 +284,9 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
         const hasXY = block.params.x !== undefined && block.params.y !== undefined;
         if (!sel && !hasXY) return null;
         return sel ? (
-          <div className="rounded-8 bg-bg-weak-50 px-2 py-1.5">
-            <div className="text-subheading-2xs text-text-soft-400">{t("stepDetails.targets")}</div>
-            <code className="block break-all text-[11px] text-text-strong-950">
+          <div className="rounded-[12px] bg-[var(--color-surface-alt,#fafafa)] px-2 py-1.5 border border-[var(--color-hairline,#e5e5e5)]">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.05em] text-zinc-400 dark:text-zinc-500">{t("stepDetails.targets")}</div>
+            <code className="block break-all text-[11px] text-zinc-800 dark:text-zinc-200">
               {String(sel)}
             </code>
           </div>
@@ -298,11 +298,11 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
                 y: Math.round(Number(block.params.y)),
               })}
             </div>
-            <div className="text-[11px] text-text-soft-400">
+            <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
               {t("stepDetails.noSelectorHelp")}
             </div>
             {Array.isArray(block.params._tried) && block.params._tried.length > 0 && (
-              <ul className="mt-1 list-none space-y-0.5 p-0 font-mono text-[10px] text-text-soft-400">
+              <ul className="mt-1 list-none space-y-0.5 p-0 font-mono text-[10px] text-zinc-400 dark:text-zinc-500">
                 {(block.params._tried as string[]).map((t, i) => (
                   <li key={i} className="break-all">{t}</li>
                 ))}
@@ -314,7 +314,7 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
 
       <button
         type="button"
-        className="self-start text-paragraph-xs text-text-soft-400 hover:text-text-strong-950"
+        className="self-start text-paragraph-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
         onClick={() => onToggle(block.id)}
       >
         {block.enabled ? t("stepDetails.enabledToggle") : t("stepDetails.skippedToggle")}
@@ -322,7 +322,7 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
 
       {(spec?.params ?? []).map((prm) => (
         <label key={prm.name} className="flex flex-col gap-1">
-          <span className="text-subheading-2xs text-text-soft-400">{t(prm.label)}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-zinc-500 dark:text-zinc-400">{t(prm.label)}</span>
           <div className="flex items-center gap-1.5">
             {prm.kind === "project" ? (
               <ProjectField block={block} name={prm.name} onParam={onParam} />
@@ -341,14 +341,14 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
               />
             ) : prm.kind === "textarea" ? (
               <textarea
-                className="min-h-20 flex-1 rounded-8 bg-bg-white-0 p-2 font-mono text-[11px] text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none placeholder:text-text-soft-400 focus:ring-primary-base"
+                className="min-h-20 flex-1 rounded-[10px] bg-[var(--color-paper,#ffffff)] p-2 font-mono text-[11px] text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-indigo-500"
                 placeholder={prm.hint ? t(prm.hint) : undefined}
                 value={String(block.params[prm.name] ?? prm.default ?? "")}
                 onChange={(e) => onParam(block.id, prm.name, e.target.value)}
               />
             ) : prm.kind === "select" && prm.options ? (
               <select
-                className="h-8 flex-1 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+                className="h-8 flex-1 rounded-8 bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none rounded-[10px] focus:border-indigo-500"
                 value={String(block.params[prm.name] ?? prm.default ?? "")}
                 onChange={(e) => onParam(block.id, prm.name, e.target.value)}
               >
@@ -359,7 +359,7 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
             ) : (
               <input
                 type={prm.kind === "number" ? "number" : "text"}
-                className="h-8 flex-1 rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none placeholder:text-text-soft-400 focus:ring-primary-base"
+                className="h-8 flex-1 rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-indigo-500"
                 placeholder={prm.hint ? t(prm.hint) : undefined}
                 value={String(block.params[prm.name] ?? prm.default ?? "")}
                 onChange={(e) =>
@@ -379,10 +379,10 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
                     ? t("stepDetails.secretOn")
                     : t("stepDetails.secretOff")
                 }
-                className={`rounded-8 px-1.5 py-1 text-[10px] ring-1 ring-inset ${
+                className={`rounded-[10px] px-1.5 py-1 text-[10px] border ${
                   block.secrets.includes(prm.name)
-                    ? "bg-warning-alpha-16 text-warning-base ring-warning-base"
-                    : "text-text-soft-400 ring-stroke-soft-200 hover:text-text-strong-950"
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25"
+                    : "text-zinc-400 dark:text-zinc-500 border border-[var(--color-hairline,#e5e5e5)] hover:text-zinc-900 dark:hover:text-white"
                 }`}
                 onClick={() => onSecret(block.id, prm.name)}
               >
@@ -393,7 +393,7 @@ export function StepDetails({ block, steps, onParam, onSecret, onBranch, onToggl
         </label>
       ))}
 
-      <div className="mt-1 flex flex-col gap-2 border-t border-stroke-soft-200 pt-2">
+      <div className="mt-1 flex flex-col gap-2 border-t border-[var(--color-hairline,#e5e5e5)] pt-2">
         <BranchField
           title={t("stepDetails.onDoneTitle")}
           value={block.on_done}

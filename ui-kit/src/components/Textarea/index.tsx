@@ -22,16 +22,16 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textare
   return (
     <div className={cn('flex w-full flex-col gap-1', wrapperClassName)}>
       {label && (
-        <label htmlFor={areaId} className="text-label-sm text-text-strong-950">
+        <label htmlFor={areaId} className="text-label-sm font-medium text-zinc-900 dark:text-white">
           {label}
         </label>
       )}
       <div
         className={cn(
-          'rounded-xl bg-bg-white-0 p-3 ring-1 ring-inset ring-stroke-soft-200 transition-shadow',
-          !disabled && !hasError && 'focus-within:ring-2 focus-within:ring-primary-base focus-within:shadow-[var(--ring-primary-focus)]',
-          hasError && 'ring-error-base focus-within:shadow-[var(--ring-error-focus)]',
-          disabled && 'pointer-events-none bg-bg-weak-50',
+          'rounded-[18px] bg-bg-white-0 p-3 ring-1 ring-inset ring-stroke-soft-200 transition-all',
+          !disabled && !hasError && 'focus-within:ring-1 focus-within:ring-[var(--color-ink,#0a0a0a)]',
+          hasError && 'ring-error-base',
+          disabled && 'pointer-events-none bg-bg-weak-50 text-zinc-400',
           className,
         )}
       >
@@ -43,7 +43,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textare
           value={value}
           defaultValue={defaultValue}
           aria-invalid={hasError || undefined}
-          className="min-h-20 w-full resize-y bg-transparent text-paragraph-sm text-text-strong-950 outline-none placeholder:text-text-soft-400 disabled:cursor-not-allowed disabled:text-text-disabled-300"
+          className="min-h-20 w-full resize-y bg-transparent text-paragraph-sm text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:text-zinc-400"
           {...rest}
         />
         {showCount && maxLength != null && (

@@ -16,7 +16,7 @@ export function CopyField({ value, secret }: { value: string; secret?: boolean }
       rightIcon={
         <button
           type="button"
-          className="pointer-events-auto flex size-6 cursor-pointer items-center justify-center rounded-6 border-0 bg-transparent text-icon-soft-400 transition-colors hover:bg-bg-weak-50 hover:text-icon-strong-950"
+          className="pointer-events-auto flex size-6 cursor-pointer items-center justify-center rounded-[8px] border-0 bg-transparent text-zinc-400 dark:text-zinc-500 transition-colors hover:bg-[var(--color-surface-alt,#fafafa)] hover:text-zinc-900 dark:hover:text-white"
           title={t("copyField.copyTitle")}
           onClick={async () => {
             try {

@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Button } from "@proxyshard/shardx-ui-kit";
 import {
   PlayIcon,
@@ -5,6 +6,8 @@ import {
   UploadIcon,
   DeleteIcon,
   SyncIcon,
+  RouteIcon,
+  FolderIcon,
 } from "../../../shared/icons";
 import { useProfile, useSyncBlockReason } from "../../../entities/profile";
 import { useT } from "../../../shared/i18n";
@@ -12,43 +15,117 @@ import { useT } from "../../../shared/i18n";
 export function BulkActionsBar() {
   const t = useT();
   const count = useProfile((s) => s.selected.size);
+  const proxies = useProfile((s) => s.proxies);
+  const profiles = useProfile((s) => s.profiles);
+  // Derived outside the selector: returning a fresh array from a selector
+  // retriggers the snapshot on every render (infinite loop).
+  const folders = useMemo(() => {
+    const list = new Set<string>();
+    profiles.forEach((p) => { if (p.folder) list.add(p.folder); });
+    return [...list];
+  }, [profiles]);
   const bulkLaunch = useProfile((s) => s.bulkLaunch);
   const bulkLaunchSynced = useProfile((s) => s.bulkLaunchSynced);
   const bulkStop = useProfile((s) => s.bulkStop);
   const bulkExport = useProfile((s) => s.bulkExport);
   const bulkDelete = useProfile((s) => s.bulkDelete);
+  const bulkBindProxy = useProfile((s) => s.bulkBindProxy);
+  const bulkSetFolder = useProfile((s) => s.bulkSetFolder);
   const clearSelected = useProfile((s) => s.clearSelected);
   const syncBlocked = useSyncBlockReason();
+
+  const [showProxyMenu, setShowProxyMenu] = useState(false);
+  const [showFolderMenu, setShowFolderMenu] = useState(false);
 
   if (count === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-8 bg-primary-alpha-10 py-1 pl-3 pr-1 text-label-xs text-primary-base ring-1 ring-inset ring-primary-alpha-24">
-      <span>{t("bulkActionsBar.selectedCount", { n: count })}</span>
-      <Button variant="neutral" mode='stroke' className="pr-4" size="2xsmall" leftIcon={<PlayIcon className="size-3.5" />} onClick={bulkLaunch}>{t("bulkActionsBar.launch")}</Button>
-      {/* Meaningless for a single profile, so it only appears for a group. */}
+    <div className="flex flex-wrap items-center gap-1.5 rounded-[18px] bg-[var(--color-paper,#ffffff)] py-1.5 pl-3.5 pr-1.5 text-label-xs text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] relative shadow-[var(--shadow-subtle)]">
+      <span className="font-mono font-bold text-[11px] px-2 py-0.5 rounded-[10px] bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] mr-1">{t("bulkActionsBar.selectedCount", { n: count })}</span>
+      <Button variant="neutral" mode='stroke' size="xsmall" className="hover:!text-emerald-600 hover:!border-emerald-500/30" leftIcon={<PlayIcon className="size-4 text-emerald-500" />} onClick={bulkLaunch}>{t("bulkActionsBar.launch")}</Button>
       {count >= 2 && (
-        // The tooltip sits on a wrapper: the kit gives a disabled Button
-        // pointer-events-none, so a title on the button itself never shows —
-        // which is exactly when the operator most needs to read it.
         <span title={syncBlocked || t("bulkActionsBar.launchSyncedHint")}>
           <Button
             variant="neutral"
             mode="stroke"
-            className="pr-4"
-            size="2xsmall"
+            size="xsmall"
             disabled={!!syncBlocked}
-            leftIcon={<SyncIcon className="size-3.5" />}
+            leftIcon={<SyncIcon className="size-4" />}
             onClick={bulkLaunchSynced}
           >
             {t("bulkActionsBar.launchSynced")}
           </Button>
         </span>
       )}
-      <Button variant="neutral" mode="stroke" className="pr-2" size="2xsmall" leftIcon={<StopIcon className="size-3.5" />} onClick={bulkStop}>{t("bulkActionsBar.stop")}</Button>
-      <Button variant="neutral" mode="stroke" className="pl-2" size="2xsmall" leftIcon={<UploadIcon className="size-3.5" />} onClick={bulkExport}>{t("bulkActionsBar.export")}</Button>
-      <Button variant="error" mode="stroke" className="pr-2" size="2xsmall" leftIcon={<DeleteIcon className="size-3.5" />} onClick={bulkDelete}>{t("bulkActionsBar.delete")}</Button>
-      <Button variant="neutral" mode="ghost" className="pr-2" size="2xsmall" onClick={clearSelected}>{t("bulkActionsBar.clear")}</Button>
+
+      {/* Bulk Proxy Assign */}
+      <div className="relative">
+        <Button
+          variant="neutral"
+          mode="stroke"
+          size="xsmall"
+          leftIcon={<RouteIcon className="size-4" />}
+          onClick={() => { setShowProxyMenu(!showProxyMenu); setShowFolderMenu(false); }}
+        >
+          {t("bulkActionsBar.assignProxy")}
+        </Button>
+        {showProxyMenu && (
+          <div className="absolute left-0 top-full mt-1.5 z-50 flex max-h-56 w-56 flex-col overflow-y-auto rounded-[18px] bg-[var(--color-paper,#ffffff)] p-1.5 shadow-[var(--shadow-subtle)] border border-[var(--color-hairline,#e5e5e5)]">
+            <button
+              className="rounded-lg px-2.5 py-1.5 text-left font-mono text-[12px] text-zinc-600 dark:text-zinc-300 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
+              onClick={() => { void bulkBindProxy(null); setShowProxyMenu(false); }}
+            >
+              Direct (No Proxy)
+            </button>
+            {proxies.map((px) => (
+              <button
+                key={px.id}
+                className="truncate rounded-lg px-2.5 py-1.5 text-left font-mono text-[12px] text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
+                onClick={() => { void bulkBindProxy(px.id); setShowProxyMenu(false); }}
+              >
+                {px.name || `${px.host}:${px.port}`}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bulk Folder Move */}
+      <div className="relative">
+        <Button
+          variant="neutral"
+          mode="stroke"
+          size="xsmall"
+          leftIcon={<FolderIcon className="size-4" />}
+          onClick={() => { setShowFolderMenu(!showFolderMenu); setShowProxyMenu(false); }}
+        >
+          {t("bulkActionsBar.assignFolder")}
+        </Button>
+        {showFolderMenu && (
+          <div className="absolute left-0 top-full mt-1.5 z-50 flex max-h-56 w-48 flex-col overflow-y-auto rounded-[18px] bg-[var(--color-paper,#ffffff)] p-1.5 shadow-[var(--shadow-subtle)] border border-[var(--color-hairline,#e5e5e5)]">
+            <button
+              className="rounded-lg px-2.5 py-1.5 text-left font-mono text-[12px] text-zinc-600 dark:text-zinc-300 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
+              onClick={() => { void bulkSetFolder(""); setShowFolderMenu(false); }}
+            >
+              Root (No Folder)
+            </button>
+            {folders.map((f) => (
+              <button
+                key={f}
+                className="truncate rounded-lg px-2.5 py-1.5 text-left font-mono text-[12px] text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
+                onClick={() => { void bulkSetFolder(f); setShowFolderMenu(false); }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Button variant="neutral" mode="stroke" size="xsmall" className="hover:!text-rose-600 hover:!border-rose-500/30" leftIcon={<StopIcon className="size-4 text-rose-500" />} onClick={bulkStop}>{t("bulkActionsBar.stop")}</Button>
+      <Button variant="neutral" mode="stroke" size="xsmall" leftIcon={<UploadIcon className="size-4" />} onClick={bulkExport}>{t("bulkActionsBar.export")}</Button>
+      <Button variant="error" mode="stroke" size="xsmall" className="hover:!bg-rose-500/10" leftIcon={<DeleteIcon className="size-4 text-rose-500" />} onClick={bulkDelete}>{t("bulkActionsBar.delete")}</Button>
+      <Button variant="neutral" mode="ghost" size="xsmall" onClick={clearSelected}>{t("bulkActionsBar.clear")}</Button>
     </div>
   );
 }

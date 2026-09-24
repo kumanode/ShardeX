@@ -40,18 +40,20 @@ export function useContextMenu() {
   const node = menu ? (
     <div
       ref={ref}
-      className="fixed z-9000 min-w-[160px] rounded-12 bg-bg-white-0 p-1 shadow-[var(--shadow-md)] ring-1 ring-inset ring-stroke-soft-200"
+      className="fixed z-9000 min-w-[170px] rounded-[18px] bg-[var(--color-paper,#ffffff)] p-1.5 shadow-[var(--shadow-subtle)] border border-[var(--color-hairline,#e5e5e5)]"
       style={{ left: menu.x, top: menu.y }}
       onClick={(e) => e.stopPropagation()}
     >
       {menu.items.map((it, i) =>
         it.sep ? (
-          <div key={i} className="my-1 border-t border-stroke-soft-200" />
+          <div key={i} className="my-1 border-t border-[var(--color-hairline,#e5e5e5)]" />
         ) : (
           <button
             key={i}
-            className={`w-full cursor-pointer rounded-8 border-0 bg-transparent px-2.5 py-2 text-left text-label-xs transition-colors hover:bg-bg-weak-50 ${
-              it.danger ? "text-error-base" : "text-text-sub-600 hover:text-text-strong-950"
+            className={`w-full cursor-pointer rounded-[10px] border-0 bg-transparent px-3 py-2 text-left text-label-xs font-medium transition-colors ${
+              it.danger
+                ? "text-rose-600 dark:text-rose-400 hover:bg-rose-500/10"
+                : "text-zinc-700 dark:text-zinc-200 hover:bg-[var(--color-surface-alt,#fafafa)] hover:text-zinc-900 dark:hover:text-white"
             }`}
             onClick={() => { it.onClick(); close(); }}
           >

@@ -70,10 +70,10 @@ export function MultiSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 w-full items-center gap-1 overflow-hidden rounded-8 bg-bg-white-0 px-2 text-left text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base disabled:opacity-50"
+        className="flex h-9 w-full items-center gap-1.5 overflow-hidden rounded-[14px] bg-[var(--color-paper,#ffffff)] px-3 text-left text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500 disabled:opacity-50 shadow-xs"
       >
         {chosen.length === 0 ? (
-          <span className="text-text-soft-400">{placeholder ?? emptyLabel}</span>
+          <span className="text-zinc-400 dark:text-zinc-500">{placeholder ?? emptyLabel}</span>
         ) : (
           <span className="truncate">
             {chosen.length <= 3
@@ -81,30 +81,30 @@ export function MultiSelect({
               : t("multiSelect.selectedCount", { n: chosen.length })}
           </span>
         )}
-        <span className="ml-auto shrink-0 text-text-soft-400">▾</span>
+        <span className="ml-auto shrink-0 text-zinc-400">▾</span>
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1 max-h-64 w-full overflow-hidden rounded-8 bg-bg-white-0 shadow-[var(--shadow-md)] ring-1 ring-stroke-soft-200">
+        <div className="absolute z-30 mt-1.5 max-h-64 w-full overflow-hidden rounded-[18px] bg-[var(--color-paper,#ffffff)] shadow-[var(--shadow-subtle)] border border-[var(--color-hairline,#e5e5e5)]">
           <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("multiSelect.searchPlaceholder")}
-            className="h-8 w-full border-b border-stroke-soft-200 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 outline-none placeholder:text-text-soft-400"
+            className="h-8.5 w-full border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)] px-3 text-paragraph-sm text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400"
           />
           <div className="max-h-52 overflow-y-auto py-1">
             <button
               type="button"
               onClick={() => { set([]); }}
-              className="flex w-full items-center gap-2 px-2 py-1 text-left text-paragraph-sm hover:bg-bg-weak-50"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-paragraph-sm hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors"
             >
-              <span className={`size-3.5 rounded-4 ring-1 ${chosen.length === 0 ? "bg-primary-base ring-primary-base" : "ring-stroke-soft-200"}`} />
-              <span className="text-text-sub-600">{emptyLabel}</span>
+              <span className={`size-4 rounded-[4px] border ${chosen.length === 0 ? "bg-indigo-500 border-indigo-500" : "border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]"}`} />
+              <span className="text-zinc-700 dark:text-zinc-300 font-medium">{emptyLabel}</span>
             </button>
-            {loading && <div className="px-2 py-2 text-paragraph-xs text-text-soft-400">{t("multiSelect.loading")}</div>}
+            {loading && <div className="px-3 py-2 text-paragraph-xs text-zinc-400">{t("multiSelect.loading")}</div>}
             {!loading && shown.length === 0 && (
-              <div className="px-2 py-2 text-paragraph-xs text-text-soft-400">{t("multiSelect.noMatches")}</div>
+              <div className="px-3 py-2 text-paragraph-xs text-zinc-400">{t("multiSelect.noMatches")}</div>
             )}
             {shown.map((o) => {
               const on = chosen.includes(o.value);
@@ -113,12 +113,12 @@ export function MultiSelect({
                   key={o.value}
                   type="button"
                   onClick={() => toggle(o.value)}
-                  className="flex w-full items-center gap-2 px-2 py-1 text-left text-paragraph-sm hover:bg-bg-weak-50"
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-paragraph-sm hover:bg-[var(--color-surface-alt,#fafafa)] transition-colors"
                 >
-                  <span className={`size-3.5 rounded-4 ring-1 ${on ? "bg-primary-base ring-primary-base" : "ring-stroke-soft-200"}`} />
-                  <span className="truncate text-text-strong-950">{o.label}</span>
+                  <span className={`size-4 rounded-[4px] border ${on ? "bg-indigo-500 border-indigo-500" : "border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]"}`} />
+                  <span className="truncate text-zinc-900 dark:text-white font-medium">{o.label}</span>
                   {o.value !== o.label && (
-                    <span className="ml-auto shrink-0 text-[10px] text-text-soft-400">{o.value}</span>
+                    <span className="ml-auto shrink-0 font-mono text-[10px] text-zinc-400">{o.value}</span>
                   )}
                 </button>
               );

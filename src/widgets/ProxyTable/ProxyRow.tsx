@@ -33,7 +33,7 @@ export function ProxyRow({ proxy, profileCount, onMenu }: {
 
   return (
     <div
-      className="relative border-t border-stroke-soft-200 first:border-t-0"
+      className="relative border-t border-[var(--color-hairline,#e5e5e5)] first:border-t-0"
       onMouseDown={(e) => {
         const t = e.target as HTMLElement;
         shiftPress.current = e.button === 0 && e.shiftKey && !t.closest("button, a");
@@ -54,7 +54,7 @@ export function ProxyRow({ proxy, profileCount, onMenu }: {
         ])
       }
     >
-      <div className="p-cols transition-colors hover:bg-bg-weak-50">
+      <div className="p-cols transition-colors hover:bg-[var(--color-surface-alt,#fafafa)]">
         <div>
           <Checkbox
             checked={isSel}
@@ -65,7 +65,7 @@ export function ProxyRow({ proxy, profileCount, onMenu }: {
         <div><ProxyTypeBadge kind={proxy.kind} /></div>
         <div className="min-w-0 overflow-hidden">
           <span
-            className="mono small inline-block max-w-full cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap align-middle text-text-sub-600 transition-colors hover:text-primary-base"
+            className="font-mono text-[12px] font-semibold inline-block max-w-full cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap align-middle text-zinc-700 dark:text-zinc-200 transition-colors hover:text-sky-500"
             onClick={() => { if (!shiftPress.current) setEditing(proxy); }}
             title={t("proxyRow.editProxyTitle")}
           >

@@ -19,7 +19,7 @@ export function Pair({
       : (o === "real" ? "Real" : (onText ?? "Auto noise"));
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-label-base font-medium text-text-strong-900">{label}</span>
+      <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{label}</span>
       <SegmentControl
         size="small"
         className="w-full *:flex-1 flex-nowrap text-nowrap"

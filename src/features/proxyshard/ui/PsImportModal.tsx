@@ -132,32 +132,32 @@ export function PsImportModal({ order, onClose }: { order: PsOrder; onClose: () 
           </div>
         </div>
         {slots && (
-          <p className="m-0 mb-1.5 text-paragraph-xs text-text-soft-400">
+          <p className="m-0 mb-1.5 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("psImportModal.p0fSlots", { used: slots.used, avail: slots.avail })}
             {canSetP0f ? t("psImportModal.p0fSlotsFree", { n: free }) : t("psImportModal.p0fSlotsNone")}
           </p>
         )}
-        {!items && !err && <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psImportModal.loading")}</p>}
-        {err && <p className="m-0 text-paragraph-xs text-text-soft-400">{err}</p>}
-        {items && items.length === 0 && <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psImportModal.noActiveProxies")}</p>}
+        {!items && !err && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psImportModal.loading")}</p>}
+        {err && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{err}</p>}
+        {items && items.length === 0 && <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psImportModal.noActiveProxies")}</p>}
         {items && items.length > 0 && (
-          <div className="mt-1.5 max-h-[320px] overflow-hidden overflow-y-auto rounded-10 bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200">
-            <div className="grid items-center gap-2.5 border-b border-stroke-soft-200 bg-bg-weak-50 px-3 py-2" style={{ gridTemplateColumns: "20px 1fr 132px" }}>
+          <div className="mt-1.5 max-h-[320px] overflow-hidden overflow-y-auto rounded-[14px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)]">
+            <div className="grid items-center gap-2.5 border-b border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-surface-alt,#fafafa)] dark:bg-zinc-800/50 px-3 py-2" style={{ gridTemplateColumns: "20px 1fr 132px" }}>
               <Checkbox checked={allChecked} onChange={toggleAll} title={t("psImportModal.selectAll")} />
-              <span className="text-paragraph-xs text-text-soft-400">{t("psImportModal.selectedCount", { n: sel.size, total: items.length })}</span>
-              <span className="text-right text-paragraph-xs text-text-soft-400">{canSetP0f ? "p0f" : ""}</span>
+              <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psImportModal.selectedCount", { n: sel.size, total: items.length })}</span>
+              <span className="text-right text-paragraph-xs text-zinc-500 dark:text-zinc-400">{canSetP0f ? "p0f" : ""}</span>
             </div>
             {items.map((d) => {
               const port = kind === "http" ? d.http_port : d.socks_port;
               return (
                 <div
                   key={d.ip}
-                  className="grid items-center gap-2.5 border-b border-stroke-soft-200 px-3 py-[9px] transition-colors last:border-b-0 hover:bg-bg-weak-50"
+                  className="grid items-center gap-2.5 border-b border-[var(--color-hairline,#e5e5e5)] px-3 py-[9px] transition-colors last:border-b-0 hover:bg-[var(--color-surface-alt,#fafafa)]"
                   style={{ gridTemplateColumns: "20px minmax(120px,1.3fr) 1fr auto 132px" }}
                 >
                   <Checkbox checked={sel.has(d.ip)} onChange={() => toggle(d.ip)} />
-                  <span className="mono cursor-pointer text-paragraph-xs text-text-strong-950 transition-colors hover:text-primary-base" onClick={() => toggle(d.ip)}>{d.ip}:{port}</span>
-                  <span className="text-paragraph-xs text-text-soft-400">{d.username}</span>
+                  <span className="mono cursor-pointer text-paragraph-xs text-zinc-900 dark:text-white transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" onClick={() => toggle(d.ip)}>{d.ip}:{port}</span>
+                  <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{d.username}</span>
                   <Badge color={d.status === "active" ? "success" : "gray"} variant="filled" size="small" dot>
                     {d.status}
                   </Badge>
@@ -168,7 +168,7 @@ export function PsImportModal({ order, onClose }: { order: PsOrder; onClose: () 
                       <CSSelect value={sigByIp[d.ip] ?? ""} onChange={(v) => setSig(d.ip, v)} options={PS_SIGNATURES} placeholder="p0f" />
                     </div>
                   ) : (
-                    <span className="text-right text-paragraph-xs text-text-soft-400">—</span>
+                    <span className="text-right text-paragraph-xs text-zinc-500 dark:text-zinc-400">—</span>
                   )}
                 </div>
               );

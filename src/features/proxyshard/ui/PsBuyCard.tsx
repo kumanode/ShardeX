@@ -162,17 +162,17 @@ export function PsBuyCard() {
   };
 
   return (
-    <div className="mb-3.5 rounded-lg bg-bg-white-0 p-[18px] shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
-      <h3 className="m-0 mb-2 text-label-sm text-text-strong-950">{t("psBuyCard.title")}</h3>
+    <div className="mb-4 rounded-[24px] bg-[var(--color-paper,#ffffff)] p-5 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
+      <h3 className="m-0 mb-2.5 text-label-sm font-semibold text-zinc-900 dark:text-white">{t("psBuyCard.title")}</h3>
       {!ready ? (
-        <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psBuyCard.loading")}</p>
+        <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psBuyCard.loading")}</p>
       ) : options.length === 0 ? (
-        <p className="m-0 text-paragraph-xs text-text-soft-400">{t("psBuyCard.emptyState")}</p>
+        <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t("psBuyCard.emptyState")}</p>
       ) : (
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-label-xs text-text-sub-600">{t("psBuyCard.productLabel")}</span>
+              <span className="text-label-xs text-zinc-600 dark:text-zinc-300">{t("psBuyCard.productLabel")}</span>
               <CSSelect
                 value={productName}
                 onChange={setProductName}
@@ -180,11 +180,11 @@ export function PsBuyCard() {
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-label-xs text-text-sub-600">{t("psBuyCard.cycleLabel")}</span>
+              <span className="text-label-xs text-zinc-600 dark:text-zinc-300">{t("psBuyCard.cycleLabel")}</span>
               <CSSelect
                 value={cycle}
                 onChange={setCycle}
-                placeholder="—"
+                placeholder="-"
                 options={(product?.cycles?.length ? product.cycles : []).map((c) => ({ value: c, label: c }))}
               />
             </label>
@@ -192,8 +192,8 @@ export function PsBuyCard() {
           <div className="grid grid-cols-2 gap-3">
             {needLocation ? (
               <label className="flex flex-col gap-1">
-                <span className="text-label-xs text-text-sub-600">
-                  {t("psBuyCard.locationLabel")}{availForCountry != null && <span className="text-text-soft-400">{t("psBuyCard.availableSuffix", { n: availForCountry })}</span>}
+                <span className="text-label-xs text-zinc-600 dark:text-zinc-300">
+                  {t("psBuyCard.locationLabel")}{availForCountry != null && <span className="text-zinc-500 dark:text-zinc-400">{t("psBuyCard.availableSuffix", { n: availForCountry })}</span>}
                 </span>
                 <CSSelect
                   value={country}
@@ -231,11 +231,11 @@ export function PsBuyCard() {
             </Button>
             {calc && (
               <span className="ml-auto inline-flex items-center gap-2">
-                {calc.discount_percent > 0 && <span className="text-paragraph-sm text-text-soft-400 line-through">{fmtCents(calc.original_price)}</span>}
-                <span className="text-title-h6 text-text-strong-950">{fmtCents(calc.total_with_addons ?? calc.final_price)}</span>
+                {calc.discount_percent > 0 && <span className="text-paragraph-sm font-mono text-zinc-400 dark:text-zinc-500 line-through">{fmtCents(calc.original_price)}</span>}
+                <span className="font-mono text-[18px] font-bold text-zinc-900 dark:text-white tabular-nums">{fmtCents(calc.total_with_addons ?? calc.final_price)}</span>
                 {calc.discount_percent > 0 && <Badge color="success" variant="lighter" size="small">-{calc.discount_percent}%</Badge>}
                 {!!calc.addons_price && calc.addons_price > 0 && (
-                  <span className="text-paragraph-xs text-text-soft-400">{t("psBuyCard.inclAddons", { price: fmtCents(calc.addons_price) })}</span>
+                  <span className="text-paragraph-xs font-mono text-zinc-500 dark:text-zinc-400">{t("psBuyCard.inclAddons", { price: fmtCents(calc.addons_price) })}</span>
                 )}
               </span>
             )}

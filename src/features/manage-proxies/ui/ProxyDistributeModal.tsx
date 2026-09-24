@@ -79,7 +79,7 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
       cancelLabel={t("proxyDistributeModal.cancel")}
       onCancel={onClose}
     >
-      <div className="flex flex-col gap-3.5 py-4">
+      <div className="flex flex-col gap-3.5 py-1">
         <div className="grid grid-cols-2 gap-3">
           <CSSelect
             title={t("proxyDistributeModal.profilesFrom")}
@@ -92,7 +92,7 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
             ]}
           />
           <label className="flex flex-col gap-1">
-            <span className="text-label-base font-medium text-text-strong-900">{t("proxyDistributeModal.applyTo")}</span>
+            <span className="text-label-sm font-medium text-zinc-900 dark:text-white">{t("proxyDistributeModal.applyTo")}</span>
             <SegmentControl
               size="small"
               className="w-full *:flex-1"
@@ -107,7 +107,7 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {scope === "all" && boundCount > 0 && (
-          <p className="m-0 rounded-8 bg-warning-alpha-16 px-2.5 py-1.5 text-paragraph-xs text-text-sub-600 ring-1 ring-inset ring-warning-base/30">
+          <p className="m-0 rounded-[14px] bg-amber-500/10 px-3 py-2 text-paragraph-xs text-amber-700 dark:text-amber-300 border border-amber-500/25">
             {boundCount === 1
               ? t("proxyDistributeModal.replaceWarnOne")
               : t("proxyDistributeModal.replaceWarnMany", { n: boundCount })}
@@ -116,24 +116,24 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-subheading-2xs text-text-soft-400">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-zinc-500 dark:text-zinc-400">
               {t("proxyDistributeModal.proxiesCount", { n: picked.length })}
             </span>
-            <div className="max-h-[240px] overflow-auto rounded-8 ring-1 ring-inset ring-stroke-soft-200">
+            <div className="max-h-[240px] overflow-auto rounded-[18px] border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]">
               {picked.map((p, i) => (
                 <div
                   key={p.id}
                   className={cn(
-                    "flex items-center gap-2 border-t border-stroke-soft-200 px-2.5 py-1.5 first:border-t-0",
+                    "flex items-center gap-2 border-t border-[var(--color-hairline,#e5e5e5)] px-2.5 py-1.5 first:border-t-0",
                     i >= targets.length && "opacity-40",
                   )}
                 >
-                  <span className="mono w-5 shrink-0 text-[10.5px] text-text-disabled-300">{i + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-paragraph-xs text-text-sub-600">
+                  <span className="mono w-5 shrink-0 text-[10.5px] text-zinc-400 dark:text-zinc-500">{i + 1}</span>
+                  <span className="min-w-0 flex-1 truncate text-paragraph-xs text-zinc-600 dark:text-zinc-300">
                     {p.name || `${p.host}:${p.port}`}
                   </span>
                   {p.country && (
-                    <span className="shrink-0 text-[10.5px] font-bold tracking-[0.5px] text-text-soft-400">
+                    <span className="shrink-0 text-[10.5px] font-bold tracking-[0.5px] text-zinc-400 dark:text-zinc-500">
                       {p.country}
                     </span>
                   )}
@@ -143,13 +143,13 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-subheading-2xs text-text-soft-400">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-zinc-500 dark:text-zinc-400">
               {t("proxyDistributeModal.profilesCount", {
                 n: targets.length,
                 total: candidates.length,
               })}
             </span>
-            <div className="max-h-[240px] overflow-auto rounded-8 ring-1 ring-inset ring-stroke-soft-200">
+            <div className="max-h-[240px] overflow-auto rounded-[18px] border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)]">
               {candidates.map((p, i) => {
                 const on = chosen.has(p.id);
                 const beyond = on && i >= picked.length;
@@ -157,7 +157,7 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
                   <label
                     key={p.id}
                     className={cn(
-                      "flex cursor-pointer items-center gap-2 border-t border-stroke-soft-200 px-2.5 py-1.5 first:border-t-0 hover:bg-bg-weak-50",
+                      "flex cursor-pointer items-center gap-2 border-t border-[var(--color-hairline,#e5e5e5)] px-2.5 py-1.5 first:border-t-0 hover:bg-[var(--color-surface-alt,#fafafa)]",
                       beyond && "opacity-40",
                     )}
                   >
@@ -169,15 +169,15 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
                         setChosen(next);
                       }}
                     />
-                    <span className="mono w-5 shrink-0 text-[10.5px] text-text-disabled-300">{i + 1}</span>
-                    <span className="min-w-0 flex-1 truncate text-paragraph-xs text-text-sub-600">
+                    <span className="mono w-5 shrink-0 text-[10.5px] text-zinc-400 dark:text-zinc-500">{i + 1}</span>
+                    <span className="min-w-0 flex-1 truncate text-paragraph-xs text-zinc-600 dark:text-zinc-300">
                       {p.name}
                     </span>
                   </label>
                 );
               })}
               {candidates.length === 0 && (
-                <div className="px-2.5 py-4 text-center text-paragraph-xs text-text-soft-400">
+                <div className="px-2.5 py-4 text-center text-paragraph-xs text-zinc-500 dark:text-zinc-400">
                   {t("proxyDistributeModal.noMatches")}
                 </div>
               )}
@@ -185,7 +185,7 @@ export function ProxyDistributeModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <p className="m-0 text-paragraph-xs text-text-soft-400">
+        <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {t("proxyDistributeModal.pairingNote")}
         </p>
       </div>

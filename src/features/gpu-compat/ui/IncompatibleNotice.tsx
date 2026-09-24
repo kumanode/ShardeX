@@ -15,7 +15,7 @@ export function IncompatibleExplainer({ compat }: { compat: GpuCompat }) {
   const unique = Array.from(new Set(missing));
   const gpuMissing = Array.from(new Set(compat.missing_webgpu ?? []));
   return (
-    <div className="flex flex-col gap-3 text-paragraph-sm text-text-sub-600">
+    <div className="flex flex-col gap-3 text-paragraph-sm text-zinc-600 dark:text-zinc-300">
       <p className="m-0">
         {t("incompatibleNotice.claimsIntro")}
         {missing.length > 0 ? t("incompatibleNotice.webglExtensionsPart") : ""}
@@ -23,20 +23,20 @@ export function IncompatibleExplainer({ compat }: { compat: GpuCompat }) {
         {gpuMissing.length > 0 ? t("incompatibleNotice.webgpuFeaturesPart") : ""}
         {" "}{t("incompatibleNotice.claimsOutro")}
       </p>
-      <div className="rounded-lg bg-bg-weak-50 p-3 text-paragraph-xs">
+      <div className="rounded-[14px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-3.5 text-paragraph-xs">
         <div>
-          <span className="text-text-soft-400">{t("incompatibleNotice.profileClaims")}</span>{" "}
-          <span className="text-text-strong-950">{compat.profile_renderer || "—"}</span>
+          <span className="text-zinc-500 dark:text-zinc-400">{t("incompatibleNotice.profileClaims")}</span>{" "}
+          <span className="text-zinc-900 dark:text-white font-medium">{compat.profile_renderer || "—"}</span>
         </div>
         <div>
-          <span className="text-text-soft-400">{t("incompatibleNotice.thisMachineHas")}</span>{" "}
-          <span className="text-text-strong-950">{caps?.renderer || t("incompatibleNotice.unknownRenderer")}</span>
+          <span className="text-zinc-500 dark:text-zinc-400">{t("incompatibleNotice.thisMachineHas")}</span>{" "}
+          <span className="text-zinc-900 dark:text-white font-medium">{caps?.renderer || t("incompatibleNotice.unknownRenderer")}</span>
         </div>
       </div>
       <p className="m-0">
         {t("incompatibleNotice.reportsListNote")}
       </p>
-      <pre className="m-0 overflow-x-auto rounded-lg bg-bg-weak-50 p-3 text-paragraph-xs">
+      <pre className="m-0 overflow-x-auto rounded-[14px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-3.5 font-mono text-paragraph-xs text-zinc-700 dark:text-zinc-300">
 {`gl.getSupportedExtensions()
   -> [ ..., "${unique[0] ?? "WEBGL_compressed_texture_astc"}", ... ]
 
@@ -47,12 +47,12 @@ gl.getExtension("${unique[0] ?? "WEBGL_compressed_texture_astc"}")
         {t("incompatibleNotice.contradictionNote")}
       </p>
       <div>
-        <div className="mb-1 text-paragraph-xs text-text-soft-400">
+        <div className="mb-1 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {unique.length === 1
             ? t("incompatibleNotice.extensionsUnbackedOne", { n: unique.length })
             : t("incompatibleNotice.extensionsUnbackedMany", { n: unique.length })}
         </div>
-        <div className="max-h-32 overflow-y-auto rounded-lg bg-bg-weak-50 p-3 font-mono text-paragraph-xs text-text-strong-950">
+        <div className="max-h-32 overflow-y-auto rounded-[14px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-3 font-mono text-paragraph-xs text-zinc-900 dark:text-white">
           {unique.map((e) => (
             <div key={e}>{e}</div>
           ))}
@@ -60,22 +60,22 @@ gl.getExtension("${unique[0] ?? "WEBGL_compressed_texture_astc"}")
       </div>
       {gpuMissing.length > 0 && (
         <div>
-          <div className="mb-1 text-paragraph-xs text-text-soft-400">
+          <div className="mb-1 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {gpuMissing.length === 1
               ? t("incompatibleNotice.webgpuUnbackedOne", { n: gpuMissing.length })
               : t("incompatibleNotice.webgpuUnbackedMany", { n: gpuMissing.length })}
           </div>
-          <div className="max-h-32 overflow-y-auto rounded-lg bg-bg-weak-50 p-3 font-mono text-paragraph-xs text-text-strong-950">
+          <div className="max-h-32 overflow-y-auto rounded-[14px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] p-3 font-mono text-paragraph-xs text-zinc-900 dark:text-white">
             {gpuMissing.map((f) => (
               <div key={f}>{f}</div>
             ))}
           </div>
-          <p className="m-0 mt-1.5 text-paragraph-xs text-text-soft-400">
+          <p className="m-0 mt-1.5 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             {t("incompatibleNotice.webgpuNote")}
           </p>
         </div>
       )}
-      <p className="m-0 text-text-soft-400">
+      <p className="m-0 text-zinc-500 dark:text-zinc-400">
         {t("incompatibleNotice.advice")}
       </p>
     </div>
@@ -162,7 +162,7 @@ export function IncompatibleWarningModal({
       maxWidthClassName="max-w-lg"
       footer={
         <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-paragraph-xs text-text-soft-400">
+          <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
             <input
               type="checkbox"
               className="flex-none"

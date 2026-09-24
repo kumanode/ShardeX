@@ -51,7 +51,7 @@ function Editor({ initial, folders, onClose }: {
             ...folders.map((f) => ({ value: f, label: f })),
           ]}
         />
-        <p className="m-0 text-paragraph-xs text-text-soft-400">
+        <p className="m-0 text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {t("bookmarks.hintPart1")}<strong>ShardX</strong>{t("bookmarks.hintPart2")}
         </p>
       </div>
@@ -104,22 +104,22 @@ export function BookmarksPage() {
       <div className="mb-3.5 flex items-end justify-between gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">
           <div>
-            <h1 className="m-0 text-title-h5 text-text-strong-950">{t("bookmarks.heading")}</h1>
-            <p className="m-0 mt-1 max-w-[70ch] text-paragraph-xs text-text-soft-400">
+            <h1 className="m-0 text-page-title text-zinc-900 dark:text-white">{t("bookmarks.heading")}</h1>
+            <p className="m-0 mt-1 max-w-[70ch] text-paragraph-xs text-zinc-500 dark:text-zinc-400">
               {t("bookmarks.subtitle")}
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setFolder(tab.id)}
                 className={cn(
-                  "rounded-6 px-2.5 py-1 text-label-xs ring-1 ring-inset transition-colors",
+                  "rounded-[16px] px-3 py-1.5 text-label-xs font-mono transition-colors",
                   folder === tab.id
-                    ? "bg-primary-alpha-10 text-primary-base ring-primary-alpha-24"
-                    : "text-text-sub-600 ring-stroke-soft-200 hover:bg-bg-weak-50",
+                    ? "bg-[var(--color-ink,#0a0a0a)] text-white dark:bg-white dark:text-black border border-[var(--color-ink,#0a0a0a)] dark:border-white font-semibold shadow-xs"
+                    : "text-zinc-600 dark:text-zinc-400 border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)] hover:bg-[var(--color-surface-alt,#fafafa)]",
                 )}
               >
                 {tab.label}
@@ -128,7 +128,8 @@ export function BookmarksPage() {
           </div>
         </div>
         <Button
-          variant="primary" mode="filled" size="small"
+          variant="neutral" mode="filled" size="small"
+          className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
           leftIcon={<AddIcon className="size-4" />}
           onClick={() => setEditing(emptyBookmark(folder === "all" || folder === "__any__" ? "" : folder))}
         >
@@ -136,23 +137,23 @@ export function BookmarksPage() {
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-12 bg-bg-white-0 shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
+      <div className="overflow-hidden rounded-[24px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)]">
         {shown.map((b) => (
           <div
             key={b.id}
-            className="grid grid-cols-[1fr_1fr_200px_100px] items-center gap-3 border-t border-stroke-soft-200 px-4 py-2.5 first:border-t-0 transition-colors hover:bg-bg-weak-50"
+            className="grid grid-cols-[1fr_1fr_200px_100px] items-center gap-3 border-t border-[var(--color-hairline,#e5e5e5)] px-5 py-3 first:border-t-0 transition-colors hover:bg-[var(--color-surface-alt,#fafafa)]"
           >
             <div
-              className="min-w-0 cursor-pointer truncate text-label-xs text-text-strong-950 transition-colors hover:text-primary-base"
+              className="min-w-0 cursor-pointer truncate text-label-xs font-semibold text-zinc-900 dark:text-white transition-colors hover:text-indigo-500"
               onClick={() => setEditing(b)}
               title={t("bookmarks.editTooltip")}
             >
               {b.title || b.url}
             </div>
-            <div className="mono min-w-0 truncate text-paragraph-xs text-text-sub-600" title={b.url}>
+            <div className="font-mono min-w-0 truncate text-[12px] font-medium text-zinc-600 dark:text-zinc-300" title={b.url}>
               {b.url}
             </div>
-            <div className="truncate text-paragraph-xs text-text-sub-600">
+            <div className="truncate font-mono text-[12px] text-zinc-600 dark:text-zinc-400">
               {b.folder
                 ? countIn(b.folder) === 1
                   ? t("bookmarks.folderProfileCountOne", { folder: b.folder })
@@ -161,8 +162,9 @@ export function BookmarksPage() {
             </div>
             <div className="flex justify-end">
               <Button
-                variant="error" mode="ghost" size="2xsmall"
-                leftIcon={<DeleteIcon className="size-3.5" />}
+                variant="error" mode="stroke" size="xsmall"
+                className="hover:!bg-rose-500/10"
+                leftIcon={<DeleteIcon className="size-4 text-rose-500" />}
                 onClick={() => remove(b)}
               >
                 {t("bookmarks.delete")}
@@ -172,13 +174,13 @@ export function BookmarksPage() {
         ))}
         {shown.length === 0 && (
           <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-            <div className="grid size-14 place-items-center rounded-[14px] bg-primary-alpha-10 text-primary-base ring-1 ring-inset ring-primary-alpha-24">
-              <NavBookmarksIcon className="size-6" />
+            <div className="mb-2 grid size-14 place-items-center rounded-[18px] bg-[var(--color-surface-alt,#fafafa)] text-[var(--color-ink,#0a0a0a)] border border-[var(--color-hairline,#e5e5e5)] shadow-xs">
+              <NavBookmarksIcon className="size-7" />
             </div>
-            <h3 className="m-0 text-label-sm text-text-strong-950">
+            <h3 className="m-0 text-label-sm font-semibold text-zinc-900 dark:text-white">
               {items.length === 0 ? t("bookmarks.emptyTitle") : t("bookmarks.emptyFolderTitle")}
             </h3>
-            <p className="m-0 max-w-[420px] text-paragraph-sm text-text-sub-600">
+            <p className="m-0 max-w-[420px] text-paragraph-sm text-zinc-500 dark:text-zinc-400">
               {t("bookmarks.emptyHint")}
             </p>
           </div>

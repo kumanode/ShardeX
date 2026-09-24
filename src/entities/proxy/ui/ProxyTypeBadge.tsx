@@ -5,8 +5,16 @@ export function ProxyTypeBadge({ kind }: { kind: ProxyEntry["kind"] }) {
   return (
     <Badge
       size="small"
-      variant='filled'
-      color={kind === "socks5" ? "primary" : kind === "https" ? "success" : 'gray'}
+      variant="light"
+      color={
+        kind === "socks5"
+          ? "primary"
+          : kind === "https"
+            ? "success"
+            : kind === "http"
+              ? "warning"
+              : "gray"
+      }
     >
       {kind.toUpperCase()}
     </Badge>

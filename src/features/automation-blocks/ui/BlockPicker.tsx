@@ -81,9 +81,9 @@ export function BlockPicker({ onPick, onClose }: Props) {
     <Modal open onClose={onClose}>
       <div className="flex h-[520px] w-[720px] max-w-full flex-col gap-3 p-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="m-0 text-title-h6 text-text-strong-950">{t("blockPicker.title")}</h2>
+          <h2 className="m-0 text-title-h6 text-zinc-900 dark:text-white">{t("blockPicker.title")}</h2>
           <input
-            className="h-8 w-[240px] rounded-8 bg-bg-white-0 px-2.5 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none placeholder:text-text-soft-400 focus:ring-primary-base"
+            className="h-8 w-[240px] rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2.5 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-indigo-500"
             placeholder={t("blockPicker.searchPlaceholder")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -98,10 +98,10 @@ export function BlockPicker({ onPick, onClose }: Props) {
                 <button
                   key={c.id}
                   type="button"
-                  className={`rounded-8 px-2.5 py-1.5 text-left text-label-sm transition-colors ${
+                  className={`rounded-[10px] px-2.5 py-1.5 text-left text-label-sm transition-colors ${
                     c.id === cat
-                      ? "bg-primary-alpha-10 text-primary-base"
-                      : "text-text-sub-600 hover:bg-bg-weak-50"
+                      ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-medium"
+                      : "text-zinc-600 dark:text-zinc-400 hover:bg-[var(--color-surface-alt,#fafafa)]"
                   }`}
                   onClick={() => setCat(c.id)}
                 >
@@ -115,18 +115,18 @@ export function BlockPicker({ onPick, onClose }: Props) {
             {groups.map((c) => (
               <div key={c.id} className="mb-3 last:mb-0">
                 {query && (
-                  <div className="mb-1 text-subheading-2xs text-text-soft-400">{t(c.label)}</div>
+                  <div className="mb-1 text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t(c.label)}</div>
                 )}
                 <div className="flex flex-col gap-1.5">
                   {c.blocks.map((b) => (
                     <button
                       key={b.kind}
                       type="button"
-                      className="rounded-10 px-3 py-2 text-left ring-1 ring-inset ring-stroke-soft-200 transition-colors hover:bg-bg-weak-50 hover:ring-primary-base"
+                      className="rounded-[12px] px-3 py-2 text-left border border-[var(--color-hairline,#e5e5e5)] transition-colors hover:bg-[var(--color-surface-alt,#fafafa)] hover:border-indigo-500"
                       onClick={() => { onPick(b); onClose(); }}
                     >
-                      <div className="text-label-sm text-text-strong-950">{t(b.label)}</div>
-                      <div className="text-paragraph-xs text-text-soft-400">{t(b.about)}</div>
+                      <div className="text-label-sm font-medium text-zinc-900 dark:text-white">{t(b.label)}</div>
+                      <div className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">{t(b.about)}</div>
                     </button>
                   ))}
                 </div>
@@ -141,7 +141,7 @@ export function BlockPicker({ onPick, onClose }: Props) {
               </div>
             )}
             {groups.length === 0 && (
-              <p className="m-0 px-1 py-6 text-center text-paragraph-sm text-text-soft-400">
+              <p className="m-0 px-1 py-6 text-center text-paragraph-sm text-zinc-500 dark:text-zinc-400">
                 {t("blockPicker.noMatches", { q })}
               </p>
             )}

@@ -10,13 +10,13 @@ export function FingerprintCardActions({ entry }: { entry: FingerprintEntry }) {
 
   return (
     <>
-      <Button variant="neutral" mode="stroke" size="2xsmall" onClick={() => useTemplate(entry.id)}>
+      <Button variant="neutral" mode="stroke" size="xsmall" onClick={() => useTemplate(entry.id)}>
         {t("fingerprintCardActions.use")}
       </Button>
       {entry.builtin ? (
         <Badge color="gray" variant="lighter" size="small" className="ml-auto">{t("fingerprintCardActions.builtin")}</Badge>
       ) : (
-        <Button variant="error" mode="stroke" size="2xsmall" onClick={() => remove(entry.id)} title={t("fingerprintCardActions.removeTitle")}>
+        <Button variant="error" mode="stroke" size="xsmall" onClick={() => remove(entry.id)} title={t("fingerprintCardActions.removeTitle")}>
           ✕
         </Button>
       )}

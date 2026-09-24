@@ -1,4 +1,4 @@
-// ShardX Launcher — Tauri backend.
+// ShardX Launcher â€” Tauri backend.
 
 mod profile_icon;
 mod api;
@@ -26,6 +26,8 @@ mod modguard;
 mod runner;
 mod wasm;
 mod trash;
+mod credentials;
+mod keep_alive;
 
 use serde_json::Value;
 
@@ -44,13 +46,13 @@ pub fn main_window() -> Option<tauri::WebviewWindow> {
         .or_else(|| app.webview_windows().into_values().next())
 }
 
-/// Tell any open UI window that the on-disk store changed out-of-band — i.e. a
+/// Tell any open UI window that the on-disk store changed out-of-band â€” i.e. a
 /// profile/proxy created or removed through the automation API or MCP, which
 /// writes straight to disk without the React state ever knowing.  The view
 /// listens for `store-changed` and reloads, so the new items appear without an
 /// app restart.  `kind` ("profiles" | "proxies" | "automation") is informational; the UI
 /// reloads both lists regardless.  No-op when headless (no window).
-/// A warning the user has to see — shown as a toast. stderr is not a place a
+/// A warning the user has to see â€” shown as a toast. stderr is not a place a
 /// user looks, and a profile silently running on the host's clock is worth an
 /// interruption.
 pub fn notify_warning(text: impl Into<String>) {
@@ -138,7 +140,7 @@ const MACOS_PLATFORM_VERSIONS: &[&str] = &[
     "26.0", "26.0.1", "26.1",
 ];
 
-// Win 10 21H1+ ("10.0.0"), Win 11 21H2..25H2 ("13"–"17"); weighted to 22H2/23H2/24H2.
+// Win 10 21H1+ ("10.0.0"), Win 11 21H2..25H2 ("13"â€“"17"); weighted to 22H2/23H2/24H2.
 const WINDOWS_PLATFORM_VERSIONS: &[&str] = &[
     "10.0.0",
     "13.0.0",
@@ -236,7 +238,7 @@ fn host_ram_gb() -> Option<u32> {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
-        // 0x08000000 = CREATE_NO_WINDOW — suppress the brief console flash a GUI
+        // 0x08000000 = CREATE_NO_WINDOW â€” suppress the brief console flash a GUI
         // app gets when shelling out to a console-subsystem binary.
         let out = std::process::Command::new("wmic")
             .args(["ComputerSystem", "get", "TotalPhysicalMemory"])
@@ -251,7 +253,7 @@ fn host_ram_gb() -> Option<u32> {
     None
 }
 
-/// Physical RAM rounded to Chrome's {8,16,32} deviceMemory bucket; unknown → 16.
+/// Physical RAM rounded to Chrome's {8,16,32} deviceMemory bucket; unknown â†’ 16.
 fn host_ram_bucket_gb() -> u32 {
     match host_ram_gb() {
         Some(gb) if gb >= 32 => 32,
@@ -261,7 +263,7 @@ fn host_ram_bucket_gb() -> u32 {
     }
 }
 
-/// Pick (hardware_concurrency, device_memory): Mac → curated table, Win/Linux → host-bracketed.
+/// Pick (hardware_concurrency, device_memory): Mac â†’ curated table, Win/Linux â†’ host-bracketed.
 pub(crate) fn randomize_hardware(payload: &mut serde_json::Map<String, Value>) {
     let model = payload
         .get("_meta")
@@ -330,12 +332,12 @@ pub fn clamp_screen_to_real_display(
         .flatten()
         .or_else(|| window.current_monitor().ok().flatten())
     else {
-        eprintln!("[launcher] display: no monitor info — screen clamp skipped");
+        eprintln!("[launcher] display: no monitor info â€” screen clamp skipped");
         return;
     };
     let scale = monitor.scale_factor();
     if scale <= 0.0 {
-        eprintln!("[launcher] display: bad scale_factor {scale} — screen clamp skipped");
+        eprintln!("[launcher] display: bad scale_factor {scale} â€” screen clamp skipped");
         return;
     }
     let phys = monitor.size();
@@ -350,7 +352,7 @@ pub fn clamp_screen_to_real_display(
     }
 
     let Some(scr) = payload.get("screen").and_then(|v| v.as_object()) else {
-        eprintln!("[launcher] display: profile has no `screen` block — clamp skipped");
+        eprintln!("[launcher] display: profile has no `screen` block â€” clamp skipped");
         return;
     };
     let fp_w = scr.get("width").and_then(|v| v.as_i64()).unwrap_or(0);
@@ -365,13 +367,13 @@ pub fn clamp_screen_to_real_display(
     //
     // This used to be the macOS rule only, and Windows/Linux overwrote the
     // declared screen with the host display on every start. That handed every
-    // profile on one machine the SAME high-entropy pair — on a 5120x1440
-    // monitor, all of them said 5120x1440 — which is the opposite of what a
+    // profile on one machine the SAME high-entropy pair â€” on a 5120x1440
+    // monitor, all of them said 5120x1440 â€” which is the opposite of what a
     // per-profile screen is for, and it ignored what the profile's own API
     // caller had asked for.
     if real_w >= fp_w && real_h >= fp_h {
         eprintln!(
-            "[launcher] display: real {real_w}x{real_h} >= fp {fp_w}x{fp_h} — keeping FP screen"
+            "[launcher] display: real {real_w}x{real_h} >= fp {fp_w}x{fp_h} â€” keeping FP screen"
         );
         return;
     }
@@ -405,7 +407,7 @@ pub fn clamp_screen_to_real_display(
     }
     eprintln!(
         "[launcher] display: CLAMPED screen to real {real_w}x{real_h} \
-         (avail {avail_w}x{avail_h}, dpr {scale}) — FP claimed {fp_w}x{fp_h}"
+         (avail {avail_w}x{avail_h}, dpr {scale}) â€” FP claimed {fp_w}x{fp_h}"
     );
 }
 
@@ -465,7 +467,7 @@ pub fn save_profile_core(
             if sent != on_disk {
                 return Err(format!(
                     "This profile changed after you opened it (rev {on_disk}, you have {sent}) \
-                     — probably through the API or another window. Reopen it and apply your \
+                     â€” probably through the API or another window. Reopen it and apply your \
                      changes to the current version."
                 ));
             }
@@ -501,6 +503,7 @@ pub fn save_profile_core(
         extensions: stored.meta.extensions,
         mobile: profile::claims_mobile(&stored.config),
         android_media: false,
+        dns_servers: None,
     })
 }
 
@@ -551,7 +554,7 @@ async fn automation_launch(app: tauri::AppHandle, profile_id: String) -> Result<
     #[cfg(feature = "automation")]
     {
         if migrate::in_progress() {
-            return Err("profiles are being moved — try again when that finishes".into());
+            return Err("profiles are being moved â€” try again when that finishes".into());
         }
         // CDP cannot be turned on for a live process, so attaching to one opened
         // without it would give a focused window with no frames and no control.
@@ -564,7 +567,7 @@ async fn automation_launch(app: tauri::AppHandle, profile_id: String) -> Result<
             );
         }
         let b = bus().await?;
-        // (enable_cdp, headless) — the studio needs a visible window with CDP on.
+        // (enable_cdp, headless) â€” the studio needs a visible window with CDP on.
         let out = launch::launch_profile_synced(&profile_id, true, false, None, b.port, &b.token)
             .await
             .map_err(|e| e.to_string())?;
@@ -579,7 +582,7 @@ async fn automation_launch(app: tauri::AppHandle, profile_id: String) -> Result<
 }
 
 /// Attaches to a profile already running with CDP on; frames arrive as
-/// `automation:frame`. Only bodies are gated — Tauri's command list takes no `#[cfg]`.
+/// `automation:frame`. Only bodies are gated â€” Tauri's command list takes no `#[cfg]`.
 #[tauri::command]
 async fn automation_attach(app: tauri::AppHandle, profile_id: String) -> Result<(), String> {
     #[cfg(feature = "automation")]
@@ -688,12 +691,12 @@ fn automation_display() -> serde_json::Value {
             "This is a Wayland session with no X display for the browser to fall back to, so it \
              runs as a Wayland window: it cannot place itself, arranging browsers does nothing, \
              and the launcher cannot keep the Fleet window above the others either. Install \
-             XWayland, or log in with an Xorg session. Recording and running still work — the \
+             XWayland, or log in with an Xorg session. Recording and running still work â€” the \
              live view comes over the debugging connection, not off the screen."
         } else if !panels {
             "This is a Wayland session. Browsers still arrange themselves, because they run \
              through XWayland, but the launcher cannot keep its own Fleet window above the \
-             others or place it — a Wayland application is not allowed to. Log in with an Xorg \
+             others or place it â€” a Wayland application is not allowed to. Log in with an Xorg \
              session if you need that."
         } else {
             ""
@@ -856,7 +859,7 @@ fn automation_run_status(project_id: String) -> Option<serde_json::Value> {
     }
 }
 
-/// Every run going right now — what the fleet window shows.
+/// Every run going right now â€” what the fleet window shows.
 #[tauri::command]
 fn automation_fleet() -> Vec<serde_json::Value> {
     #[cfg(feature = "automation")]
@@ -869,7 +872,7 @@ fn automation_fleet() -> Vec<serde_json::Value> {
 }
 
 /// Opens (or re-focuses) the fleet window: one row per browser in a run.
-/// `async` for the same reason as `helper_show` — a webview built on the main
+/// `async` for the same reason as `helper_show` â€” a webview built on the main
 /// thread deadlocks Windows.
 #[tauri::command]
 async fn automation_fleet_window(app: tauri::AppHandle) {
@@ -985,7 +988,7 @@ fn extension_import(paths: Vec<String>) -> Result<Vec<extensions::ExtensionEntry
 }
 
 /// Import from a Web Store link, a bare extension id, or a direct .crx / .zip
-/// URL — the launcher fetches the file itself.
+/// URL â€” the launcher fetches the file itself.
 #[tauri::command]
 async fn extension_import_url(url: String) -> Result<extensions::ExtensionEntry, String> {
     extensions::import_url(&url).await.map_err(|e| format!("{e:#}"))
@@ -1104,13 +1107,19 @@ fn profile_set_folder(id: String, folder: String) -> Result<(), String> {
     profile::set_folder(&id, &folder).map_err(|e| e.to_string())
 }
 
+/// Set or clear a profile's per-profile DNS (a DoH template URL).
+#[tauri::command]
+fn profile_set_dns(id: String, servers: Option<String>) -> Result<(), String> {
+    profile::set_dns(&id, servers).map_err(|e| e.to_string())
+}
+
 /// Rename folder (retag profiles); returns count.
 #[tauri::command]
 fn folder_rename(old: String, new: String) -> Result<usize, String> {
     profile::rename_folder(&old, &new).map_err(|e| e.to_string())
 }
 
-/// Delete folder; `delete_profiles` true → remove, false → unfile.
+/// Delete folder; `delete_profiles` true â†’ remove, false â†’ unfile.
 #[tauri::command]
 fn folder_delete(folder: String, delete_profiles: bool) -> Result<usize, String> {
     profile::delete_folder(&folder, delete_profiles).map_err(|e| e.to_string())
@@ -1192,7 +1201,7 @@ pub fn build_fingerprint_config(
     Ok(merged)
 }
 
-/// Add the UI's default noise block (every vector present, disabled, seed 0 —
+/// Add the UI's default noise block (every vector present, disabled, seed 0 â€”
 /// the sentinel `save_raw` fills per-profile) when a config carries none, so
 /// API/SDK profiles match UI profiles and get a unique seed instead of none.
 pub fn ensure_default_noise(cfg: &mut serde_json::Map<String, Value>) {
@@ -1275,7 +1284,7 @@ fn fingerprint_list() -> Result<Vec<fingerprints::LibraryEntry>, String> {
 }
 
 /// What this machine's GPU can actually do. Cached; `force` re-asks the engine.
-/// Slow on the first call — it starts the engine off-screen — so the UI asks once.
+/// Slow on the first call â€” it starts the engine off-screen â€” so the UI asks once.
 #[tauri::command]
 async fn gpu_caps(force: bool) -> Result<gpu_caps::HostGlCaps, String> {
     gpu_caps::probe(force).await.map_err(|e| e.to_string())
@@ -1425,7 +1434,7 @@ async fn launch(profile_id: String) -> Result<u32, String> {
     // UI launches: no CDP, headed. The bus goes along even with no group so the
     // page helper has somewhere to report.
     if migrate::in_progress() {
-        return Err("profiles are being moved — try again when that finishes".into());
+        return Err("profiles are being moved â€” try again when that finishes".into());
     }
     let b = bus().await?;
     launch::launch_profile_synced(&profile_id, false, false, None, b.port, &b.token)
@@ -1441,6 +1450,20 @@ async fn launch(profile_id: String) -> Result<u32, String> {
 static BUS: tokio::sync::OnceCell<std::sync::Arc<sync_bus::Bus>> =
     tokio::sync::OnceCell::const_new();
 
+/// (last_create, last_close) timestamps per group to de-duplicate tab events
+static TAB_SYNC_COOLDOWN: tokio::sync::OnceCell<
+    std::sync::Arc<tokio::sync::Mutex<std::collections::HashMap<String, (tokio::time::Instant, tokio::time::Instant)>>>,
+> = tokio::sync::OnceCell::const_new();
+
+async fn tab_sync_cooldown() -> std::sync::Arc<tokio::sync::Mutex<std::collections::HashMap<String, (tokio::time::Instant, tokio::time::Instant)>>> {
+    TAB_SYNC_COOLDOWN
+        .get_or_init(|| async {
+            std::sync::Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new()))
+        })
+        .await
+        .clone()
+}
+
 pub(crate) async fn bus() -> Result<std::sync::Arc<sync_bus::Bus>, String> {
     BUS.get_or_try_init(|| async {
         // Fresh per run: tells a browser this launcher started it rather than
@@ -1452,8 +1475,13 @@ pub(crate) async fn bus() -> Result<std::sync::Arc<sync_bus::Bus>, String> {
     .cloned()
 }
 
+fn keep_alive() -> &'static keep_alive::KeepAlive {
+    static KA: std::sync::OnceLock<keep_alive::KeepAlive> = std::sync::OnceLock::new();
+    KA.get_or_init(keep_alive::KeepAlive::new)
+}
+
 /// Opens (or re-focuses) the floating control panel for a group. Same bundle,
-/// addressed by hash — a 60px strip does not warrant its own vite entry point.
+/// addressed by hash â€” a 60px strip does not warrant its own vite entry point.
 fn open_sync_panel(app: &tauri::AppHandle, group: &str) {
     use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
@@ -1464,16 +1492,15 @@ fn open_sync_panel(app: &tauri::AppHandle, group: &str) {
     let url = format!("index.html#/?syncPanel={group}");
     let built = WebviewWindowBuilder::new(app, "sync-panel", WebviewUrl::App(url.into()))
         .title("ShardX Sync")
-        .inner_size(360.0, 168.0)
-        .resizable(true)
-        .min_inner_size(280.0, 120.0)
+        .inner_size(390.0, 330.0)
+        .min_inner_size(340.0, 240.0)
         .resizable(false)
         .always_on_top(true)
         .decorations(false)
         .skip_taskbar(true)
         .build();
     if let Err(e) = built {
-        // Not fatal — the group is synchronising, it just has no panel.
+        // Not fatal â€” the group is synchronising, it just has no panel.
         eprintln!("[launcher] sync panel unavailable: {e}");
     }
 }
@@ -1507,7 +1534,7 @@ async fn sync_launch(
     }
     if !mobile.is_empty() && !desktop.is_empty() {
         return Err(format!(
-            "a sync group must be all-mobile or all-desktop — mobile: {}; desktop: {}",
+            "a sync group must be all-mobile or all-desktop â€” mobile: {}; desktop: {}",
             mobile.join(", "),
             desktop.join(", ")
         ));
@@ -1538,7 +1565,7 @@ async fn sync_launch(
                 .map(|(n, s)| format!("{n} ({s})"))
                 .collect();
             return Err(format!(
-                "a mobile sync group must be all one screen size — {}",
+                "a mobile sync group must be all one screen size â€” {}",
                 listed.join(", ")
             ));
         }
@@ -1547,22 +1574,240 @@ async fn sync_launch(
     let b = bus().await?;
 
     let mut failed: Vec<String> = Vec::new();
+    let mut skipped: Vec<String> = Vec::new();
     for id in &profile_ids {
+        // Already-running profiles keep their window and join the group as-is
+        // instead of failing the whole launch.
+        if process::Tracker::shared().is_running(id) {
+            eprintln!("[launcher] sync group '{group}': {id} already running, reusing");
+            skipped.push(id.clone());
+            continue;
+        }
         if let Err(e) = launch::launch_profile_synced(
-            id, false, false, Some(&group), b.port, &b.token).await {
+            id, true, false, Some(&group), b.port, &b.token).await {
             failed.push(format!("{id}: {e}"));
         }
     }
+    if skipped.len() + failed.len() == profile_ids.len() && !skipped.is_empty() && failed.is_empty() {
+        eprintln!("[launcher] sync group '{group}': all members already running â€” reusing group");
+    }
     if failed.len() == profile_ids.len() {
-        return Err(format!("nothing launched — {}", failed.join("; ")));
+        return Err(format!("nothing launched â€” {}", failed.join("; ")));
     }
     // A partial launch is still a usable group; just say what did not make it.
     if !failed.is_empty() {
-        eprintln!("[launcher] sync group '{group}': {} failed — {}",
+        eprintln!("[launcher] sync group '{group}': {} failed â€” {}",
                   failed.len(), failed.join("; "));
     }
+    if !skipped.is_empty() {
+        eprintln!("[launcher] sync group '{group}': {} reused (already running) â€” {}",
+                  skipped.len(), skipped.join(", "));
+    }
     open_sync_panel(&app, &group);
+    start_group_nav_watcher(group.clone(), profile_ids);
     Ok(group)
+}
+
+fn start_group_nav_watcher(group: String, profile_ids: Vec<String>) {
+    tokio::spawn(async move {
+        // Adaptive wait: instead of a fixed delay, attach to every member (or
+        // stop at a deadline) so a cold start on a large profile does not wait
+        // needlessly and a slow one is not missed.
+        let deadline = tokio::time::Instant::now() + tokio::time::Duration::from_secs(15);
+        loop {
+            for id in &profile_ids {
+                let _ = cdp::ensure_attached(id).await;
+            }
+            if profile_ids.iter().all(|id| cdp::is_attached(id))
+                || tokio::time::Instant::now() >= deadline
+            {
+                break;
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+        }
+        eprintln!("[launcher] nav watcher: group '{group}' ready");
+
+        let last_url = std::sync::Arc::new(tokio::sync::Mutex::new(String::new()));
+
+        for id in profile_ids {
+            let id_clone = id.clone();
+            let group_clone = group.clone();
+            let last_url_clone = last_url.clone();
+
+            tokio::spawn(async move {
+                for _ in 0..10 {
+                    if cdp::ensure_attached(&id_clone).await.is_ok() {
+                        break;
+                    }
+                    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                }
+
+                if let Some(mut rx) = cdp::subscribe_events(&id_clone) {
+                    while let Ok(msg) = rx.recv().await {
+                        let Ok(b) = bus().await else { break };
+                        let members = b.members(&group_clone);
+                        if !members.contains(&id_clone) {
+                            break;
+                        }
+                        let st = b.status(&group_clone);
+
+                        let is_driver = match &st.master {
+                            Some(master_id) => master_id == &id_clone,
+                            None => {
+                                let current_driver = st.members.iter().find(|m| m.driving).map(|m| &m.profile);
+                                match current_driver {
+                                    Some(driver_profile) => driver_profile == &id_clone,
+                                    None => members.first() == Some(&id_clone),
+                                }
+                            }
+                        };
+
+                        if !is_driver {
+                            continue;
+                        }
+
+                        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&msg) {
+                            let method = val.get("method").and_then(|m| m.as_str());
+                            if method == Some("Page.frameNavigated")
+                                || method == Some("Page.navigatedWithinDocument")
+                            {
+                                let url_opt = if method == Some("Page.frameNavigated") {
+                                    let frame = val.get("params").and_then(|p| p.get("frame"));
+                                    if frame.and_then(|f| f.get("parentId")).is_none() {
+                                        frame.and_then(|f| f.get("url")).and_then(|u| u.as_str())
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    val.get("params").and_then(|p| p.get("url")).and_then(|u| u.as_str())
+                                };
+
+                                if let Some(url) = url_opt {
+                                    let valid_scheme = url.starts_with("http://")
+                                        || url.starts_with("https://")
+                                        || url.starts_with("chrome-extension://")
+                                        || url.starts_with("chrome://");
+                                    if valid_scheme {
+                                        let mut last = last_url_clone.lock().await;
+                                        if *last == url {
+                                            continue;
+                                        }
+                                        *last = url.to_string();
+                                        drop(last);
+
+                                        let delay_ms = st.delay_ms;
+                                        let mut follower_idx = 0usize;
+                                        for target_id in members.iter().cloned() {
+                                            if target_id != id_clone {
+                                                let u = url.to_string();
+                                                let stagger = if delay_ms > 0 {
+                                                    tokio::time::Duration::from_millis(
+                                                        (delay_ms as u64)
+                                                            + ((follower_idx as u64 * 35)
+                                                                % (delay_ms as u64 + 10)),
+                                                    )
+                                                } else {
+                                                    tokio::time::Duration::ZERO
+                                                };
+                                                follower_idx += 1;
+                                                tokio::spawn(async move {
+                                                    if !stagger.is_zero() {
+                                                        tokio::time::sleep(stagger).await;
+                                                    }
+                                                    let _ = cdp::navigate_page(&target_id, &u)
+                                                        .await;
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if method == Some("Target.targetDestroyed") {
+                                let is_recent_close = {
+                                    let cd = tab_sync_cooldown().await;
+                                    let map = cd.lock().await;
+                                    map.get(&group_clone)
+                                        .map(|(_, cl)| cl.elapsed() < tokio::time::Duration::from_millis(1500))
+                                        .unwrap_or(false)
+                                };
+
+                                if !is_recent_close {
+                                    {
+                                        let cd = tab_sync_cooldown().await;
+                                        let mut map = cd.lock().await;
+                                        let entry = map.entry(group_clone.clone()).or_insert_with(|| (
+                                            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                        ));
+                                        entry.1 = tokio::time::Instant::now();
+                                    }
+                                    for target_id in members.iter().cloned() {
+                                        if target_id != id_clone {
+                                            tokio::spawn(async move {
+                                                let _ = cdp::close_active_tab(&target_id).await;
+                                            });
+                                        }
+                                    }
+                                }
+                            } else if method == Some("Target.targetCreated") {
+                                if let Some(target_info) =
+                                    val.get("params").and_then(|p| p.get("targetInfo"))
+                                {
+                                    let ty = target_info.get("type").and_then(|t| t.as_str());
+                                    if ty == Some("page") {
+                                        // Ignore tabs opened via in-page clicks or window.open,
+                                        // because mirrored mouse clicks already open them natively.
+                                        let has_opener = target_info.get("openerId").is_some();
+                                        if !has_opener {
+                                            let is_recent_create = {
+                                                let cd = tab_sync_cooldown().await;
+                                                let map = cd.lock().await;
+                                                map.get(&group_clone)
+                                                    .map(|(cr, _)| cr.elapsed() < tokio::time::Duration::from_millis(1500))
+                                                    .unwrap_or(false)
+                                            };
+
+                                            if !is_recent_create {
+                                                // Record cooldown so followers don't echo back
+                                                {
+                                                    let cd = tab_sync_cooldown().await;
+                                                    let mut map = cd.lock().await;
+                                                    let entry = map.entry(group_clone.clone()).or_insert_with(|| (
+                                                        tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                                        tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+                                                    ));
+                                                    entry.0 = tokio::time::Instant::now();
+                                                }
+
+                                                let raw_url = target_info.get("url").and_then(|u| u.as_str()).unwrap_or("");
+                                                let new_tab_url = if raw_url.is_empty()
+                                                    || raw_url.starts_with("chrome://")
+                                                    || raw_url == "about:blank"
+                                                {
+                                                    "about:blank".to_string()
+                                                } else {
+                                                    raw_url.to_string()
+                                                };
+
+                                                for target_id in members.iter().cloned() {
+                                                    if target_id != id_clone {
+                                                        let u = new_tab_url.clone();
+                                                        tokio::spawn(async move {
+                                                            let _ = cdp::create_tab(&target_id, Some(&u))
+                                                                .await;
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
 }
 
 #[tauri::command]
@@ -1576,7 +1821,7 @@ async fn sync_set_paused(group: String, paused: bool) -> Result<(), String> {
     Ok(())
 }
 
-/// Lays the group's windows out on the primary display's work area — under the
+/// Lays the group's windows out on the primary display's work area â€” under the
 /// menu bar or behind the dock means moving them by hand anyway.
 #[tauri::command]
 async fn sync_arrange(
@@ -1608,7 +1853,7 @@ async fn sync_stop(group: String) -> Result<(), String> {
     Ok(())
 }
 
-/// Holds one profile out of the group — a captcha, a different password.
+/// Holds a profile out of input mirroring without closing its window.
 #[tauri::command]
 async fn sync_set_excluded(
     group: String,
@@ -1616,6 +1861,291 @@ async fn sync_set_excluded(
     excluded: bool,
 ) -> Result<(), String> {
     bus().await?.set_excluded(&group, &profile, excluded);
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_set_master(group: String, profile: Option<String>) -> Result<(), String> {
+    let b = bus().await?;
+    b.set_master(&group, profile.clone());
+    if let Some(ref master_id) = profile {
+        let _ = cdp::ensure_attached(master_id).await;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_set_delay(group: String, delay_ms: u32) -> Result<(), String> {
+    bus().await?.set_delay(&group, delay_ms);
+    Ok(())
+}
+
+fn normalize_navigate_input(input: &str) -> String {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return "about:blank".to_string();
+    }
+    if trimmed.starts_with("http://")
+        || trimmed.starts_with("https://")
+        || trimmed.starts_with("chrome-extension://")
+        || trimmed.starts_with("chrome://")
+        || trimmed.starts_with("about:")
+    {
+        trimmed.to_string()
+    } else if trimmed.contains('.') && !trimmed.contains(' ') {
+        format!("https://{trimmed}")
+    } else {
+        let encoded: String = url::form_urlencoded::byte_serialize(trimmed.as_bytes()).collect();
+        format!("https://www.google.com/search?q={encoded}")
+    }
+}
+
+fn resolve_extension_entry_url(ext_id: &str) -> String {
+    if let Some(root) = crate::extensions::load_path(ext_id) {
+        if root.join("home.html").exists() {
+            return format!("chrome-extension://{ext_id}/home.html");
+        }
+        if root.join("index.html").exists() {
+            return format!("chrome-extension://{ext_id}/index.html");
+        }
+        if root.join("popup.html").exists() {
+            return format!("chrome-extension://{ext_id}/popup.html");
+        }
+        if let Ok(content) = std::fs::read_to_string(root.join("manifest.json")) {
+            if let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&content) {
+                let popup = manifest
+                    .get("action")
+                    .or_else(|| manifest.get("browser_action"))
+                    .and_then(|a| a.get("default_popup"))
+                    .and_then(|p| p.as_str());
+                if let Some(p) = popup {
+                    let clean_p = p.trim_start_matches('/');
+                    return format!("chrome-extension://{ext_id}/{clean_p}");
+                }
+            }
+        }
+    }
+    format!("chrome-extension://{ext_id}/home.html")
+}
+
+#[tauri::command]
+async fn sync_navigate(group: String, url: String) -> Result<(), String> {
+    let b = bus().await?;
+    let target_url = normalize_navigate_input(&url);
+    b.broadcast(&group, &format!("{{\"navigate\":\"{target_url}\"}}\n"));
+
+    let members = b.members(&group);
+    let st = b.status(&group);
+    let delay_ms = st.delay_ms;
+    let mut follower_idx = 0usize;
+
+    for id in members {
+        let u = target_url.clone();
+        let stagger = if delay_ms > 0 && follower_idx > 0 {
+            tokio::time::Duration::from_millis(
+                (delay_ms as u64) + ((follower_idx as u64 * 35) % (delay_ms as u64 + 10)),
+            )
+        } else {
+            tokio::time::Duration::ZERO
+        };
+        follower_idx += 1;
+        tokio::spawn(async move {
+            if !stagger.is_zero() {
+                tokio::time::sleep(stagger).await;
+            }
+            let _ = cdp::navigate_page(&id, &u).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_open_extension(group: String, keyword_or_id: String) -> Result<(), String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    if members.is_empty() {
+        return Err("no members in group".into());
+    }
+
+    let trimmed = keyword_or_id.trim();
+    let url = if trimmed.starts_with("chrome-extension://") {
+        trimmed.to_string()
+    } else {
+        let exts = crate::extensions::list().unwrap_or_default();
+        let target_ext = exts.iter().find(|e| {
+            e.id == trimmed || e.name.to_lowercase().contains(&trimmed.to_lowercase())
+        }).or_else(|| {
+            let is_wallet_search = trimmed.eq_ignore_ascii_case("metamask")
+                || trimmed.eq_ignore_ascii_case("wallet");
+            if is_wallet_search {
+                exts.iter().find(|e| {
+                    let n = e.name.to_lowercase();
+                    n.contains("wallet")
+                        || n.contains("rabby")
+                        || n.contains("phantom")
+                        || n.contains("okx")
+                        || n.contains("backpack")
+                        || n.contains("keplr")
+                        || n.contains("subwallet")
+                        || n.contains("bitget")
+                })
+            } else {
+                None
+            }
+        });
+
+        if let Some(ext) = target_ext {
+            resolve_extension_entry_url(&ext.id)
+        } else {
+            format!("chrome-extension://{trimmed}/home.html")
+        }
+    };
+
+    // Mark tab cooldown so watcher doesn't duplicate
+    {
+        let cd = tab_sync_cooldown().await;
+        let mut map = cd.lock().await;
+        let entry = map.entry(group.clone()).or_insert_with(|| (
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+        ));
+        entry.0 = tokio::time::Instant::now();
+    }
+
+    for id in members {
+        let u = url.clone();
+        tokio::spawn(async move {
+            let _ = cdp::create_tab(&id, Some(&u)).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_unlock_wallets(group: String, password: String) -> Result<usize, String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    if members.is_empty() {
+        return Ok(0);
+    }
+
+    let mut set = tokio::task::JoinSet::new();
+    for id in members {
+        let pwd = password.clone();
+        set.spawn(async move {
+            let filled = fill_field_kind(&id, "password", &pwd).await.unwrap_or(false);
+            if filled {
+                let _ = click_field_kind(&id, "submit").await;
+                let _ = cdp::browser_call(&id, "Motion.pressKey", serde_json::json!({ "key": "Enter" })).await;
+                true
+            } else {
+                false
+            }
+        });
+    }
+
+    let mut unlocked = 0;
+    while let Some(res) = set.join_next().await {
+        if let Ok(true) = res {
+            unlocked += 1;
+        }
+    }
+    Ok(unlocked)
+}
+
+#[tauri::command]
+async fn sync_arrange_popups(group: String) -> Result<usize, String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    let mut activated = 0;
+
+    for id in members {
+        if let Ok(popups) = cdp::list_extension_popups(&id).await {
+            for p in popups {
+                if let Some(tid) = p.get("targetId").and_then(|v| v.as_str()) {
+                    let _ = cdp::activate_target(&id, tid).await;
+                    activated += 1;
+                }
+            }
+        }
+    }
+    Ok(activated)
+}
+
+#[tauri::command]
+async fn sync_reload(group: String) -> Result<(), String> {
+    let b = bus().await?;
+    b.broadcast(&group, "{\"reload\":true}\n");
+
+    let members = b.members(&group);
+    for id in members {
+        tokio::spawn(async move {
+            let _ = cdp::reload_page(&id).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_new_tab(group: String, url: Option<String>) -> Result<(), String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    if members.is_empty() {
+        return Err("no members in group".into());
+    }
+    let target_url = match url {
+        Some(ref u) if !u.trim().is_empty() => normalize_navigate_input(u),
+        _ => "about:blank".to_string(),
+    };
+
+    // Mark programmatic create cooldown so watcher doesn't double-create
+    {
+        let cd = tab_sync_cooldown().await;
+        let mut map = cd.lock().await;
+        let entry = map.entry(group.clone()).or_insert_with(|| (
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+        ));
+        entry.0 = tokio::time::Instant::now();
+    }
+
+    eprintln!(
+        "[sync] new_tab group '{group}' url '{target_url}' to {} members",
+        members.len()
+    );
+    for id in members {
+        let u = target_url.clone();
+        tokio::spawn(async move {
+            let _ = cdp::create_tab(&id, Some(&u)).await;
+        });
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn sync_close_tab(group: String) -> Result<(), String> {
+    let b = bus().await?;
+    let members = b.members(&group);
+    if members.is_empty() {
+        return Err("no members in group".into());
+    }
+
+    // Mark programmatic close cooldown so watcher doesn't close twice on followers
+    {
+        let cd = tab_sync_cooldown().await;
+        let mut map = cd.lock().await;
+        let entry = map.entry(group.clone()).or_insert_with(|| (
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+            tokio::time::Instant::now() - tokio::time::Duration::from_secs(10),
+        ));
+        entry.1 = tokio::time::Instant::now();
+    }
+
+    for id in members {
+        tokio::spawn(async move {
+            let _ = cdp::close_active_tab(&id).await;
+        });
+    }
     Ok(())
 }
 
@@ -1639,7 +2169,7 @@ async fn helper_fields(profile: String) -> Result<serde_json::Value, String> {
 }
 
 /// The operator accepted the offer; nothing fills without this. In a group every
-/// member fills with its own person — the command travels, the data does not.
+/// member fills with its own person â€” the command travels, the data does not.
 #[tauri::command]
 async fn helper_fill(profile: String) -> Result<usize, String> {
     let b = bus().await?;
@@ -1696,7 +2226,7 @@ fn helper_close(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// The operator closed the panel themselves — a refusal about this page.
+/// The operator closed the panel themselves â€” a refusal about this page.
 /// `helper_close` is the other case: the page moved on, which silences nothing.
 #[tauri::command]
 async fn helper_dismiss(app: tauri::AppHandle, profile: String) -> Result<(), String> {
@@ -1787,7 +2317,7 @@ fn settings_load_error() -> Option<String> {
 #[tauri::command]
 fn settings_save(mut value: settings::Settings) -> Result<(), String> {
     // Saving on top of a file we could not read would write the defaults this
-    // form was filled from over whatever the file actually held — the data
+    // form was filled from over whatever the file actually held â€” the data
     // root among them, which is where every profile lives. The banner says
     // the file was not read; until it is fixed or moved aside, nothing here
     // gets written.
@@ -1795,11 +2325,11 @@ fn settings_save(mut value: settings::Settings) -> Result<(), String> {
         return Err(format!(
             "Settings were not saved: the file could not be read, so what is on \
              screen are defaults, not your settings. Writing them would lose \
-             whatever the file holds — including where your profiles live. Fix \
+             whatever the file holds â€” including where your profiles live. Fix \
              or delete it first. ({err})"
         ));
     }
-    // Owned by the migration, not the form — which round-trips the whole struct
+    // Owned by the migration, not the form â€” which round-trips the whole struct
     // and would reset it while the data sits on another disk.
     if let Ok(cur) = settings::load() {
         value.data_root = cur.data_root;
@@ -1858,7 +2388,7 @@ fn ps_set_key(key: String) -> Result<(), String> {
     psapi::set_key(key).map_err(|e| e.to_string())
 }
 
-/// Account profile (email, active_orders, wallet_balance cents) — also acts
+/// Account profile (email, active_orders, wallet_balance cents) â€” also acts
 /// as the "is the key valid?" probe.
 #[tauri::command]
 async fn ps_me() -> Result<Value, String> {
@@ -1929,8 +2459,8 @@ async fn ps_resi_isps(
     region: String,
     city: String,
 ) -> Result<Value, String> {
-    // Registered in every configuration — the handler list is one literal and
-    // cannot be gated per entry — so say so when the code behind it is absent.
+    // Registered in every configuration â€” the handler list is one literal and
+    // cannot be gated per entry â€” so say so when the code behind it is absent.
     #[cfg(not(feature = "automation"))]
     {
         let _ = (tier, country, region, city);
@@ -2089,6 +2619,267 @@ async fn ps_set_tag(id: i64, tag: String) -> Result<Value, String> {
     .map_err(|e| e.to_string())
 }
 
+// ---- credential store ----
+
+#[tauri::command]
+async fn credentials_status() -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "configured": credentials::is_configured(),
+        "unlocked": credentials::is_unlocked(),
+    }))
+}
+
+#[tauri::command]
+async fn credentials_setup(master_password: String) -> Result<(), String> {
+    credentials::setup(&master_password).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_unlock(master_password: String) -> Result<bool, String> {
+    credentials::unlock(&master_password).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_lock() -> Result<(), String> {
+    credentials::lock();
+    Ok(())
+}
+
+#[tauri::command]
+async fn credentials_list(profile_id: String) -> Result<Vec<credentials::Credential>, String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::list_for_profile(&profile_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_list_all() -> Result<Vec<credentials::Credential>, String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::list_all().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_add(cred: credentials::Credential) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::add(&cred).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_update(cred: credentials::Credential) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::update(&cred).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_delete(id: String) -> Result<(), String> {
+    credentials::remove(&id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn credentials_providers() -> Result<Vec<credentials::ProviderTemplate>, String> {
+    Ok(credentials::providers())
+}
+
+/// Which built-in provider a page URL belongs to, if any.
+#[tauri::command]
+async fn credentials_detect_provider(url: String) -> Result<Option<String>, String> {
+    Ok(credentials::detect_provider(&url))
+}
+
+/// Keeps a profile's provider session alive by visiting it on a timer.
+#[tauri::command]
+async fn keep_alive_start(
+    profile_id: String,
+    provider: String,
+    minutes: u32,
+) -> Result<(), String> {
+    let url = credentials::provider_by_id(&provider)
+        .map(|p| p.keep_alive_url)
+        .ok_or_else(|| format!("unknown provider '{provider}'"))?;
+    keep_alive()
+        .start(&profile_id, &url, minutes)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn keep_alive_stop(profile_id: String) -> Result<(), String> {
+    keep_alive().stop(&profile_id);
+    Ok(())
+}
+
+#[tauri::command]
+async fn keep_alive_status(profile_id: String) -> Result<bool, String> {
+    Ok(keep_alive().is_running(&profile_id))
+}
+
+/// Fills the login form on the profile's current page from a stored account.
+/// Manual only: the operator presses the button.
+#[tauri::command]
+async fn credentials_autofill(profile_id: String, credential_id: String) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("Credential store is locked. Open Account Manager and enter the master password.".into());
+    }
+    let cred = credentials::get(&credential_id)
+        .map_err(|e| format!("Credential not found. Maybe it was deleted? ({e})"))?;
+    if cred.profile_id != profile_id {
+        return Err(format!(
+            "Credential {} does not belong to profile {}. One credential is bound to a single profile.",
+            cred.email, profile_id
+        ));
+    }
+    cdp::ensure_attached(&profile_id)
+        .await
+        .map_err(|e| format!("Browser could not be controlled. Launch the profile first. ({e})"))?;
+
+    // Fill email first; a multi-step provider (Google, X) then advances to its
+    // own password page, so the password field is looked up again after.
+    let email_filled = fill_field_kind(&profile_id, "email", &cred.email).await?;
+    if !email_filled {
+        let alt = fill_field_kind(&profile_id, "text", &cred.email).await?;
+        if !alt {
+            return Err(
+                "No email field was detected on this page. Make sure the provider's login \
+                 page is open."
+                    .into(),
+            );
+        }
+    }
+
+    // Advance if the form is multi-step: try a Next/Continue button, else Enter.
+    let advanced = click_field_kind(&profile_id, "submit").await?;
+    if !advanced {
+        let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
+            .await;
+    }
+
+    // Look for the password field for up to ~8s (page transition).
+    let mut password_ok = false;
+    for _ in 0..16 {
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        if fill_field_kind(&profile_id, "password", &cred.password).await? {
+            password_ok = true;
+            break;
+        }
+    }
+    if !password_ok {
+        return Err(
+            "The password field did not appear. The provider may have changed its login flow, \
+             or the page has not finished loading."
+                .into(),
+        );
+    }
+
+    let _ = click_field_kind(&profile_id, "submit").await;
+    let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
+        .await;
+    let _ = credentials::touch(&credential_id);
+    Ok(())
+}
+
+/// Locates a visible field of `kind` on the page (email / password / text /
+/// submit) and fills it through the browser's own input engine.
+async fn fill_field_kind(profile_id: &str, kind: &str, text: &str) -> Result<bool, String> {
+    let Some((x, y, w)) = locate_field(profile_id, kind).await? else {
+        return Ok(false);
+    };
+    let _ = cdp::browser_call(profile_id, "Motion.createPointer", serde_json::json!({ "x": x, "y": y }))
+        .await;
+    cdp::browser_call(
+        profile_id,
+        "Motion.glideTo",
+        serde_json::json!({ "x": x, "y": y, "targetWidth": w }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    cdp::browser_call(profile_id, "Motion.tap", serde_json::json!({})).await
+        .map_err(|e| e.to_string())?;
+    cdp::browser_call(
+        profile_id,
+        "Motion.enterText",
+        serde_json::json!({ "text": text, "allowTypos": false }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    let _ = cdp::browser_call(profile_id, "Motion.destroyPointer", serde_json::json!({})).await;
+    Ok(true)
+}
+
+/// Clicks a submit control if one is visible.
+async fn click_field_kind(profile_id: &str, kind: &str) -> Result<bool, String> {
+    let Some((x, y, w)) = locate_field(profile_id, kind).await? else {
+        return Ok(false);
+    };
+    let _ = cdp::browser_call(profile_id, "Motion.createPointer", serde_json::json!({ "x": x, "y": y }))
+        .await;
+    cdp::browser_call(
+        profile_id,
+        "Motion.glideTo",
+        serde_json::json!({ "x": x, "y": y, "targetWidth": w }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    cdp::browser_call(profile_id, "Motion.tap", serde_json::json!({})).await
+        .map_err(|e| e.to_string())?;
+    let _ = cdp::browser_call(profile_id, "Motion.destroyPointer", serde_json::json!({})).await;
+    Ok(true)
+}
+
+/// Returns the viewport centre of the first visible matching control.
+async fn locate_field(profile_id: &str, kind: &str) -> Result<Option<(f64, f64, f64)>, String> {
+    let script = format!(
+        r#"(function() {{
+            var kind = {kind:?};
+            function visible(el) {{
+                var r = el.getBoundingClientRect();
+                return r.width > 2 && r.height > 2 && r.top >= -50;
+            }}
+            var els = Array.prototype.slice.call(document.querySelectorAll('input, button, a, div[role=button], span[role=button]'));
+            var pick = null;
+            for (var i = 0; i < els.length; i++) {{
+                var el = els[i];
+                if (!visible(el)) continue;
+                var type = (el.getAttribute('type') || '').toLowerCase();
+                var name = ((el.getAttribute('name') || '') + ' ' + (el.getAttribute('autocomplete') || '') + ' ' + (el.id || '')).toLowerCase();
+                var isSubmit = el.tagName === 'BUTTON' || type === 'submit';
+                var text = (el.innerText || '').toLowerCase();
+                if (kind === 'email' && type === 'email') {{ pick = el; break; }}
+                if (kind === 'password' && type === 'password') {{ pick = el; break; }}
+                if (kind === 'text' && (type === 'text' || type === '') && name.indexOf('email') !== -1) {{ pick = el; break; }}
+                if (kind === 'submit' && isSubmit && (text.indexOf('next') !== -1 || text.indexOf('log') !== -1 || text.indexOf('sign') !== -1 || text.indexOf('continue') !== -1 || text.indexOf('unlock') !== -1 || text.indexOf('buka') !== -1)) {{ pick = el; break; }}
+            }}
+            if (!pick) return null;
+            var r = pick.getBoundingClientRect();
+            return {{ x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }};
+        }})()"#
+    );
+    let res = cdp::page_call(
+        profile_id,
+        "Runtime.evaluate",
+        serde_json::json!({ "expression": script, "returnByValue": true }),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+    let val = res
+        .get("result")
+        .and_then(|r| r.get("value"))
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+    if val.is_null() {
+        return Ok(None);
+    }
+    let x = val.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let y = val.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let w = val.get("w").and_then(|v| v.as_f64()).unwrap_or(32.0);
+    Ok(Some((x, y, w)))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 /// Bring the main window back from the tray / minimized state and focus it.
 fn show_main_window(app: &tauri::AppHandle) {
@@ -2126,6 +2917,30 @@ pub fn run() {
             sync_stop,
             sync_set_excluded,
             sync_close_panel,
+            sync_set_master,
+            sync_set_delay,
+            sync_navigate,
+            sync_reload,
+            sync_new_tab,
+            sync_close_tab,
+            sync_open_extension,
+            sync_unlock_wallets,
+            sync_arrange_popups,
+            credentials_status,
+            credentials_setup,
+            credentials_unlock,
+            credentials_lock,
+            credentials_list,
+            credentials_list_all,
+            credentials_add,
+            credentials_update,
+            credentials_delete,
+            credentials_providers,
+            credentials_detect_provider,
+            credentials_autofill,
+            keep_alive_start,
+            keep_alive_stop,
+            keep_alive_status,
             helper_profiles,
             helper_fields,
             helper_fill,
@@ -2184,6 +2999,7 @@ pub fn run() {
             clipboard_read,
             profile_set_pin,
             profile_set_folder,
+            profile_set_dns,
             folder_rename,
             folder_delete,
             host_platform,
@@ -2263,7 +3079,7 @@ pub fn run() {
                     #[cfg(target_os = "macos")]
                     let builder = builder.icon_as_template(true);
                     builder
-                        .tooltip("ShardX Launcher")
+                        .tooltip("ShardeX")
                         .menu(&menu)
                         .show_menu_on_left_click(false)
                         .on_menu_event(|app, e| match e.id.as_ref() {

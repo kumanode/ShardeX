@@ -9,6 +9,7 @@ export { ProfileFolderModal } from "./ui/ProfileFolderModal";
 export { ProfileQuickEdit } from "./ui/ProfileQuickEdit";
 
 export { ProfileRowActions } from "./ui/ProfileRowActions";
+export { BulkGeneratorModal } from "./ui/BulkGeneratorModal";
 export { BulkActionsBar } from "./ui/BulkActionsBar";
 export { NewProfileButton } from "./ui/NewProfileButton";
 export { ImportProfilesButton } from "./ui/ImportProfilesButton";

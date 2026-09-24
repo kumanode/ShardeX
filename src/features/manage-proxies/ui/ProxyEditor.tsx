@@ -96,9 +96,9 @@ export function ProxyEditor({ initial, onClose, onSaved }: {
         {orderId && (
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-label-xs text-text-sub-600">
+              <span className="text-label-xs text-zinc-600 dark:text-zinc-300">
                 {t("proxyEditor.signatureLabel", { n: orderId })}
-                <span className="text-text-soft-400">{t("proxyEditor.signatureCurrent", { sig: curSig || t("proxyEditor.signatureNone") })}</span>
+                <span className="text-zinc-400 dark:text-zinc-500">{t("proxyEditor.signatureCurrent", { sig: curSig || t("proxyEditor.signatureNone") })}</span>
               </span>
               <CSSelect value={sig} onChange={setSig} options={PS_SIGNATURES} placeholder={t("proxyEditor.signatureKeep")} />
             </label>

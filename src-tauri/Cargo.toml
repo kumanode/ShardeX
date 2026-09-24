@@ -70,10 +70,13 @@ tar = "0.4"
 rusqlite = { version = "0.32", features = ["bundled"] }
 aes = "0.8"
 cbc = { version = "0.1", features = ["alloc"] }
-pbkdf2 = "0.12"
+pbkdf2 = { version = "0.12", features = ["hmac"] }
 hmac = "0.12"
 sha1 = "0.10"
 sha2 = "0.10"
+# Credential store: AES-256-GCM under a PBKDF2-derived key.
+aes-gcm = "0.10"
+getrandom = "0.2"
 # Self-bootstrapping runtime: zip extraction of the chrome bundle
 # downloaded from Cloudflare R2 on first launch (src/runtime.rs).
 zip = { version = "2", default-features = false, features = ["deflate"] }
@@ -92,10 +95,8 @@ wasmtime = { version = "48.0.1", optional = true }
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
-# Windows cookie crypto: AES-256-GCM + DPAPI key from Local State.
+# Windows cookie crypto: DPAPI key from Local State.
 [target.'cfg(windows)'.dependencies]
-aes-gcm = "0.10"
-getrandom = "0.2"
 windows-sys = { version = "0.59", features = [
     "Win32_Foundation",            # HLOCAL + LocalFree live here in 0.59
     "Win32_Security_Cryptography", # CryptProtectData / CryptUnprotectData

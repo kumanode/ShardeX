@@ -12,19 +12,19 @@ export function FingerprintCard({ entry, actions }: { entry: FingerprintEntry; a
   const compat = useGpuCompat((s) => s.byId[entry.id]);
   return (
     <div
-      className="relative flex flex-col gap-1.5 rounded-10 border-l-[3px] bg-bg-white-0 px-3.5 py-3 shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200 transition-colors hover:bg-bg-weak-50 hover:ring-stroke-sub-300"
-      style={{ borderLeftColor: entry.tag_color ?? "var(--color-primary-base)" }}
+      className="relative flex flex-col gap-2 rounded-[18px] border-l-[4px] bg-[var(--color-paper,#ffffff)] px-4 py-3.5 border border-[var(--color-hairline,#e5e5e5)] shadow-[var(--shadow-subtle)] transition-all hover:bg-[var(--color-surface-alt,#fafafa)] hover:shadow-md"
+      style={{ borderLeftColor: entry.tag_color ?? "#6366f1" }}
     >
       <div className="flex items-baseline justify-between gap-2.5">
-        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-label-xs leading-[1.25] text-text-strong-950">{entry.label}</span>
+        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-label-xs font-semibold leading-[1.25] text-zinc-900 dark:text-white">{entry.label}</span>
         <span className="flex flex-none items-center gap-1.5">
           {compat && <IncompatibleBadge compat={compat} />}
           {entry.chrome && <Badge color="gray" variant="filled" size="small" className="flex-none">Chrome {entry.chrome}</Badge>}
         </span>
       </div>
-      <div className="mono overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-text-soft-400" title={entry.gpu}>{entry.gpu || "—"}</div>
+      <div className="font-mono overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-zinc-600 dark:text-zinc-300 font-medium" title={entry.gpu}>{entry.gpu || "-"}</div>
       {actions && (
-        <div className="mt-1 flex items-center gap-1.5 border-t border-stroke-soft-200 pt-2">
+        <div className="mt-1 flex items-center gap-1.5 border-t border-[var(--color-hairline,#e5e5e5)] pt-2.5">
           {actions}
         </div>
       )}

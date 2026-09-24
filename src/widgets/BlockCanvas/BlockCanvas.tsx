@@ -254,7 +254,7 @@ export function BlockCanvas({
   return (
     <div
       ref={host}
-      className="relative h-full w-full overflow-hidden rounded-12 bg-bg-weak-50 ring-1 ring-inset ring-stroke-soft-200"
+      className="relative h-full w-full overflow-hidden rounded-[24px] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)]"
       onWheel={onWheel}
       onMouseDown={(e) => {
         if (e.target !== e.currentTarget) return;
@@ -281,7 +281,7 @@ export function BlockCanvas({
       }}
       style={{
         backgroundImage:
-          "radial-gradient(circle, var(--stroke-soft-200, #d1d5db) 1px, transparent 1px)",
+          "radial-gradient(circle, var(--color-hairline, #e5e5e5) 1px, transparent 1px)",
         backgroundSize: `${GRID * view.k}px ${GRID * view.k}px`,
         backgroundPosition: `${view.x}px ${view.y}px`,
         cursor: drag?.kind === "pan" ? "grabbing" : "default",
@@ -328,7 +328,7 @@ export function BlockCanvas({
               y={Math.min(drag.sy, drag.y)}
               width={Math.abs(drag.x - drag.sx)}
               height={Math.abs(drag.y - drag.sy)}
-              className="fill-primary-alpha-10 stroke-primary-base"
+              className="fill-indigo-500/10 stroke-indigo-500"
               strokeWidth={1}
             />
           )}
@@ -340,7 +340,7 @@ export function BlockCanvas({
           const y = hint.before ? t.y : t.y + CARD_H;
           return (
             <div
-              className="pointer-events-none absolute h-0.5 rounded-full bg-primary-base"
+              className="pointer-events-none absolute h-0.5 rounded-full bg-indigo-500"
               style={{ left: t.x, top: y - 1, width: CARD_W }}
             />
           );
@@ -349,14 +349,14 @@ export function BlockCanvas({
         {blocks.map((b) => (
           <div
             key={b.id}
-            className={`pointer-events-auto absolute bg-bg-white-0 shadow-[var(--shadow-xs)] ring-1 transition-shadow ${
-              dockedUnder.has(b.id) ? "rounded-t-none" : "rounded-t-10"
-            } ${dockedTo.has(b.id) ? "rounded-b-none" : "rounded-b-10"} ${
+            className={`pointer-events-auto absolute bg-[var(--color-paper,#ffffff)] shadow-[var(--shadow-xs)] transition-all ${
+              dockedUnder.has(b.id) ? "rounded-t-none" : "rounded-t-[14px]"
+            } ${dockedTo.has(b.id) ? "rounded-b-none" : "rounded-b-[14px]"} ${
               active === b.id
-                ? "z-10 ring-2 ring-success-base"
+                ? "z-10 border-2 border-emerald-500"
                 : selected === b.id || sel.has(b.id)
-                  ? "z-10 ring-2 ring-primary-base"
-                  : "ring-stroke-soft-200"
+                  ? "z-10 border-2 border-indigo-500"
+                  : "border border-[var(--color-hairline,#e5e5e5)]"
             } ${b.enabled ? "" : "opacity-50"}`}
             style={{ left: b.x, top: b.y, width: CARD_W, height: CARD_H }}
             onMouseDown={(e) => {
@@ -390,13 +390,13 @@ export function BlockCanvas({
             <div className="flex h-full flex-col justify-center gap-0.5 px-2.5">
               <div className="flex items-center gap-1.5">
                 {entry === b.id && (
-                  <span className="rounded-4 bg-primary-alpha-10 px-1 text-[10px] text-primary-base">
+                  <span className="rounded-[6px] bg-indigo-50 dark:bg-indigo-950/40 px-1 text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
                     {t("blockCanvas.startBadge")}
                   </span>
                 )}
-                <span className="truncate text-label-xs text-text-strong-950">{title(b)}</span>
+                <span className="truncate text-label-xs font-medium text-zinc-900 dark:text-white">{title(b)}</span>
               </div>
-              <span className="truncate text-[10px] text-text-soft-400">
+              <span className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">
                 {typeof b.params.selector === "string" && b.params.selector
                   ? b.params.selector
                   : b.params.x !== undefined
@@ -411,7 +411,7 @@ export function BlockCanvas({
             {/* Ports: drag from one onto another card to connect. */}
             {/* A hairline where two cards meet, so a stack still reads as steps. */}
             {dockedUnder.has(b.id) && (
-              <div className="absolute left-2.5 right-2.5 top-0 h-px bg-stroke-soft-200" />
+              <div className="absolute left-2.5 right-2.5 top-0 h-px bg-[var(--color-hairline,#e5e5e5)]" />
             )}
 
             {(["done", "fail"] as Port[]).filter((port) => !(port === "done" && dockedTo.has(b.id))).map((port) => (
@@ -419,7 +419,7 @@ export function BlockCanvas({
                 key={port}
                 type="button"
                 title={port === "done" ? t("blockCanvas.portDone") : t("blockCanvas.portFail")}
-                className={`absolute size-3 rounded-full ring-2 ring-bg-white-0 ${
+                className={`absolute size-3 rounded-full ring-2 ring-[var(--color-paper,#ffffff)] ${
                   port === "done" ? "bg-success-base" : "bg-error-base"
                 }`}
                 style={{
@@ -435,7 +435,7 @@ export function BlockCanvas({
             ))}
             {!dockedUnder.has(b.id) && (
               <div
-                className="absolute size-3 rounded-full bg-stroke-soft-200 ring-2 ring-bg-white-0"
+                className="absolute size-3 rounded-full bg-[var(--color-hairline,#e5e5e5)] ring-2 ring-[var(--color-paper,#ffffff)]"
                 style={{ left: -6, top: CARD_H / 2 - 6 }}
               />
             )}
@@ -444,14 +444,14 @@ export function BlockCanvas({
               <div className="absolute -top-7 left-0 flex gap-1">
                 <button
                   type="button"
-                  className="rounded-6 bg-bg-white-0 px-1.5 py-0.5 text-[10px] text-text-sub-600 ring-1 ring-stroke-soft-200 hover:text-text-strong-950"
+                  className="rounded-[8px] bg-[var(--color-paper,#ffffff)] px-2 py-0.5 text-[10px] text-zinc-600 dark:text-zinc-300 border border-[var(--color-hairline,#e5e5e5)] hover:text-zinc-900 dark:hover:text-white shadow-xs"
                   onClick={(e) => { e.stopPropagation(); onSetStart(b.id); }}
                 >
                   {t("blockCanvas.startHere")}
                 </button>
                 <button
                   type="button"
-                  className="rounded-6 bg-bg-white-0 px-1.5 py-0.5 text-[10px] text-error-base ring-1 ring-stroke-soft-200"
+                  className="rounded-[8px] bg-[var(--color-paper,#ffffff)] px-2 py-0.5 text-[10px] text-rose-500 border border-[var(--color-hairline,#e5e5e5)] hover:bg-rose-50 dark:hover:bg-rose-950/30 shadow-xs"
                   onClick={(e) => { e.stopPropagation(); onDelete(b.id); }}
                 >
                   {t("blockCanvas.delete")}
@@ -471,7 +471,7 @@ export function BlockCanvas({
               key={"cut" + i}
               type="button"
               title={t("blockCanvas.disconnect")}
-              className="pointer-events-auto absolute z-20 flex size-4 items-center justify-center rounded-full bg-bg-white-0 text-[11px] leading-none text-error-base opacity-60 ring-1 ring-stroke-soft-200 hover:opacity-100 hover:ring-error-base"
+              className="pointer-events-auto absolute z-20 flex size-4 items-center justify-center rounded-full bg-[var(--color-paper,#ffffff)] text-[11px] leading-none text-rose-500 opacity-60 border border-[var(--color-hairline,#e5e5e5)] hover:opacity-100 hover:border-rose-500 shadow-xs"
               style={{ left: (a.x + to.x) / 2 - 8, top: (a.y + to.y) / 2 - 8 }}
               onMouseDown={(ev) => ev.stopPropagation()}
               onClick={(ev) => { ev.stopPropagation(); onConnect(e.from.id, e.port, null); }}
@@ -482,12 +482,12 @@ export function BlockCanvas({
         })}
       </div>
 
-      <div className="pointer-events-none absolute bottom-2 left-2 rounded-8 bg-bg-white-0/80 px-2 py-1 text-[10px] text-text-soft-400">
+      <div className="pointer-events-none absolute bottom-2 left-2 rounded-[10px] bg-[var(--color-paper,#ffffff)]/80 backdrop-blur-sm border border-[var(--color-hairline,#e5e5e5)] px-2 py-1 text-[10px] text-zinc-500 dark:text-zinc-400">
         {t("blockCanvas.hints")}
       </div>
       <button
         type="button"
-        className="absolute bottom-2 right-2 rounded-8 bg-bg-white-0 px-2 py-1 text-[10px] text-text-sub-600 ring-1 ring-stroke-soft-200 hover:text-text-strong-950"
+        className="absolute bottom-2 right-2 rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2.5 py-1 text-[10px] text-zinc-600 dark:text-zinc-300 border border-[var(--color-hairline,#e5e5e5)] hover:text-zinc-900 dark:hover:text-white shadow-xs"
         onClick={() => setView({ x: 40, y: 40, k: 1 })}
       >
         {t("blockCanvas.resetView")}

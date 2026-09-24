@@ -2,6 +2,7 @@
    keyframes, pseudo-elements, compound selectors, responsive grid layouts. */
 @reference "./index.css";
 @source "../../node_modules/@proxyshard/shardx-ui-kit/dist";
+
 /* ===== Keyframes ===== */
 @keyframes shardx-spin {
   from {
@@ -28,7 +29,6 @@
   }
   to {
     transform: translateX(0) scale(1);
-    opacity: 1;
   }
 }
 
@@ -52,10 +52,9 @@
 
 /* ===== Compound selectors ===== */
 
-/* Glowing shard when browser is running */
+/* Shard marker when browser is running */
 .row-running .shard-on {
-  background: var(--color-success-base);
-  box-shadow: 0 0 12px var(--color-success-base);
+  background: var(--color-ink, #0a0a0a);
 }
 
 /* Spin on "Starting…" play icon */
@@ -95,13 +94,13 @@
   top: -1000px;
   left: -1000px;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 9999px;
   background: var(--color-primary-base);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm-2);
   pointer-events: none;
 }
 

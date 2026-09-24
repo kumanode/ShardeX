@@ -36,17 +36,17 @@ export function ActionMenu({ at, target, onChoose, onClose }: Props) {
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
       <div
-        className="fixed z-50 w-[220px] overflow-hidden rounded-10 bg-bg-white-0 py-1 shadow-[var(--shadow-md)] ring-1 ring-stroke-soft-200"
+        className="fixed z-50 w-[220px] overflow-hidden rounded-[18px] bg-[var(--color-paper,#ffffff)] p-1.5 shadow-2xl border border-[var(--color-hairline,#e5e5e5)]"
         style={{ left: at.x, top: at.y }}
       >
-        <div className="truncate px-3 py-1.5 text-paragraph-xs text-text-soft-400">
+        <div className="truncate px-2.5 py-1 text-paragraph-xs font-medium text-zinc-500 dark:text-zinc-400">
           {target?.selector ? what : t("actionMenu.byPosition", { what })}
         </div>
         {actions(t).map((a) => (
           <button
             key={a.kind}
             type="button"
-            className="block w-full px-3 py-1.5 text-left text-paragraph-sm text-text-strong-950 hover:bg-bg-weak-50"
+            className="block w-full rounded-[10px] px-2.5 py-1.5 text-left text-paragraph-sm text-zinc-800 dark:text-zinc-200 hover:bg-[var(--color-surface-alt,#fafafa)] hover:text-zinc-900 dark:hover:text-white transition-colors"
             onClick={() => { onChoose(a); onClose(); }}
           >
             {a.label}

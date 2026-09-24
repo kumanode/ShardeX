@@ -18,11 +18,13 @@ export function ProxyRowActions({ proxy }: { proxy: ProxyEntry }) {
   const isInfoOpen = useProxy((s) => s.infoFor?.proxy.id === proxy.id);
 
   return (
-    <div className="flex justify-end gap-1">
+    <div className="flex justify-end gap-1.5">
       <Button
         variant="neutral"
         mode="stroke"
-        size="xsmall"
+        size="small"
+        onlyIcon
+        className="h-9 w-9"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) =>
           isInfoOpen
@@ -30,21 +32,39 @@ export function ProxyRowActions({ proxy }: { proxy: ProxyEntry }) {
             : setInfoFor({ proxy, anchor: { x: e.clientX, y: e.clientY } })
         }
         title={t("proxyRowActions.detailsTitle")}
-        leftIcon={<InfoIcon />}
-      >
-      </Button>
-      <Button variant="neutral" mode="stroke" size="xsmall"  onlyIcon onClick={() => testProxy(proxy)} disabled={busy} title={t("proxyRowActions.testTitle")}
-        leftIcon={<RefreshIcon />}
-      >
-      </Button>
-      <Button variant="neutral" mode="stroke" size="xsmall"  onlyIcon onClick={() => setEditing(proxy)} title={t("proxyRowActions.editTitle")}
-        leftIcon={<EditIcon />}
-      >
-      </Button>
-      <Button variant="error" mode='filled' size="xsmall"  onlyIcon onClick={() => removeProxy(proxy.id)} title={t("proxyRowActions.deleteTitle")}
-        leftIcon={<DeleteIcon />}
-      >
-      </Button>
+        leftIcon={<InfoIcon className="size-[18px]" />}
+      />
+      <Button
+        variant="neutral"
+        mode="stroke"
+        size="small"
+        onlyIcon
+        className="h-9 w-9"
+        onClick={() => testProxy(proxy)}
+        disabled={busy}
+        title={t("proxyRowActions.testTitle")}
+        leftIcon={<RefreshIcon className="size-[18px]" />}
+      />
+      <Button
+        variant="neutral"
+        mode="stroke"
+        size="small"
+        onlyIcon
+        className="h-9 w-9"
+        onClick={() => setEditing(proxy)}
+        title={t("proxyRowActions.editTitle")}
+        leftIcon={<EditIcon className="size-[18px]" />}
+      />
+      <Button
+        variant="error"
+        mode="filled"
+        size="small"
+        onlyIcon
+        className="h-9 w-9"
+        onClick={() => removeProxy(proxy.id)}
+        title={t("proxyRowActions.deleteTitle")}
+        leftIcon={<DeleteIcon className="size-[18px]" />}
+      />
     </div>
   );
 }

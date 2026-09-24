@@ -22,32 +22,32 @@ export type ButtonProps = Omit<
 }
 
 const sizes: Record<ButtonSize, { base: string; radius: string; onlyIcon: string }> = {
-  medium: { base: 'h-10 gap-1 px-2.5', radius: 'rounded-[10px]', onlyIcon: 'w-10 px-0' },
-  small: { base: 'h-9 gap-1 px-2', radius: 'rounded-lg', onlyIcon: 'w-9 px-0' },
-  xsmall: { base: 'h-8 gap-1 px-1.5', radius: 'rounded-lg', onlyIcon: 'w-8 px-0' },
-  '2xsmall': { base: 'h-7 gap-1 px-1', radius: 'rounded-md', onlyIcon: 'w-7 px-0' },
+  medium: { base: 'h-10 gap-2 px-4 font-medium text-[14px]', radius: 'rounded-[18px]', onlyIcon: 'w-10 px-0' },
+  small: { base: 'h-9 gap-1.5 px-3.5 font-medium text-[13px]', radius: 'rounded-[18px]', onlyIcon: 'w-9 px-0' },
+  xsmall: { base: 'h-[34px] gap-1.5 px-3 font-medium text-[12.5px]', radius: 'rounded-[18px]', onlyIcon: 'w-[34px] px-0' },
+  '2xsmall': { base: 'h-[32px] gap-1 px-2.5 font-medium text-[11.5px]', radius: 'rounded-[18px]', onlyIcon: 'w-[32px] px-0' },
 }
 
 const looks: Record<ButtonMode, Record<ButtonVariant, string>> = {
   filled: {
-    primary: 'bg-primary-base text-static-white hover:bg-primary-darker',
-    neutral: 'bg-[var(--btn-neutral-bg)] text-[var(--btn-neutral-fg)] hover:bg-[var(--btn-neutral-bg-hover)]',
-    error: 'bg-error-base text-static-white hover:bg-red-600',
+    primary: 'bg-[var(--color-ink,#0a0a0a)] text-[var(--color-paper,#ffffff)] hover:opacity-90 shadow-none',
+    neutral: 'bg-[var(--btn-neutral-bg)] text-[var(--btn-neutral-fg)] hover:opacity-90 shadow-none',
+    error: 'bg-[var(--color-ember,#e7000b)] text-white hover:bg-red-700 shadow-none',
   },
   stroke: {
-    primary: 'bg-bg-white-0 text-primary-base ring-1 ring-inset ring-primary-base hover:bg-primary-alpha-10',
-    neutral: 'bg-bg-white-0 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200 shadow-[var(--shadow-xs)] hover:bg-bg-weak-50',
-    error: 'bg-bg-white-0 text-error-base ring-1 ring-inset ring-error-base hover:bg-error-weak',
+    primary: 'bg-transparent text-[var(--color-ink,#0a0a0a)] ring-1 ring-inset ring-[var(--color-hairline,#e5e5e5)] hover:bg-[var(--color-canvas,#f5f5f5)]',
+    neutral: 'bg-transparent text-[var(--color-ink,#0a0a0a)] ring-1 ring-inset ring-[var(--color-hairline,#e5e5e5)] hover:bg-[var(--color-canvas,#f5f5f5)]',
+    error: 'bg-transparent text-[var(--color-ember,#e7000b)] ring-1 ring-inset ring-[var(--color-ember,#e7000b)] hover:bg-red-50',
   },
   lighter: {
-    primary: 'bg-primary-alpha-10 text-primary-base hover:bg-primary-alpha-16',
-    neutral: 'bg-bg-weak-50 text-text-sub-600 hover:bg-bg-soft-200',
-    error: 'bg-error-weak text-error-base hover:bg-error-soft',
+    primary: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
+    neutral: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
+    error: 'bg-[#ffebec] text-[var(--color-ember,#e7000b)] hover:bg-[#ffc0c5]',
   },
   ghost: {
-    primary: 'bg-transparent text-primary-base hover:bg-primary-alpha-10',
-    neutral: 'bg-transparent text-text-sub-600 hover:bg-bg-weak-50',
-    error: 'bg-transparent text-error-base hover:bg-error-weak',
+    primary: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
+    neutral: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
+    error: 'bg-transparent text-[var(--color-ember,#e7000b)] hover:bg-red-50',
   },
 }
 

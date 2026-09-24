@@ -33,7 +33,7 @@ export default function Tooltip({ content, side = 'top', children, className }: 
         <span
           role="tooltip"
           className={cn(
-            'pointer-events-none absolute z-50 w-max max-w-xs rounded-lg bg-bg-strong-950 px-2.5 py-1.5 text-label-xs text-text-white-0 shadow-[var(--shadow-tooltip)]',
+            'pointer-events-none absolute z-50 w-max max-w-xs rounded-md bg-bg-strong-950 px-2.5 py-1.5 text-label-xs text-text-white-0 shadow-[var(--shadow-tooltip)]',
             sideClasses[side],
             className,
           )}

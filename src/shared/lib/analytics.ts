@@ -151,7 +151,7 @@ export async function send(
     npa: "1",
     en: name,
     dl: section ? `${APP_URL}${section}` : APP_URL,
-    dt: section ? `ShardX Launcher — ${section}` : "ShardX Launcher",
+    dt: section ? `ShardeX — ${section}` : "ShardeX",
     ul: (navigator.language || "en").toLowerCase(),
     sr: `${screen.width}x${screen.height}`,
     "ep.app_version": version,

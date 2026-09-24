@@ -299,12 +299,12 @@ export function ProjectEditor() {
       <div className="mb-3.5 flex items-end justify-between gap-4">
         <div className="min-w-0">
           <input
-            className="m-0 w-full max-w-[36ch] truncate rounded-8 bg-transparent px-1 py-0.5 text-title-h5 text-text-strong-950 outline-none ring-1 ring-inset ring-transparent hover:ring-stroke-soft-200 focus:ring-primary-base"
+            className="m-0 w-full max-w-[36ch] truncate rounded-[10px] bg-transparent px-2 py-0.5 text-title-h5 text-zinc-900 dark:text-white outline-none border border-transparent hover:border-[var(--color-hairline,#e5e5e5)] focus:border-indigo-500"
             value={project.name}
             onChange={(e) => patch(project.id, { name: e.target.value })}
           />
           <input
-            className="mt-1 w-full max-w-[70ch] rounded-8 bg-transparent px-1 py-0.5 text-paragraph-xs text-text-soft-400 outline-none ring-1 ring-inset ring-transparent hover:ring-stroke-soft-200 focus:ring-primary-base"
+            className="mt-1 w-full max-w-[70ch] rounded-[10px] bg-transparent px-2 py-0.5 text-paragraph-xs text-zinc-500 dark:text-zinc-400 outline-none border border-transparent hover:border-[var(--color-hairline,#e5e5e5)] focus:border-indigo-500"
             placeholder={t("projectEditor.notesPlaceholder")}
             value={project.notes}
             onChange={(e) => patch(project.id, { notes: e.target.value })}
@@ -319,37 +319,37 @@ export function ProjectEditor() {
         </Button>
       </div>
 
-      <div className="mb-3.5 flex flex-wrap items-end gap-4 rounded-12 bg-bg-white-0 px-4 py-3 shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
+      <div className="mb-3.5 flex flex-wrap items-end gap-4 rounded-[20px] bg-[var(--color-paper,#ffffff)] px-4 py-3 border border-[var(--color-hairline,#e5e5e5)]">
         <label className="flex flex-col gap-1">
-          <span className="text-subheading-2xs text-text-soft-400">{t("projectEditor.threads")}</span>
+          <span className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("projectEditor.threads")}</span>
           <input
             type="number" min={1} max={64}
-            className="h-8 w-[90px] rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+            className="h-8 w-[90px] rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500"
             value={project.run.threads}
             onChange={(e) => setRunOpts({ threads: Math.max(1, Number(e.target.value) || 1) })}
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-subheading-2xs text-text-soft-400">{t("projectEditor.loops")}</span>
+          <span className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("projectEditor.loops")}</span>
           <input
             type="number" min={0}
-            className="h-8 w-[90px] rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+            className="h-8 w-[90px] rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500"
             value={project.run.loops}
             onChange={(e) => setRunOpts({ loops: Math.max(0, Number(e.target.value) || 0) })}
           />
         </label>
         {project.run.loops === 0 && (
           <label className="flex flex-col gap-1">
-            <span className="text-subheading-2xs text-text-soft-400">{t("projectEditor.hours")}</span>
+            <span className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("projectEditor.hours")}</span>
             <input
               type="number" min={0} step={0.5}
-              className="h-8 w-[90px] rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+              className="h-8 w-[90px] rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500"
               value={project.run.hours}
               onChange={(e) => setRunOpts({ hours: Math.max(0, Number(e.target.value) || 0) })}
             />
           </label>
         )}
-        <p className="m-0 max-w-[38ch] text-paragraph-xs text-text-soft-400">
+        <p className="m-0 max-w-[38ch] text-paragraph-xs text-zinc-500 dark:text-zinc-400">
           {t("projectEditor.loopsHelp")}
         </p>
 
@@ -390,7 +390,7 @@ export function ProjectEditor() {
       </div>
 
       {display?.limited && (
-        <div className="mb-3.5 rounded-12 bg-warning-alpha-16 px-4 py-2.5 text-paragraph-xs text-warning-base">
+        <div className="mb-3.5 rounded-xl bg-warning-alpha-16 px-4 py-2.5 text-paragraph-xs text-warning">
           {display.note}
         </div>
       )}
@@ -402,7 +402,7 @@ export function ProjectEditor() {
       >
         <div className="flex min-h-0 flex-col gap-2">
           <div className="flex items-center justify-between">
-            <span className="text-subheading-2xs text-text-soft-400">
+            <span className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">
               {project.blocks.length === 1
                 ? t("projectEditor.stepCountOne")
                 : t("projectEditor.stepCountMany", { n: project.blocks.length })}
@@ -448,17 +448,17 @@ export function ProjectEditor() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-12 bg-bg-white-0 p-3 shadow-[var(--shadow-xs)] ring-1 ring-inset ring-stroke-soft-200">
+        <div className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-[20px] bg-[var(--color-paper,#ffffff)] p-3 border border-[var(--color-hairline,#e5e5e5)]">
           <div className="flex gap-1">
             {(["step", "traffic"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setRightTab(tab)}
                 className={
-                  "rounded-8 px-2 py-1 text-label-sm " +
+                  "rounded-[8px] px-2.5 py-1 text-label-sm transition-colors " +
                   (rightTab === tab
-                    ? "bg-bg-weak-50 text-text-strong-950"
-                    : "text-text-soft-400 hover:text-text-strong-950")
+                    ? "bg-[var(--color-surface-alt,#fafafa)] text-zinc-900 dark:text-white font-medium"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white")
                 }
               >
                 {tab === "step" ? t("projectEditor.tabStep") : t("projectEditor.tabTraffic")}
@@ -494,10 +494,10 @@ export function ProjectEditor() {
             />
           </div>
           {run && (
-            <div className="mt-auto border-t border-stroke-soft-200 pt-2">
+            <div className="mt-auto border-t border-[var(--color-hairline,#e5e5e5)] pt-2">
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-subheading-2xs text-text-soft-400">{t("projectEditor.runLog")}</span>
-                <span className="text-paragraph-xs text-text-soft-400">
+                <span className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("projectEditor.runLog")}</span>
+                <span className="text-paragraph-xs text-zinc-500 dark:text-zinc-400">
                   {t("projectEditor.runningCount", {
                     n: run.workers.filter((w) => w.status === "running").length,
                   })}{" "}
@@ -507,9 +507,9 @@ export function ProjectEditor() {
                   })}
                 </span>
               </div>
-              <div className="max-h-[150px] overflow-y-auto font-mono text-[10px] text-text-sub-600">
+              <div className="max-h-[150px] overflow-y-auto font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
                 {run.log.length === 0 ? (
-                  <div className="text-text-soft-400">{t("projectEditor.logEmpty")}</div>
+                  <div className="text-zinc-500 dark:text-zinc-400">{t("projectEditor.logEmpty")}</div>
                 ) : (
                   run.log.slice(-60).map((l, i) => <div key={i}>{l}</div>)
                 )}
@@ -521,7 +521,7 @@ export function ProjectEditor() {
         {showLive && (
           <div className="flex min-h-0 flex-col gap-2">
             <select
-              className="h-8 w-full rounded-8 bg-bg-white-0 px-2 text-paragraph-sm text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+              className="h-8 w-full rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2 text-paragraph-sm text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500"
               value={target ?? ""}
               onChange={(e) => setTarget(e.target.value || null)}
             >
@@ -540,11 +540,11 @@ export function ProjectEditor() {
               />
             </div>
             {/* Console: run JS in the page through the core's isolated world. */}
-            <div className="flex flex-col gap-1 rounded-12 bg-bg-white-0 p-2 ring-1 ring-inset ring-stroke-soft-200">
+            <div className="flex flex-col gap-1 rounded-[18px] bg-[var(--color-paper,#ffffff)] p-2.5 border border-[var(--color-hairline,#e5e5e5)]">
               <div className="flex items-center gap-2">
-                <span className="text-subheading-2xs text-text-soft-400">{t("projectEditor.console")}</span>
+                <span className="text-subheading-2xs text-zinc-500 dark:text-zinc-400">{t("projectEditor.console")}</span>
                 <select
-                  className="h-7 rounded-8 bg-bg-white-0 px-1.5 text-paragraph-xs text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none focus:ring-primary-base"
+                  className="h-7 rounded-[8px] bg-[var(--color-paper,#ffffff)] px-1.5 text-paragraph-xs text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none focus:border-indigo-500"
                   value={consoleWorld}
                   onChange={(e) => setConsoleWorld(e.target.value as "isolated" | "main")}
                 >
@@ -556,14 +556,14 @@ export function ProjectEditor() {
                 </Button>
               </div>
               <input
-                className="h-8 w-full rounded-8 bg-bg-white-0 px-2 font-mono text-[11px] text-text-strong-950 ring-1 ring-inset ring-stroke-soft-200 outline-none placeholder:text-text-soft-400 focus:ring-primary-base"
+                className="h-8 w-full rounded-[10px] bg-[var(--color-paper,#ffffff)] px-2 font-mono text-[11px] text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)] outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-indigo-500"
                 placeholder="document.title"
                 value={consoleSrc}
                 onChange={(e) => setConsoleSrc(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") runConsole(); }}
               />
               {consoleOut && (
-                <pre className="m-0 max-h-24 overflow-auto rounded-8 bg-bg-weak-50 p-2 font-mono text-[11px] text-text-strong-950">{consoleOut}</pre>
+                <pre className="m-0 max-h-24 overflow-auto rounded-[10px] bg-[var(--color-surface-alt,#fafafa)] p-2 font-mono text-[11px] text-zinc-900 dark:text-white border border-[var(--color-hairline,#e5e5e5)]">{consoleOut}</pre>
               )}
             </div>
           </div>

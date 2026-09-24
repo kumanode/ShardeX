@@ -1,12 +1,7 @@
 //! A minimal CDP client: one live session per profile.
 //!
-//! Not a general library. It speaks exactly what the automation studio needs —
-//! send a command and await its reply, and forward the events we subscribed to
-//! into the UI as Tauri events.
-//!
-//! Compiled out with the `automation` feature; the whole file is one cfg.
-
-#![cfg(feature = "automation")]
+//! Not a general library. It speaks what the automation studio and synchronizer need —
+//! send a command and await its reply, forward subscribed events, and control navigation/tabs.
 
 use anyhow::{anyhow, Context, Result};
 use futures_util::{SinkExt, StreamExt};
@@ -233,9 +228,32 @@ where
                             }
                         }
                     }
+                    Some("Target.attachedToTarget") => {
+                        let p = v.get("params").cloned().unwrap_or(Value::Null);
+                        if let Some(target_info) = p.get("targetInfo") {
+                            if target_info.get("type").and_then(|x| x.as_str()) == Some("page") {
+                                if let Some(sid) = p.get("sessionId").and_then(|s| s.as_str()) {
+                                    if let Ok(mut g) = session.page_session.lock() {
+                                        *g = Some(sid.to_string());
+                                    }
+                                    let sid_str = sid.to_string();
+                                    let s_clone = session.clone();
+                                    tokio::spawn(async move {
+                                        let _ = s_clone
+                                            .call("Page.enable", json!({}), Some(&sid_str))
+                                            .await;
+                                    });
+                                }
+                            }
+                        }
+                    }
                     Some("Target.detachedFromTarget") => {
+                        let p = v.get("params").cloned().unwrap_or(Value::Null);
+                        let sid = p.get("sessionId").and_then(|s| s.as_str());
                         if let Ok(mut g) = session.page_session.lock() {
-                            *g = None;
+                            if sid.is_none() || g.as_deref() == sid {
+                                *g = None;
+                            }
                         }
                     }
                     _ => {
@@ -252,6 +270,26 @@ where
             }
         });
     }
+
+    let _ = session
+        .call(
+            "Target.setAutoAttach",
+            json!({
+                "autoAttach": true,
+                "waitForDebuggerOnStart": false,
+                "flatten": true
+            }),
+            None,
+        )
+        .await;
+
+    let _ = session
+        .call(
+            "Target.setDiscoverTargets",
+            json!({ "discover": true }),
+            None,
+        )
+        .await;
 
     // Attach to the first page target. flatten:true makes the page reachable
     // over this same socket with a sessionId, so one connection serves both.
@@ -281,12 +319,12 @@ where
         .to_string();
 
     *session.page_session.lock().unwrap() = Some(page_session.clone());
-    session
+    let _ = session
         .call("Page.enable", json!({}), Some(&page_session))
-        .await?;
-    session
+        .await;
+    let _ = session
         .call("DOM.enable", json!({}), Some(&page_session))
-        .await?;
+        .await;
 
     sessions()
         .lock()
@@ -301,11 +339,243 @@ pub fn detach(profile_id: &str) {
     }
 }
 
-/// Sends a page-scoped command. Every automation action goes through here.
+/// Helper to re-attach to the active page if session was lost or invalidated.
+async fn reattach_page(session: &Session) -> Result<String> {
+    let targets = session.call("Target.getTargets", json!({}), None).await?;
+    let page_target = targets
+        .get("targetInfos")
+        .and_then(|t| t.as_array())
+        .and_then(|arr| {
+            arr.iter()
+                .filter(|t| t.get("type").and_then(|x| x.as_str()) == Some("page"))
+                .last()
+        })
+        .and_then(|t| t.get("targetId").and_then(|x| x.as_str()))
+        .ok_or_else(|| anyhow!("no open page found"))?
+        .to_string();
+
+    let attached = session
+        .call(
+            "Target.attachToTarget",
+            json!({ "targetId": page_target, "flatten": true }),
+            None,
+        )
+        .await?;
+    let sid = attached
+        .get("sessionId")
+        .and_then(|s| s.as_str())
+        .ok_or_else(|| anyhow!("no sessionId from attachToTarget"))?
+        .to_string();
+
+    *session.page_session.lock().unwrap() = Some(sid.clone());
+    let _ = session.call("Page.enable", json!({}), Some(&sid)).await;
+    Ok(sid)
+}
+
+/// Sends a page-scoped command. If the session is missing or detached, it automatically re-attaches.
 pub async fn page_call(profile_id: &str, method: &str, params: Value) -> Result<Value> {
     let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
-    let page = s.page().ok_or_else(|| anyhow!("no page attached"))?;
-    s.call(method, params, Some(&page)).await
+    let page = match s.page() {
+        Some(p) => p,
+        None => reattach_page(&s).await?,
+    };
+
+    match s.call(method, params.clone(), Some(&page)).await {
+        Ok(v) => Ok(v),
+        Err(e) => {
+            let err_str = e.to_string();
+            if err_str.contains("not attached")
+                || err_str.contains("No session with given id")
+                || err_str.contains("Target closed")
+                || err_str.contains("Session with given id not found")
+            {
+                let new_page = reattach_page(&s).await?;
+                s.call(method, params, Some(&new_page)).await
+            } else {
+                Err(e)
+            }
+        }
+    }
+}
+
+/// Sends a browser-level command (no page session). The `Motion` domain lives
+/// here, not in the page session, so human input goes through this.
+pub async fn browser_call(profile_id: &str, method: &str, params: Value) -> Result<Value> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    s.call(method, params, None).await
+}
+
+/// Ensures the profile has an active CDP session attached.
+pub async fn ensure_attached(profile_id: &str) -> Result<()> {
+    if is_attached(profile_id) {
+        return Ok(());
+    }
+    let cdp_info = crate::process::Tracker::shared()
+        .cdp(profile_id)
+        .ok_or_else(|| anyhow!("no CDP endpoint available for profile {profile_id}"))?;
+    attach(profile_id.to_string(), cdp_info.web_socket_debugger_url, |_| {}).await
+}
+
+/// Subscribes to raw CDP events for a profile.
+pub fn subscribe_events(profile_id: &str) -> Option<tokio::sync::broadcast::Receiver<String>> {
+    let s = get(profile_id)?;
+    Some(s.events.subscribe())
+}
+
+/// Navigates the attached page to the given URL.
+pub async fn navigate_page(profile_id: &str, url: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    let target_url = if url.starts_with("http://")
+        || url.starts_with("https://")
+        || url.starts_with("chrome://")
+        || url.starts_with("about:")
+    {
+        url.to_string()
+    } else {
+        format!("https://{url}")
+    };
+    page_call(profile_id, "Page.navigate", json!({ "url": target_url })).await?;
+    Ok(())
+}
+
+/// Reloads the attached page.
+pub async fn reload_page(profile_id: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    page_call(profile_id, "Page.reload", json!({})).await?;
+    Ok(())
+}
+
+/// Opens a new tab (target) in the browser.
+pub async fn create_tab(profile_id: &str, url: Option<&str>) -> Result<String> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    let nav_url = match url {
+        Some(u) if !u.is_empty() => {
+            if u.starts_with("http://")
+                || u.starts_with("https://")
+                || u.starts_with("chrome-extension://")
+                || u.starts_with("chrome://")
+                || u.starts_with("about:")
+            {
+                u.to_string()
+            } else {
+                format!("https://{u}")
+            }
+        }
+        _ => "about:blank".to_string(),
+    };
+    let res = s
+        .call(
+            "Target.createTarget",
+            json!({ "url": nav_url }),
+            None,
+        )
+        .await?;
+    let target_id = res
+        .get("targetId")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .to_string();
+    Ok(target_id)
+}
+
+/// Lists all interactive targets (page, popup, extension popup).
+pub async fn list_page_targets(profile_id: &str) -> Result<Vec<Value>> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    let res = s.call("Target.getTargets", json!({}), None).await?;
+    let targets = res
+        .get("targetInfos")
+        .and_then(|t| t.as_array())
+        .cloned()
+        .unwrap_or_default();
+    Ok(targets
+        .into_iter()
+        .filter(|t| {
+            let ty = t.get("type").and_then(|v| v.as_str()).unwrap_or("");
+            ty == "page" || ty == "other"
+        })
+        .collect())
+}
+
+/// Activates a specific target by its targetId.
+pub async fn activate_target(profile_id: &str, target_id: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    s.call("Target.activateTarget", json!({ "targetId": target_id }), None).await?;
+    Ok(())
+}
+
+/// Closes a target by targetId.
+#[allow(dead_code)]
+pub async fn close_target(profile_id: &str, target_id: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    s.call("Target.closeTarget", json!({ "targetId": target_id }), None).await?;
+    Ok(())
+}
+
+/// Closes tab at a given index on the profile.
+#[allow(dead_code)]
+pub async fn close_tab_by_index(profile_id: &str, index: usize) -> Result<()> {
+    let targets = list_page_targets(profile_id).await?;
+    if let Some(target) = targets.get(index) {
+        if let Some(tid) = target.get("targetId").and_then(|v| v.as_str()) {
+            return close_target(profile_id, tid).await;
+        }
+    }
+    Ok(())
+}
+
+/// Activates tab at a given index on the profile.
+#[allow(dead_code)]
+pub async fn activate_tab_by_index(profile_id: &str, index: usize) -> Result<()> {
+    let targets = list_page_targets(profile_id).await?;
+    if let Some(target) = targets.get(index) {
+        if let Some(tid) = target.get("targetId").and_then(|v| v.as_str()) {
+            return activate_target(profile_id, tid).await;
+        }
+    }
+    Ok(())
+}
+
+/// Returns all open extension popup targets for a profile.
+pub async fn list_extension_popups(profile_id: &str) -> Result<Vec<Value>> {
+    let targets = list_page_targets(profile_id).await?;
+    Ok(targets
+        .into_iter()
+        .filter(|t| {
+            let url = t.get("url").and_then(|v| v.as_str()).unwrap_or("");
+            url.starts_with("chrome-extension://")
+                && (url.contains("notification")
+                    || url.contains("popup")
+                    || url.contains("prompt")
+                    || url.contains("home.html"))
+        })
+        .collect())
+}
+
+/// Closes the active/last page tab in the browser.
+pub async fn close_active_tab(profile_id: &str) -> Result<()> {
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    let targets = s.call("Target.getTargets", json!({}), None).await?;
+    if let Some(arr) = targets.get("targetInfos").and_then(|t| t.as_array()) {
+        let pages: Vec<&Value> = arr
+            .iter()
+            .filter(|t| t.get("type").and_then(|x| x.as_str()) == Some("page"))
+            .collect();
+        // If there are multiple pages, close the last one
+        if pages.len() > 1 {
+            if let Some(last) = pages.last() {
+                if let Some(tid) = last.get("targetId").and_then(|x| x.as_str()) {
+                    s.call("Target.closeTarget", json!({ "targetId": tid }), None).await?;
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 pub async fn start_screencast(profile_id: &str, max_width: u32, max_height: u32) -> Result<()> {
@@ -772,5 +1042,24 @@ impl EventWait {
                 Err(_) => return false,
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_target_filter_page_and_extension() {
+        let targets = vec![
+            json!({ "targetId": "1", "type": "page", "url": "https://uniswap.org" }),
+            json!({ "targetId": "2", "type": "page", "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/notification.html" }),
+            json!({ "targetId": "3", "type": "service_worker", "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/background.js" }),
+        ];
+        let pages: Vec<&Value> = targets.iter().filter(|t| {
+            let ty = t.get("type").and_then(|v| v.as_str()).unwrap_or("");
+            ty == "page" || ty == "other"
+        }).collect();
+        assert_eq!(pages.len(), 2);
     }
 }

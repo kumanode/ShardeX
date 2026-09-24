@@ -33,9 +33,9 @@ export function BrowsersPage() {
 
       <BrowsersMetrics />
 
-      <div className="mb-3.5 flex items-end justify-between gap-4">
+      <div className="mb-3.5 flex flex-col md:flex-row md:items-end justify-between gap-3.5">
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">
-          <h1 className="m-0 text-title-h5 text-text-strong-950">{t("browsers.title")}</h1>
+          <h1 className="m-0 text-page-title text-zinc-900 dark:text-white">{t("browsers.title")}</h1>
           <FolderTabs />
         </div>
         <ProfileToolbar />

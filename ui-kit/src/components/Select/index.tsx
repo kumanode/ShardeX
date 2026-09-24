@@ -141,24 +141,24 @@ export default function Select({
               bottom: coords.bottom,
               zIndex: 1000,
             }}
-            className="flex flex-col overflow-hidden rounded-xl bg-bg-white-0 ring-1 ring-stroke-soft-200 shadow-[var(--shadow-md)]"
+            className="flex flex-col overflow-hidden rounded-[18px] bg-[var(--color-paper,#ffffff)] border border-[var(--color-hairline,#e5e5e5)] shadow-xl"
           >
             {isSearchable && (
-              <div className="flex items-center gap-2 border-b border-stroke-soft-200 px-3">
-                <SearchIcon className="size-4 shrink-0 text-text-soft-400" />
+              <div className="flex items-center gap-2 border-b border-[var(--color-hairline,#e5e5e5)] px-3">
+                <SearchIcon className="size-4 shrink-0 text-zinc-400 dark:text-zinc-500" />
                 <input
                   ref={searchRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="h-9 w-full min-w-0 bg-transparent text-paragraph-sm text-text-strong-950 outline-none placeholder:text-text-soft-400"
+                  className="h-9 w-full min-w-0 bg-transparent text-paragraph-sm text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                 />
               </div>
             )}
             <ul role="listbox" className="overflow-auto p-1.5 scrollbar" style={{ maxHeight: coords.maxHeight }}>
               {filteredOptions.length === 0 ? (
-                <li className="px-2.5 py-4 text-center text-paragraph-sm text-text-soft-400">
+                <li className="px-2.5 py-4 text-center text-paragraph-sm text-zinc-400 dark:text-zinc-500">
                   No results
                 </li>
               ) : (
@@ -174,14 +174,14 @@ export default function Select({
                           close()
                         }}
                         className={cn(
-                          'flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-paragraph-sm text-text-strong-950 transition-colors',
-                          'hover:bg-bg-weak-50 disabled:pointer-events-none disabled:text-text-disabled-300',
-                          isSelected && 'bg-bg-weak-50',
+                          'flex w-full items-center gap-2 rounded-[10px] px-2.5 py-2 text-left text-paragraph-sm text-zinc-800 dark:text-zinc-200 transition-colors',
+                          'hover:bg-[var(--color-surface-alt,#fafafa)] hover:text-zinc-900 dark:hover:text-white disabled:pointer-events-none disabled:text-zinc-400',
+                          isSelected && 'bg-zinc-100 dark:bg-zinc-800 font-medium text-zinc-900 dark:text-white',
                         )}
                       >
                         {opt.icon && <span className="flex size-5 shrink-0 items-center justify-center">{opt.icon}</span>}
                         <span className="flex-1 truncate">{opt.label}</span>
-                        {isSelected && <CheckIcon className="size-5 shrink-0 text-primary-base" />}
+                        {isSelected && <CheckIcon className="size-4 shrink-0 text-zinc-900 dark:text-white" />}
                       </button>
                     </li>
                   )
@@ -196,7 +196,7 @@ export default function Select({
   return (
     <div className={cn('flex w-full flex-col gap-1', className)}>
       {label && (
-        <label htmlFor={id} className="text-label-sm text-text-strong-950">
+        <label htmlFor={id} className="text-label-sm font-medium text-zinc-900 dark:text-white">
           {label}
         </label>
       )}
@@ -209,19 +209,19 @@ export default function Select({
         aria-haspopup="listbox"
         aria-expanded={open}
         className={cn(
-          'flex w-full items-center justify-between gap-2 rounded-[10px] bg-bg-white-0 text-left ring-1 ring-inset ring-stroke-soft-200 transition-shadow',
-          size === 'medium' ? 'h-10 px-3' : 'h-9 px-2.5',
-          !disabled && !hasError && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-base focus-visible:shadow-[var(--ring-primary-focus)]',
-          open && !hasError && 'ring-2 ring-primary-base',
-          hasError && 'ring-error-base',
-          disabled && 'pointer-events-none bg-bg-weak-50 text-text-disabled-300',
+          'flex w-full items-center justify-between gap-2 rounded-[18px] bg-[var(--color-paper,#ffffff)] text-left border border-[var(--color-hairline,#e5e5e5)] transition-all',
+          size === 'medium' ? 'h-10 px-3.5' : 'h-9 px-3',
+          !disabled && !hasError && 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-ink,#0a0a0a)]',
+          open && !hasError && 'ring-1 ring-[var(--color-ink,#0a0a0a)]',
+          hasError && 'border-error-base ring-1 ring-error-base',
+          disabled && 'pointer-events-none bg-[var(--color-surface-alt,#fafafa)] text-zinc-400',
         )}
       >
-        <span className={cn('flex min-w-0 items-center gap-2 text-paragraph-sm', selected ? 'text-text-strong-950' : 'text-text-soft-400')}>
+        <span className={cn('flex min-w-0 items-center gap-2 text-paragraph-sm', selected ? 'text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500')}>
           {selected?.icon && <span className="flex size-5 shrink-0 items-center justify-center">{selected.icon}</span>}
           <span className="truncate">{selected ? selected.label : placeholder}</span>
         </span>
-        <ChevronDownIcon className={cn('size-5 shrink-0 text-text-soft-400 transition-transform', open && 'rotate-180')} />
+        <ChevronDownIcon className={cn('size-4 shrink-0 text-zinc-400 dark:text-zinc-500 transition-transform', open && 'rotate-180')} />
       </button>
 
       {dropdown}
