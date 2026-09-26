@@ -287,23 +287,48 @@ jobs:
     runs-on: ubuntu-latest
     name: publish release
     steps:
-      - name: Resolve tag
+      - name: Resolve and validate tag
         id: tag
         # Manual dispatch is the only way a bad value can reach tag_name: the
-        # push trigger is gated on `v*`, so `${GITHUB_REF#refs/tags/}` is
-        # already a valid ref there. A dispatch input is not — `required: true`
-        # only rejects the empty string, so whitespace or a stray newline from
-        # a copy-paste reaches action-gh-release, which then fails with
-        # "tag_name is not well-formed".
+        # push trigger is gated on `v*`, so `github.ref_name` is already a bare
+        # valid tag there. A dispatch input is not — it is hand-typed, and
+        # `required: true` rejects only the empty string. A tag like
+        # "ShardeX Launcher v2.0.3" (spaces) used to reach action-gh-release
+        # verbatim, which cannot create such a ref: GitHub answers
+        # "tag_name is not well-formed", leaves the release an unpublished
+        # "untagged-*" draft, and the job dies in "finalizing release".
+        #
+        # Deliberately no "does this tag exist" check: this repository has no
+        # tags at all and relies on action-gh-release creating them, so
+        # requiring the tag up front would block every release.
         env:
+          EVENT_NAME: ${{ github.event_name }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
+          PUSH_TAG: ${{ github.ref_name }}
+        shell: bash
         run: |
-          tag="${INPUT_TAG:-${GITHUB_REF#refs/tags/}}"
-          tag="$(printf '%s' "$tag" | tr -d '[:space:]')"
-          [ -n "$tag" ] || {
-            echo "::error::tag is empty — set the 'tag' input (e.g. v2.0.4)"
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            tag="$INPUT_TAG"
+          else
+            tag="$PUSH_TAG"
+          fi
+
+          # A pasted ref names the same tag as the bare name.
+          tag="${tag#refs/tags/}"
+          # Trim the ends only. Deleting every space would silently reshape
+          # "ShardeX Launcher v2.0.3" into "ShardeXLauncherv2.0.3" and report a
+          # value the user never typed.
+          tag="$(printf '%s' "$tag" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+
+          [ -n "$tag" ] || { echo "::error::release tag is empty"; exit 1; }
+
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::invalid release tag '$tag' — expected e.g. v2.0.3"
             exit 1
-          }
+          fi
+
           echo "Resolved tag: '$tag'"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
