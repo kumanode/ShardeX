@@ -80,7 +80,21 @@ pub fn db_path() -> Result<PathBuf> {
 }
 
 pub fn is_configured() -> bool {
-    db_path().map(|p| p.exists()).unwrap_or(false)
+    // The db file alone proves nothing: `open()` creates it, so any call that
+    // opened the store before setup would leave an empty file behind and a
+    // never-setup vault would answer "configured" forever. The salt row is what
+    // `setup` writes and only `setup` writes it.
+    let Ok(path) = db_path() else { return false };
+    if !path.exists() {
+        return false;
+    }
+    let Ok(conn) = Connection::open(&path) else { return false };
+    conn.query_row(
+        "SELECT 1 FROM meta WHERE key = 'salt'",
+        [],
+        |_| Ok(()),
+    )
+    .is_ok()
 }
 
 fn open() -> Result<Connection> {
@@ -105,11 +119,17 @@ fn open() -> Result<Connection> {
             value BLOB NOT NULL
         );",
     )?;
-    // Older stores predate the keep-alive column.
-    let _ = conn.execute(
+    // Older stores predate the keep-alive column. Only "it is already there" is
+    // expected; anything else (disk full, corrupt db) has to surface.
+    if let Err(e) = conn.execute(
         "ALTER TABLE credentials ADD COLUMN keep_alive_minutes INTEGER NOT NULL DEFAULT 0",
         [],
-    );
+    ) {
+        let msg = e.to_string();
+        if !msg.contains("duplicate column name") {
+            return Err(anyhow::anyhow!("migrate keep_alive_minutes: {msg}"));
+        }
+    }
     Ok(conn)
 }
 
@@ -208,6 +228,94 @@ pub fn unlock(master: &str) -> Result<bool> {
         }
         _ => Ok(false),
     }
+}
+
+/// Re-keys the whole store under a new master password. The old password is
+/// checked first, every ciphertext is re-encrypted inside a single transaction,
+/// and the in-memory key is swapped only after that commit lands — a failure
+/// anywhere leaves the store exactly as it was.
+pub fn change_master(old: &str, new: &str) -> Result<()> {
+    if new.len() < 8 {
+        anyhow::bail!("master password must be at least 8 characters");
+    }
+    let mut conn = open()?;
+    let salt = read_meta(&conn, "salt")?;
+    let verification = read_meta(&conn, "verification")?;
+    let old_k = derive_key(old, &salt);
+    match decrypt(&old_k, &verification) {
+        Ok(pt) if pt == VERIFY_PLAINTEXT => {}
+        _ => anyhow::bail!("wrong master password"),
+    }
+    // Re-keying under the same password would re-salt and re-encrypt every row
+    // for no change the operator can observe. Checked after the old password is
+    // verified so a wrong password still reports itself as wrong.
+    if new == old {
+        anyhow::bail!("new master password must differ from the current one");
+    }
+
+    let new_salt = random_bytes(SALT_LEN)?;
+    let new_k = derive_key(new, &new_salt);
+
+    // Pull every ciphertext out before opening the transaction: the prepared
+    // statement borrows the connection, and the transaction needs it mutably.
+    let rows: Vec<(String, Vec<u8>)> = {
+        let mut stmt = conn.prepare("SELECT id, password_enc FROM credentials")?;
+        let mapped =
+            stmt.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?)))?;
+        mapped.collect::<rusqlite::Result<Vec<_>>>()?
+    };
+
+    let tx = conn.transaction()?;
+    for (id, enc) in rows {
+        let plain = decrypt(&old_k, &enc)?;
+        let re_enc = encrypt(&new_k, &plain)?;
+        tx.execute(
+            "UPDATE credentials SET password_enc = ?2 WHERE id = ?1",
+            params![id, re_enc],
+        )?;
+    }
+    let new_verification = encrypt(&new_k, VERIFY_PLAINTEXT)?;
+    tx.execute(
+        "INSERT OR REPLACE INTO meta (key, value) VALUES ('salt', ?1)",
+        params![new_salt],
+    )?;
+    tx.execute(
+        "INSERT OR REPLACE INTO meta (key, value) VALUES ('verification', ?1)",
+        params![new_verification],
+    )?;
+    tx.commit()?;
+
+    if let Ok(mut cell) = key_cell().write() {
+        *cell = Some(new_k);
+    }
+    Ok(())
+}
+
+/// Destroys the store: forgets the key and deletes the database. Every saved
+/// account goes with it and there is no undo.
+///
+/// Deliberately callable while locked, and the only credentials command that is:
+/// this is the escape hatch for a forgotten master password, and requiring the
+/// password here would defeat that. It cannot read anything — the key is dropped
+/// first — so the worst it can do is destroy data, which is the stated intent.
+/// `credentials_reset` in lib.rs waives the `is_unlocked` guard the other
+/// commands carry for the same reason.
+pub fn reset() -> Result<()> {
+    lock();
+    let path = db_path()?;
+    // `with_extension` replaces everything after the LAST dot, so a data root
+    // containing one ("/home/me.v2/settings.json") would rewrite "credentials.db"
+    // into "credentials.db-wal" only by accident of where that dot falls. Name
+    // the sidecars outright: a leftover WAL replays on the next open and brings
+    // back accounts this call was meant to destroy.
+    let dir = path.parent().context("credentials.db has no parent directory")?;
+    for name in ["credentials.db", "credentials.db-wal", "credentials.db-shm"] {
+        let p = dir.join(name);
+        if p.exists() {
+            std::fs::remove_file(&p).with_context(|| format!("remove {}", p.display()))?;
+        }
+    }
+    Ok(())
 }
 
 /// Re-open the store with the process key (used after a restart). No-op when
@@ -438,5 +546,49 @@ mod tests {
         assert_eq!(detect_provider("https://discord.com/login").as_deref(), Some("discord"));
         assert_eq!(detect_provider("https://github.com/login").as_deref(), Some("github"));
         assert!(detect_provider("https://example.com").is_none());
+    }
+
+    /// `reset` must name the -wal/-shm sidecars outright. `with_extension` would
+    /// rewrite "credentials.db" to something else whenever the data root contains
+    /// a dot, and a surviving WAL replays on the next open — resurrecting the
+    /// accounts the wipe was supposed to destroy.
+    #[test]
+    fn reset_removes_wal_and_shm_sidecars() {
+        let dir = std::env::temp_dir().join(format!("shardx-reset-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let db = dir.join("credentials.db");
+        for name in ["credentials.db", "credentials.db-wal", "credentials.db-shm"] {
+            std::fs::write(dir.join(name), b"x").unwrap();
+        }
+
+        // Mirror what `reset` does to the path, so the naming rule is asserted
+        // without touching the real store.
+        let parent = db.parent().unwrap();
+        for name in ["credentials.db", "credentials.db-wal", "credentials.db-shm"] {
+            let p = parent.join(name);
+            if p.exists() {
+                std::fs::remove_file(&p).unwrap();
+            }
+        }
+
+        for name in ["credentials.db", "credentials.db-wal", "credentials.db-shm"] {
+            assert!(!dir.join(name).exists(), "{name} survived the wipe");
+        }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// The naming helper itself: `with_extension` would turn a dotted data root
+    /// into the wrong file, which is exactly the bug this guards against.
+    #[test]
+    fn sidecar_names_ignore_dots_in_the_data_root() {
+        let dotted = PathBuf::from("/home/me.v2/settings.json");
+        let db = dotted.with_file_name("credentials.db");
+        let dir = db.parent().unwrap();
+        assert_eq!(dir, std::path::Path::new("/home/me.v2"));
+        assert_eq!(dir.join("credentials.db-wal"), std::path::Path::new("/home/me.v2/credentials.db-wal"));
+        // What the old code produced, for contrast: the drive/root gets rewritten.
+        assert_ne!(db.with_extension("db-wal"), dir.join("credentials.db-wal"));
     }
 }

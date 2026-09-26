@@ -2645,6 +2645,23 @@ async fn credentials_lock() -> Result<(), String> {
     Ok(())
 }
 
+/// Re-keys the store. The old password must be correct; the new one is applied
+/// atomically and the session stays unlocked.
+#[tauri::command]
+async fn credentials_change_master(old_password: String, new_password: String) -> Result<(), String> {
+    credentials::change_master(&old_password, &new_password).map_err(|e| e.to_string())
+}
+
+/// Destroys the vault and every account in it. Caller confirms in the UI.
+///
+/// The one credentials command without an `is_unlocked` guard: it is the way out
+/// of a forgotten master password, so demanding the password would make it
+/// useless. See `credentials::reset` for the full reasoning.
+#[tauri::command]
+async fn credentials_reset() -> Result<(), String> {
+    credentials::reset().map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 async fn credentials_list(profile_id: String) -> Result<Vec<credentials::Credential>, String> {
     if !credentials::is_unlocked() {
@@ -2679,6 +2696,9 @@ async fn credentials_update(cred: credentials::Credential) -> Result<(), String>
 
 #[tauri::command]
 async fn credentials_delete(id: String) -> Result<(), String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
     credentials::remove(&id).map_err(|e| e.to_string())
 }
 
@@ -2930,6 +2950,8 @@ pub fn run() {
             credentials_setup,
             credentials_unlock,
             credentials_lock,
+            credentials_change_master,
+            credentials_reset,
             credentials_list,
             credentials_list_all,
             credentials_add,
@@ -3136,6 +3158,31 @@ pub fn run() {
                 Ok(n) if n > 0 => eprintln!("[launcher] purged {n} stale temporary profile(s)"),
                 Ok(_) => {}
                 Err(e) => eprintln!("[launcher] temporary purge failed: {e}"),
+            }
+
+            // Keep-alive tasks live in memory, so a restart dropped every one of
+            // them while the rows still say the account wants them. Re-arm from
+            // the store; the profile list needs no master password.
+            match credentials::list_all() {
+                Ok(creds) => {
+                    let mut armed = 0;
+                    for c in creds.iter().filter(|c| c.keep_alive_minutes > 0) {
+                        let Some(p) = credentials::provider_by_id(&c.provider) else { continue };
+                        if p.keep_alive_url.is_empty() {
+                            continue;
+                        }
+                        if keep_alive()
+                            .start(&c.profile_id, &p.keep_alive_url, c.keep_alive_minutes)
+                            .is_ok()
+                        {
+                            armed += 1;
+                        }
+                    }
+                    if armed > 0 {
+                        eprintln!("[launcher] keep-alive re-armed for {armed} account(s)");
+                    }
+                }
+                Err(e) => eprintln!("[launcher] keep-alive restore skipped: {e}"),
             }
 
             // API task on the shared tokio runtime.
