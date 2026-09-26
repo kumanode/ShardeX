@@ -42,7 +42,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
           )}
           {...rest}
         />
-        <span className="pointer-events-none absolute left-0.5 top-0.5 size-4 rounded-full bg-static-white shadow-[var(--shadow-sm)] transition-transform peer-checked:translate-x-3" />
+        <span className="pointer-events-none absolute left-0.5 top-0.5 size-4 rounded-full bg-bg-white-0 shadow-[var(--shadow-sm)] transition-transform peer-checked:translate-x-3" />
       </span>
       {label && <span className="text-paragraph-sm text-text-strong-950">{label}</span>}
     </label>

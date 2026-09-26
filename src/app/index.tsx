@@ -5,6 +5,7 @@ import "./styles/index.css";
 import "./styles/app.css";
 import "flag-icons/css/flag-icons.min.css";
 import { App } from "./App";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { SyncPanel } from "../widgets/SyncPanel";
 import { HelperPanel } from "../widgets/HelperPanel";
 import { FleetMonitor } from "../widgets/FleetMonitor";
@@ -41,6 +42,8 @@ function Root() {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <Root />
+    <ErrorBoundary>
+      <Root />
+    </ErrorBoundary>
   </React.StrictMode>,
 );

@@ -281,7 +281,7 @@ export function SettingsPage() {
 
       <div className="mt-3.5">
         <Button
-          variant="primary"
+          variant="accent"
           mode="filled"
           size="small"
       //    leftIcon={<ShardMini />}

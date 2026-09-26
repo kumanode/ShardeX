@@ -39,7 +39,9 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
           )}
           {...rest}
         />
-        <span className="pointer-events-none absolute size-2 rounded-full bg-static-white opacity-0 peer-checked:opacity-100" />
+        {/* Same reasoning as the Checkbox tick: this dot is drawn on
+            --color-primary-base, so it must follow the theme's foreground. */}
+        <span className="pointer-events-none absolute size-2 rounded-full bg-[var(--color-primary-base-fg,#ffffff)] opacity-0 peer-checked:opacity-100" />
       </span>
       {label && <span className="text-paragraph-sm text-text-strong-950">{label}</span>}
     </label>

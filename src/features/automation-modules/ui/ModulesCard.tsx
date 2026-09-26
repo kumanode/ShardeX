@@ -191,7 +191,7 @@ export function ModulesCard() {
             {t("modulesCard.folderButton")}
           </Button>
           <Button
-            variant="primary" mode="filled" size="small"
+            variant="accent" mode="filled" size="small"
             isLoading={busy === "+"}
             leftIcon={<AddIcon className="size-4" />}
             onClick={add}

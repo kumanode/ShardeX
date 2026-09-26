@@ -28,15 +28,11 @@ export function ProfileRowActions({ profile, onMore }: {
   return (
     <div className="flex justify-end items-center gap-1.5">
       <Button
-        variant={isRunning ? "error" : "neutral"}
-        mode={isRunning ? "lighter" : "filled"}
+        variant={isRunning ? "stop" : "launch"}
+        mode="filled"
         size="small"
         fullRadius
-        className={
-          isRunning
-            ? "min-w-[92px] h-9 !bg-rose-500/10 hover:!bg-rose-500/20 !text-rose-600 dark:!text-rose-400 !border !border-rose-500/30 font-medium"
-            : "min-w-[92px] h-9 !bg-[var(--color-ink,#0a0a0a)] dark:!bg-white !text-white dark:!text-black hover:opacity-90 font-medium shadow-xs"
-        }
+        className="min-w-[92px] h-9 font-medium"
         leftIcon={
           isRunning
             ? <StopIcon className="size-4" />

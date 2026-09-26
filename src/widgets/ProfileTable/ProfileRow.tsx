@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Checkbox, cn } from "@proxyshard/shardx-ui-kit";
 import Badge from "../../shared/ui/Badge";
 import { PinIconApp, KeyIcon } from "../../shared/icons";
@@ -36,8 +36,15 @@ export function ProfileRow({ profile, proxy, onMenu }: {
   const exportCookies = useProfile((s) => s.exportCookies);
   const importCookies = useProfile((s) => s.importCookies);
 
-  // Accounts vault integration
-  const profileCreds = useCredentials((s) => s.credentials.filter((c) => c.profile_id === p.id));
+  // Accounts vault integration. The filter has to live in a memo, not in the
+  // selector: zustand v5 hands the selector's result straight to
+  // useSyncExternalStore, which requires a cached snapshot, and `.filter`
+  // returns a fresh array every call.
+  const credentials = useCredentials((s) => s.credentials);
+  const profileCreds = useMemo(
+    () => credentials.filter((c) => c.profile_id === p.id),
+    [credentials, p.id],
+  );
   const autofill = useCredentials((s) => s.autofill);
 
   // Shift-presses are handled in mousedown only: a click on the checkbox's

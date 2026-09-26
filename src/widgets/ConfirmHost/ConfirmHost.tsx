@@ -17,7 +17,7 @@ export function ConfirmHost() {
           <Button
             key={i}
             size="small"
-            variant={b.danger ? "error" : b.primary ? "primary" : "neutral"}
+            variant={b.danger ? "error" : b.primary ? "accent" : "neutral"}
             mode={b.danger || b.primary ? "filled" : "stroke"}
             onClick={() => done(b.value)}
           >

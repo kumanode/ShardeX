@@ -8,7 +8,7 @@ export function BuyProxiesButton() {
   const setProxyTab = useNav((s) => s.setProxyTab);
   return (
     <Button
-      variant="neutral"
+      variant="info"
       mode="stroke"
       size="small"
       leftIcon={<NavShopIcon className="size-4" />}

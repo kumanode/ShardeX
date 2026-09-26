@@ -5,6 +5,7 @@
  * ==========================================================================*/
 @import "tailwindcss";
 @import "@proxyshard/shardx-ui-kit/tokens.css";
+@import "./accents.css";
 
 /* Generate Tailwind utilities used inside the kit's prebuilt components. */
 @source "../../../node_modules/@proxyshard/shardx-ui-kit/dist";
@@ -127,6 +128,10 @@
   --primary-base: #0a0a0a;
   --primary-dark: #171717;
   --color-primary-base: #0a0a0a;
+  /* Foreground drawn ON --color-primary-base (checkbox tick, radio dot, the
+   * spinner inside a filled primary button). It must flip with the theme: the
+   * dark theme’s primary is white, so a hardcoded white tick vanishes. */
+  --color-primary-base-fg: #ffffff;
   --color-primary-soft-bg: #e5e5e5;
   --color-primary-alpha-10: rgba(10, 10, 10, 0.06);
   --color-primary-alpha-16: rgba(10, 10, 10, 0.10);
@@ -135,6 +140,32 @@
   --error-base: #e7000b;
   --color-error-base: #e7000b;
   --color-ember: #e7000b;
+
+  /* CTA accents. The monochrome ink scheme made every filled button look
+   * identical, so the primary call to action has no signal. These are the
+   * DESIGN.md hues, reserved for the single most important button per view. */
+  --color-accent: #006bff;
+  --color-accent-hover: #0059d6;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: rgba(0, 107, 255, 0.10);
+  --color-accent-ring: rgba(0, 107, 255, 0.35);
+
+  --color-info: #0099ff;
+  --color-info-hover: #0080d6;
+  --color-info-fg: #ffffff;
+
+  --color-ok: #1fc16b;
+  --color-ok-hover: #17a259;
+  --color-ok-fg: #ffffff;
+
+  /* Launch is the one action this launcher exists for. */
+  --color-launch: #1fc16b;
+  --color-launch-hover: #17a259;
+  --color-launch-fg: #ffffff;
+
+  --color-stop: #e7000b;
+  --color-stop-hover: #c30009;
+  --color-stop-fg: #ffffff;
 }
 
 /* ============================================================================
@@ -184,6 +215,8 @@
   --primary-base: #fafafa;
   --primary-dark: #f4f4f5;
   --color-primary-base: #fafafa;
+  /* Ink on white — see the light-theme note. */
+  --color-primary-base-fg: #0a0a0a;
   --color-primary-soft-bg: #27272a;
   --color-primary-alpha-10: rgba(250, 250, 250, 0.12);
   --color-primary-alpha-16: rgba(250, 250, 250, 0.18);
@@ -196,6 +229,29 @@
   --error-base: #ef4444;
   --color-error-base: #ef4444;
   --color-ember: #ef4444;
+
+  /* CTA accents — lifted a step so they hold on a dark canvas. */
+  --color-accent: #3d8bff;
+  --color-accent-hover: #5c9dff;
+  --color-accent-fg: #06131f;
+  --color-accent-soft: rgba(61, 139, 255, 0.16);
+  --color-accent-ring: rgba(61, 139, 255, 0.45);
+
+  --color-info: #35b0ff;
+  --color-info-hover: #5cbfff;
+  --color-info-fg: #06131f;
+
+  --color-ok: #34d27f;
+  --color-ok-hover: #4ade90;
+  --color-ok-fg: #052e1b;
+
+  --color-launch: #34d27f;
+  --color-launch-hover: #4ade90;
+  --color-launch-fg: #052e1b;
+
+  --color-stop: #ef4444;
+  --color-stop-hover: #f56565;
+  --color-stop-fg: #1a0505;
 
   /* Shadows for Dark Mode: crisp border delineation + deep elevation */
   --shadow-subtle: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 2px 6px 0 rgba(0, 0, 0, 0.5);

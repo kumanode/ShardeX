@@ -1,21 +1,21 @@
 import { useState, type FormEvent } from "react";
-import { KeyIcon, LockedIcon, EyeIcon, EyeOffIcon } from "../../shared/icons";
-import { useCredentials } from "../../entities/credentials";
+import { DialogModal, Input } from "@proxyshard/shardx-ui-kit";
+import { KeyIcon, LockedIcon, EyeIcon, EyeOffIcon, DeleteIcon } from "../../shared/icons";
+import { useCredentials, VAULT_RESET_PHRASE } from "../../entities/credentials";
 import { useT } from "../../shared/i18n";
 
 type Props = {
-  /** "page" (default) — embedded in the credentials page, no skip.
-   *  "onboarding" — full-screen first-run wizard, shows skip + no-reset warning. */
-  variant?: "page" | "onboarding";
-  onSkip?: () => void;
+  /** Called after a successful setup or unlock. The page also re-renders on
+   *  its own, since it subscribes to `status`. */
   onDone?: () => void;
 };
 
-export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
+export function VaultGateModal({ onDone }: Props) {
   const t = useT();
   const status = useCredentials((s) => s.status);
   const setup = useCredentials((s) => s.setup);
   const unlock = useCredentials((s) => s.unlock);
+  const reset = useCredentials((s) => s.reset);
   const loading = useCredentials((s) => s.loading);
 
   const [password, setPassword] = useState("");
@@ -23,8 +23,26 @@ export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [resetOpen, setResetOpen] = useState(false);
+  const [phrase, setPhrase] = useState("");
+  const [resetError, setResetError] = useState<string | null>(null);
+
   const isSetup = !status?.configured;
-  const isOnboarding = variant === "onboarding";
+
+  const closeReset = () => {
+    setResetOpen(false);
+    setPhrase("");
+    setResetError(null);
+  };
+
+  const submitReset = async () => {
+    setResetError(null);
+    const res = await reset();
+    // On success `status.configured` flips to false and this card becomes the
+    // create-store form on its own — nothing to navigate.
+    if (res.ok) closeReset();
+    else setResetError(res.error ?? t("credentials.errResetFailed"));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -68,17 +86,19 @@ export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
             {t("credentials.vaultBadge")}
           </div>
           <h2 className="text-xl font-bold tracking-tight text-[var(--color-ink,#0a0a0a)]">
-            {isOnboarding && isSetup ? t("onboarding.vaultTitle") : isSetup ? t("credentials.createStore") : t("credentials.title")}
+            {isSetup ? t("credentials.createStore") : t("credentials.title")}
           </h2>
           <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--color-mid-gray,#737373)]">
-            {isOnboarding && isSetup ? t("onboarding.vaultIntro") : isSetup ? t("credentials.setupIntro") : t("credentials.unlockIntro")}
+            {isSetup ? t("credentials.setupIntro") : t("credentials.unlockIntro")}
           </p>
         </div>
 
-        {/* No-reset warning — onboarding only */}
-        {isOnboarding && isSetup && (
+        {/* There is no recovery path for a forgotten master password, so the
+            warning belongs on the screen that creates it — not only in a modal
+            the operator may never open. */}
+        {isSetup && (
           <div className="mb-4 rounded-[14px] bg-amber-500/10 border border-amber-500/20 p-3 text-[12.5px] font-medium text-amber-700 dark:text-amber-400">
-            {t("onboarding.vaultWarnNoReset")}
+            {t("credentials.warnNoReset")}
           </div>
         )}
 
@@ -139,7 +159,7 @@ export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
           <button
             type="submit"
             disabled={loading || !password || (isSetup && !confirmPassword)}
-            className="mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[18px] bg-[var(--color-ink,#0a0a0a)] py-2.5 text-[13.5px] font-medium text-[var(--color-paper,#ffffff)] shadow-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="btn-accent mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[18px] py-2.5 text-[13.5px] font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? (
               <span>{t("credentials.loading")}</span>
@@ -149,18 +169,19 @@ export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
               <span>{t("credentials.unlock")}</span>
             )}
           </button>
-
-          {/* Skip link — onboarding only */}
-          {isOnboarding && onSkip && (
-            <button
-              type="button"
-              onClick={onSkip}
-              className="mt-1 w-full cursor-pointer text-center text-[12.5px] text-[var(--color-mid-gray,#737373)] hover:text-[var(--color-ink,#0a0a0a)] transition-colors"
-            >
-              {t("onboarding.vaultSkip")} — {t("onboarding.vaultLaterHint")}
-            </button>
-          )}
         </form>
+
+        {/* The way out of a forgotten master password. Only meaningful while
+            unlocking: on the create screen there is nothing to reset yet. */}
+        {!isSetup && (
+          <button
+            type="button"
+            onClick={() => setResetOpen(true)}
+            className="mt-3 w-full cursor-pointer text-center text-[12.5px] text-[var(--color-mid-gray,#737373)] transition-colors hover:text-rose-600 dark:hover:text-rose-400"
+          >
+            {t("credentials.forgotMaster")}
+          </button>
+        )}
 
         {/* Security badge footer */}
         <div className="mt-5 border-t border-[var(--color-hairline,#e5e5e5)] pt-4 text-center">
@@ -169,6 +190,40 @@ export function VaultGateModal({ variant = "page", onSkip, onDone }: Props) {
           </p>
         </div>
       </div>
+
+      {resetOpen && (
+        <DialogModal
+          open={resetOpen}
+          onClose={closeReset}
+          icon={<DeleteIcon className="size-5" />}
+          title={t("credentials.forgotTitle")}
+          confirmLabel={t("credentials.resetVault")}
+          onConfirm={submitReset}
+          isDisabled={loading || phrase !== VAULT_RESET_PHRASE}
+          cancelLabel={t("credentials.cancel")}
+          onCancel={closeReset}
+        >
+          <div className="flex flex-col gap-3.5 py-1">
+            <div className="rounded-[14px] border border-rose-500/20 bg-rose-500/10 p-3 text-[12.5px] font-medium leading-relaxed text-rose-600 dark:text-rose-400">
+              {t("credentials.forgotIntro")}
+            </div>
+            {resetError && (
+              <div className="rounded-[14px] border border-rose-500/20 bg-rose-500/10 p-3 text-[12.5px] font-medium text-rose-600 dark:text-rose-400">
+                {resetError}
+              </div>
+            )}
+            <Input
+              label={t("credentials.resetTypePrompt", { phrase: VAULT_RESET_PHRASE })}
+              value={phrase}
+              onChange={(e) => {
+                setPhrase(e.target.value);
+                setResetError(null);
+              }}
+              placeholder={VAULT_RESET_PHRASE}
+            />
+          </div>
+        </DialogModal>
+      )}
     </div>
   );
 }

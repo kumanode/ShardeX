@@ -128,8 +128,7 @@ export function BookmarksPage() {
           </div>
         </div>
         <Button
-          variant="neutral" mode="filled" size="small"
-          className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
+          variant="accent" mode="filled" size="small"
           leftIcon={<AddIcon className="size-4" />}
           onClick={() => setEditing(emptyBookmark(folder === "all" || folder === "__any__" ? "" : folder))}
         >
