@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { TitleBar } from "../widgets/TitleBar/TitleBar";
 import { Sidebar } from "../widgets/Sidebar/Sidebar";
 import { FirstRunGate } from "../widgets/FirstRunGate/FirstRunGate";
-import { VaultOnboardingGate } from "../widgets/Credentials/VaultOnboardingGate";
 import { ToastHost } from "../widgets/ToastHost/ToastHost";
 import { ConfirmHost } from "../widgets/ConfirmHost/ConfirmHost";
 import { StarModal } from "../widgets/StarModal/StarModal";
@@ -36,8 +35,7 @@ export function App() {
       <HelperWatcher />
       <WhatsNewGate />
       <FirstRunGate>
-        <VaultOnboardingGate>
-          <div
+        <div
           className={cn(
             "grid overflow-hidden min-w-0 transition-all duration-200",
             sidebarCollapsed
@@ -67,7 +65,6 @@ export function App() {
           <ConfirmHost />
           <StarModal />
         </div>
-        </VaultOnboardingGate>
       </FirstRunGate>
     </>
   );

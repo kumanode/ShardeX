@@ -3,6 +3,7 @@ import { Topbar } from "../../shared/ui/Topbar";
 import { useCredentials, type Credential } from "../../entities/credentials";
 import { useProfile } from "../../entities/profile";
 import { VaultGateModal } from "../../widgets/Credentials/VaultGateModal";
+import { VaultSecurityPanel } from "../../widgets/Credentials/VaultSecurityPanel";
 import { CredentialsMetrics } from "../../widgets/Credentials/CredentialsMetrics";
 import { CredentialsTable } from "../../widgets/Credentials/CredentialsTable";
 import { CredentialModal } from "../../widgets/Credentials/CredentialModal";
@@ -22,9 +23,14 @@ export function CredentialsPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
 
   useEffect(() => {
-    init();
-    initProfile();
-  }, [init, initProfile]);
+    // `status` starts at null, which is also the state right after a remount.
+    // First tab visit decides everything: set up the master password or unlock
+    // the existing store. Autofill from the profiles table hydrates the store
+    // for its own badge, so the vault can already be unlocked here.
+    void init();
+    void initProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isUnlocked = status?.unlocked;
 
@@ -36,7 +42,11 @@ export function CredentialsPage() {
         onSearch={() => {}}
       />
 
-      {!isUnlocked ? (
+      {status === null ? (
+        <div className="flex min-h-[60vh] items-center justify-center text-[13px] text-[var(--color-mid-gray,#737373)]">
+          {t("credentials.loading")}
+        </div>
+      ) : !isUnlocked ? (
         <VaultGateModal />
       ) : (
         <>
@@ -68,7 +78,7 @@ export function CredentialsPage() {
                   setEditingCred(null);
                   setModalOpen(true);
                 }}
-                className="flex cursor-pointer items-center gap-2 rounded-[18px] bg-[var(--color-ink,#0a0a0a)] px-4 py-2 text-[13px] font-medium text-[var(--color-paper,#ffffff)] shadow-sm hover:opacity-90 transition-all"
+                className="btn-accent flex cursor-pointer items-center gap-2 rounded-[18px] px-4 py-2 text-[13px] font-medium shadow-sm transition-all"
               >
                 <AddIcon className="size-4" />
                 <span>{t("credentials.addAccount")}</span>
@@ -110,6 +120,8 @@ export function CredentialsPage() {
               onClose={() => setBulkOpen(false)}
             />
           )}
+
+          <VaultSecurityPanel />
         </>
       )}
     </section>

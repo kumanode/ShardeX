@@ -7,7 +7,7 @@ export function PasteJsonButton() {
   const t = useT();
   const setImporterOpen = useFingerprint((s) => s.setImporterOpen);
   return (
-    <Button variant="primary" mode="filled" size="small" leftIcon={<AddIcon className="size-4" />} onClick={() => setImporterOpen(true)}>
+    <Button variant="accent" mode="filled" size="small" leftIcon={<AddIcon className="size-4" />} onClick={() => setImporterOpen(true)}>
       {t("pasteJsonButton.label")}
     </Button>
   );

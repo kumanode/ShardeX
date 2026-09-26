@@ -137,8 +137,7 @@ export function ExtensionsPage() {
             {t("extensions.fromLink")}
           </Button>
           <Button
-            variant="neutral" mode="filled" size="small" disabled={busy} isLoading={busy}
-            className="!bg-[var(--color-ink,#0a0a0a)] !text-white dark:!bg-white dark:!text-black"
+            variant="accent" mode="filled" size="small" disabled={busy} isLoading={busy}
             leftIcon={<AddIcon className="size-4" />}
             onClick={importFiles}
           >

@@ -132,7 +132,9 @@ export function PsResidentialCard() {
             {renewing ? t("psResidentialCard.renewing") : t("psResidentialCard.renew")}
           </Button>
         )}
-        <Button variant="primary" mode="filled" size="small" onClick={() => setGenOpen(true)}>
+        <Button           variant="accent"
+          mode="filled"
+ size="small" onClick={() => setGenOpen(true)}>
           {t("psResidentialCard.generateProxies")}
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { DialogModal, Select, Textarea } from "@proxyshard/shardx-ui-kit";
-import { useCredentials, type Credential } from "../../entities/credentials";
+import { useCredentials, type Credential, PROVIDER_FALLBACK } from "../../entities/credentials";
 import { useProfile } from "../../entities/profile";
 import { UploadIcon } from "../../shared/icons";
 import { toast } from "../../shared/model/toast";
@@ -34,14 +34,7 @@ export function BulkImportModal({
 
   const providerOptions = providers.length > 0
     ? providers.map((p) => ({ value: p.id, label: p.name }))
-    : [
-        { value: "gmail", label: "Google / Gmail" },
-        { value: "x", label: "X / Twitter" },
-        { value: "discord", label: "Discord" },
-        { value: "telegram", label: "Telegram" },
-        { value: "github", label: "GitHub" },
-        { value: "generic", label: "Custom / Generic" },
-      ];
+    : PROVIDER_FALLBACK.map((p) => ({ value: p.id, label: p.name }));
 
   const profileOptions = profiles.map((p) => ({
     value: p.id,

@@ -87,9 +87,9 @@ export function ProxyBulkImporter({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-end gap-2">
           <Button variant="neutral" mode="stroke" size="small" onClick={onClose}>{t("proxyBulkImporter.cancel")}</Button>
           {rows.length === 0 ? (
-            <Button variant="primary" mode="filled" size="small" onClick={parse}>{t("proxyBulkImporter.parse")}</Button>
+            <Button variant="accent" mode="filled" size="small" onClick={parse}>{t("proxyBulkImporter.parse")}</Button>
           ) : (
-            <Button variant="primary" mode="filled" size="small" onClick={saveSelected}>
+            <Button variant="accent" mode="filled" size="small" onClick={saveSelected}>
               {t("proxyBulkImporter.importCount", { n: selCount })}
             </Button>
           )}

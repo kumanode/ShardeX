@@ -82,7 +82,7 @@ export function AutomationPage() {
           onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
         />
         <Button
-          variant="primary" mode="filled" size="small"
+          variant="accent" mode="filled" size="small"
           leftIcon={<AddIcon className="size-4" />}
           disabled={!name.trim()}
           onClick={submit}

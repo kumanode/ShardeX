@@ -46,7 +46,7 @@ export default function DialogModal({
   hideFooter = false,
   confirmLabel = 'Apply Changes',
   onConfirm,
-  confirmVariant = 'primary',
+  confirmVariant = 'accent',
   isLoading = false,
   isDisabled = false,
   cancelLabel = 'Cancel',

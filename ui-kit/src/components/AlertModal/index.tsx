@@ -54,7 +54,7 @@ export type AlertModalProps = {
 // static class maps (no dynamic class names → visible to Tailwind / @source)
 // Tints come from the state tokens, never raw hex: they must flip with theme.
 const badge: Record<AlertModalStatus, { bg: string; icon: string }> = {
-  feature: { bg: 'bg-feature-base/10', icon: 'text-primary-base' },
+  feature: { bg: 'bg-primary-alpha-10', icon: 'text-primary-base' },
   information: { bg: 'bg-information-weak dark:bg-information-soft/30', icon: 'text-primary-base' },
   success: { bg: 'bg-success-weak dark:bg-success-soft/20', icon: 'text-success-base' },
   warning: { bg: 'bg-warning-weak dark:bg-warning-soft/20', icon: 'text-warning-base' },

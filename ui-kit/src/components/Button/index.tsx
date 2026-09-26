@@ -2,7 +2,19 @@ import { forwardRef } from 'react'
 import { cn } from '@/lib/cn'
 import { SpinnerIcon } from '@/lib/icons'
 
-export type ButtonVariant = 'primary' | 'neutral' | 'error'
+export type ButtonVariant =
+  | 'primary'
+  | 'neutral'
+  | 'error'
+  /** Blue: the primary call to action when ink would not stand out. */
+  | 'accent'
+  | 'info'
+  /** Green: confirms / commits. */
+  | 'success'
+  /** Green, reserved for launching a profile. */
+  | 'launch'
+  /** Red: stops a running profile. */
+  | 'stop'
 export type ButtonMode = 'filled' | 'stroke' | 'lighter' | 'ghost'
 export type ButtonSize = 'medium' | 'small' | 'xsmall' | '2xsmall'
 
@@ -28,26 +40,50 @@ const sizes: Record<ButtonSize, { base: string; radius: string; onlyIcon: string
   '2xsmall': { base: 'h-[32px] gap-1 px-2.5 font-medium text-[11.5px]', radius: 'rounded-[18px]', onlyIcon: 'w-[32px] px-0' },
 }
 
+// The coloured families map to class names declared in the host's stylesheet
+// (src/app/styles/accents.css). An arbitrary value such as
+// `bg-[var(--color-accent)]` cannot be used here: the token only exists in the
+// host's CSS, and Tailwind's scan of this built file produces no rule for it.
 const looks: Record<ButtonMode, Record<ButtonVariant, string>> = {
   filled: {
     primary: 'bg-[var(--color-ink,#0a0a0a)] text-[var(--color-paper,#ffffff)] hover:opacity-90 shadow-none',
     neutral: 'bg-[var(--btn-neutral-bg)] text-[var(--btn-neutral-fg)] hover:opacity-90 shadow-none',
     error: 'bg-[var(--color-ember,#e7000b)] text-white hover:bg-red-700 shadow-none',
+    accent: 'btn-accent',
+    info: 'btn-info',
+    success: 'btn-success',
+    launch: 'btn-launch',
+    stop: 'btn-stop',
   },
   stroke: {
     primary: 'bg-transparent text-[var(--color-ink,#0a0a0a)] ring-1 ring-inset ring-[var(--color-hairline,#e5e5e5)] hover:bg-[var(--color-canvas,#f5f5f5)]',
     neutral: 'bg-transparent text-[var(--color-ink,#0a0a0a)] ring-1 ring-inset ring-[var(--color-hairline,#e5e5e5)] hover:bg-[var(--color-canvas,#f5f5f5)]',
     error: 'bg-transparent text-[var(--color-ember,#e7000b)] ring-1 ring-inset ring-[var(--color-ember,#e7000b)] hover:bg-red-50',
+    accent: 'btn-accent-soft',
+    info: 'btn-info-soft',
+    success: 'btn-success-soft',
+    launch: 'btn-success-soft',
+    stop: 'btn-stop-soft',
   },
   lighter: {
     primary: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
     neutral: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
     error: 'bg-[#ffebec] text-[var(--color-ember,#e7000b)] hover:bg-[#ffc0c5]',
+    accent: 'btn-accent-soft',
+    info: 'btn-info-soft',
+    success: 'btn-success-soft',
+    launch: 'btn-success-soft',
+    stop: 'btn-stop-soft',
   },
   ghost: {
     primary: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
     neutral: 'bg-[var(--color-canvas,#f5f5f5)] text-[var(--color-ink,#0a0a0a)] hover:bg-[var(--color-hairline,#e5e5e5)]',
     error: 'bg-transparent text-[var(--color-ember,#e7000b)] hover:bg-red-50',
+    accent: 'btn-accent-soft',
+    info: 'btn-info-soft',
+    success: 'btn-success-soft',
+    launch: 'btn-success-soft',
+    stop: 'btn-stop-soft',
   },
 }
 
@@ -55,6 +91,11 @@ const focusRing: Record<ButtonVariant, string> = {
   primary: 'focus-visible:shadow-[var(--ring-primary-focus)]',
   neutral: 'focus-visible:shadow-[var(--ring-neutral-focus)]',
   error: 'focus-visible:shadow-[var(--ring-error-focus)]',
+  accent: 'focus-visible:shadow-[0_0_0_3px_var(--color-accent-ring,rgba(0,107,255,.35))]',
+  info: 'focus-visible:shadow-[0_0_0_3px_var(--color-accent-ring,rgba(0,107,255,.35))]',
+  success: 'focus-visible:shadow-[0_0_0_3px_var(--color-accent-ring,rgba(0,107,255,.35))]',
+  launch: 'focus-visible:shadow-[0_0_0_3px_var(--color-accent-ring,rgba(0,107,255,.35))]',
+  stop: 'focus-visible:shadow-[0_0_0_3px_var(--color-accent-ring,rgba(0,107,255,.35))]',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(

@@ -239,7 +239,9 @@ export function PsBuyCard() {
                 )}
               </span>
             )}
-            <Button variant="primary" mode="filled" size="small" onClick={buy} disabled={buying || !productName} isLoading={buying}>
+            <Button           variant="accent"
+          mode="filled"
+ size="small" onClick={buy} disabled={buying || !productName} isLoading={buying}>
               {buying ? t("psBuyCard.buying") : t("psBuyCard.buyAction")}
             </Button>
           </div>

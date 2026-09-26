@@ -47,7 +47,10 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
         />
         <span
           className={cn(
-            'pointer-events-none absolute inset-0 flex items-center justify-center text-static-white transition-opacity',
+            // The tick sits ON --color-primary-base, which is ink in the light
+            // theme and white in the dark one. Binding it to `primary-base-fg`
+            // keeps it contrasting; a hardcoded white tick disappeared in dark.
+            'pointer-events-none absolute inset-0 flex items-center justify-center text-[var(--color-primary-base-fg,#ffffff)] transition-opacity',
             isOn ? 'opacity-100' : 'opacity-0',
           )}
         >

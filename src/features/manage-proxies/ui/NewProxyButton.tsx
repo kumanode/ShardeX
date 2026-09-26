@@ -8,7 +8,7 @@ export function NewProxyButton({ className }: { className?: string }) {
   const setBulkOpen = useProxy((s) => s.setBulkOpen);
   return (
     <Button
-      variant="primary"
+      variant="accent"
       mode="filled"
       size="small"
       className={className}

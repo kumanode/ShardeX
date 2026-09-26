@@ -1,0 +1,96 @@
+/* ============================================================================
+ * Button accents
+ *
+ * The design tokens (--color-accent / --color-launch / --color-stop / ...) are
+ * declared in index.css, but Tailwind cannot see a `var()` that only appears
+ * inside the kit's *built* JS — the arbitrary value `bg-[var(--color-accent)]`
+ * in a component produces no CSS at all. Verified: the class came out empty.
+ *
+ * These are the literal declarations the components reference by class name.
+ * Values mirror index.css; the dark theme re-points the same custom properties,
+ * and the element reads them directly, so no dark rule is needed here.
+ * ==========================================================================*/
+
+@layer components {
+  .btn-accent {
+    background-color: var(--color-accent, #006bff);
+    color: var(--color-accent-fg, #ffffff);
+    border: 1px solid transparent;
+  }
+  .btn-accent:hover:not(:disabled) {
+    background-color: var(--color-accent-hover, #0059d6);
+  }
+
+  .btn-info {
+    background-color: var(--color-info, #0099ff);
+    color: var(--color-info-fg, #ffffff);
+    border: 1px solid transparent;
+  }
+  .btn-info:hover:not(:disabled) {
+    background-color: var(--color-info-hover, #0080d6);
+  }
+
+  .btn-info-soft {
+    background-color: color-mix(in srgb, var(--color-info, #0099ff) 12%, transparent);
+    color: var(--color-info, #0099ff);
+    border: 1px solid transparent;
+  }
+  .btn-info-soft:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-info, #0099ff) 20%, transparent);
+  }
+
+  .btn-success {
+    background-color: var(--color-ok, #1fc16b);
+    color: var(--color-ok-fg, #ffffff);
+    border: 1px solid transparent;
+  }
+  .btn-success:hover:not(:disabled) {
+    background-color: var(--color-ok-hover, #17a259);
+  }
+
+  .btn-launch {
+    background-color: var(--color-launch, #1fc16b);
+    color: var(--color-launch-fg, #ffffff);
+    border: 1px solid transparent;
+  }
+  .btn-launch:hover:not(:disabled) {
+    background-color: var(--color-launch-hover, #17a259);
+  }
+
+  .btn-stop {
+    background-color: var(--color-stop, #e7000b);
+    color: var(--color-stop-fg, #ffffff);
+    border: 1px solid transparent;
+  }
+  .btn-stop:hover:not(:disabled) {
+    background-color: var(--color-stop-hover, #c30009);
+  }
+
+  /* Soft flavours: same hue, tinted surface, for secondary/destructive acts. */
+  .btn-accent-soft {
+    background-color: var(--color-accent-soft, rgba(0, 107, 255, 0.1));
+    color: var(--color-accent, #006bff);
+    border: 1px solid transparent;
+  }
+  .btn-accent-soft:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-accent, #006bff) 20%, transparent);
+  }
+
+  .btn-success-soft {
+    background-color: color-mix(in srgb, var(--color-ok, #1fc16b) 12%, transparent);
+    color: var(--color-ok, #1fc16b);
+    border: 1px solid transparent;
+  }
+  .btn-success-soft:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-ok, #1fc16b) 20%, transparent);
+  }
+
+  .btn-stop-soft {
+    background-color: color-mix(in srgb, var(--color-stop, #e7000b) 12%, transparent);
+    color: var(--color-stop, #e7000b);
+    border: 1px solid transparent;
+  }
+  .btn-stop-soft:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-stop, #e7000b) 20%, transparent);
+  }
+}
