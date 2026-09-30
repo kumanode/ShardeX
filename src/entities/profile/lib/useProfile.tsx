@@ -576,10 +576,9 @@ export const useProfile = create<ProfileStore>((set, get) => ({
   },
 
   bulkStop: async () => {
-    for (const id of get().selected) {
-      try { await processKill(id); } catch {}
-    }
+    const ids = [...get().selected];
     get().clearSelected();
+    await Promise.allSettled(ids.map((id) => processKill(id)));
   },
 
   bulkDelete: async () => {
@@ -592,10 +591,10 @@ export const useProfile = create<ProfileStore>((set, get) => ({
         : t("useProfile.deleteProfilesMessageMany", { n: ids.length }),
       danger: true,
     })) !== true) return;
-    for (const id of ids) {
-      try { await profileDelete(id); } catch (e) { toast.err(String(e)); }
-    }
     get().clearSelected();
+    await Promise.allSettled(ids.map(async (id) => {
+      try { await profileDelete(id); } catch (e) { toast.err(String(e)); }
+    }));
     get().reload();
     storeBus.emit("profiles");
     toast.ok(t("useProfile.movedToTrash", { n: ids.length }));
