@@ -55,12 +55,10 @@ export function ProfileRow({ profile, proxy, onMenu }: {
   const menu = (): ContextItem[] => [
     { label: isRunning ? t("profileRow.menuStop") : t("profileRow.menuLaunch"), onClick: () => startStop(p) },
     ...(isRunning && profileCreds.length > 0
-      ? [
-          {
-            label: `⚡ Autofill (${profileCreds[0].email})`,
-            onClick: () => autofill(p.id, profileCreds[0].id),
-          },
-        ]
+      ? profileCreds.slice(0, 4).map((c) => ({
+          label: `⚡ Autofill (${c.email} • ${c.provider.toUpperCase()})`,
+          onClick: () => autofill(p.id, c.id),
+        }))
       : []),
     { label: t("profileRow.menuEdit"), onClick: () => expand(p.id) },
     { label: t("profileRow.menuClone"), onClick: () => cloneProfile(p.id) },

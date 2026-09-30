@@ -360,6 +360,40 @@ pub fn add(cred: &Credential) -> Result<()> {
     Ok(())
 }
 
+/// Inserts multiple credentials in a single atomic database transaction.
+pub fn add_batch(creds: &[Credential]) -> Result<usize> {
+    if creds.is_empty() {
+        return Ok(0);
+    }
+    let k = key()?;
+    let mut conn = open()?;
+    let tx = conn.transaction()?;
+    let mut count = 0;
+    for cred in creds {
+        let enc = encrypt(&k, cred.password.as_bytes())?;
+        let created = if cred.created_at > 0 { cred.created_at } else { now() };
+        tx.execute(
+            "INSERT INTO credentials
+                (id, profile_id, provider, email, password_enc, notes, created_at, last_used, keep_alive_minutes)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![
+                cred.id,
+                cred.profile_id,
+                cred.provider,
+                cred.email,
+                enc,
+                cred.notes,
+                created,
+                cred.last_used,
+                cred.keep_alive_minutes,
+            ],
+        )?;
+        count += 1;
+    }
+    tx.commit()?;
+    Ok(count)
+}
+
 pub fn update(cred: &Credential) -> Result<()> {
     let k = key()?;
     let conn = open()?;
@@ -459,6 +493,24 @@ pub fn touch(id: &str) -> Result<()> {
     conn.execute(
         "UPDATE credentials SET last_used = ?2 WHERE id = ?1",
         params![id, now()],
+    )?;
+    Ok(())
+}
+
+pub fn set_keep_alive(profile_id: &str, provider: &str, minutes: u32) -> Result<()> {
+    let conn = open()?;
+    conn.execute(
+        "UPDATE credentials SET keep_alive_minutes = ?3 WHERE profile_id = ?1 AND provider = ?2",
+        params![profile_id, provider, minutes],
+    )?;
+    Ok(())
+}
+
+pub fn set_keep_alive_for_profile(profile_id: &str, minutes: u32) -> Result<()> {
+    let conn = open()?;
+    conn.execute(
+        "UPDATE credentials SET keep_alive_minutes = ?2 WHERE profile_id = ?1",
+        params![profile_id, minutes],
     )?;
     Ok(())
 }

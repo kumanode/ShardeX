@@ -438,7 +438,7 @@ export function SyncPanel({ group }: { group: string }) {
           <button
             type="button"
             disabled={busy || members.length === 0}
-            onClick={() => handleOpenWallet("metamask")}
+            onClick={() => handleOpenWallet("wallet")}
             title={t("syncPanel.openWallet")}
             className="flex-1 flex items-center justify-center gap-1 rounded-[7px] py-0.8 px-1.5 text-[9.5px] font-medium text-[var(--color-ink,#0a0a0a)] bg-[var(--color-surface-alt,#fafafa)] border border-[var(--color-hairline,#e5e5e5)] hover:border-zinc-400 dark:hover:border-zinc-500 shadow-2xs disabled:opacity-40 transition-all cursor-pointer disabled:cursor-not-allowed"
           >

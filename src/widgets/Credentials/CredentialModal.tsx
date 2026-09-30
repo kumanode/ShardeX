@@ -29,6 +29,7 @@ export function CredentialModal({
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (!open) return;
     if (initial) {
       setProfileId(initial.profile_id);
       setProvider(initial.provider);
@@ -37,14 +38,21 @@ export function CredentialModal({
       setNotes(initial.notes || "");
       setKeepAliveMinutes(initial.keep_alive_minutes ?? 0);
     } else {
-      setProfileId(profiles[0]?.id ?? "");
+      setProfileId((curr) => curr || profiles[0]?.id || "");
       setProvider("gmail");
       setEmail("");
       setPassword("");
       setNotes("");
       setKeepAliveMinutes(0);
     }
-  }, [initial, profiles]);
+  }, [open, initial]);
+
+  // Sync profileId if profiles load after modal is open
+  useEffect(() => {
+    if (!profileId && profiles.length > 0) {
+      setProfileId(profiles[0].id);
+    }
+  }, [profiles, profileId]);
 
   const isEdit = !!initial;
 
@@ -52,7 +60,7 @@ export function CredentialModal({
     if (!profileId) return;
     setBusy(true);
     const cred: Credential = {
-      id: initial?.id || crypto.randomUUID().slice(0, 8),
+      id: initial?.id || crypto.randomUUID(),
       profile_id: profileId,
       provider,
       email: email.trim(),

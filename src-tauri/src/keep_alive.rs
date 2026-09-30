@@ -40,8 +40,13 @@ impl KeepAlive {
             let period = tokio::time::Duration::from_secs(minutes as u64 * 60);
             loop {
                 tokio::time::sleep(period).await;
-                match crate::cdp::navigate_page(&profile, &url).await {
-                    Ok(()) => eprintln!("[keep-alive] refreshed {profile} via {url}"),
+                // Non-disruptive background ping: open a temporary background tab, let session refresh, and close it.
+                match crate::cdp::create_tab(&profile, Some(&url)).await {
+                    Ok(target_id) => {
+                        tokio::time::sleep(tokio::time::Duration::from_secs(6)).await;
+                        let _ = crate::cdp::close_target(&profile, &target_id).await;
+                        eprintln!("[keep-alive] refreshed {profile} via background tab {url}");
+                    }
                     Err(e) => eprintln!("[keep-alive] {profile} skipped: {e}"),
                 }
             }
