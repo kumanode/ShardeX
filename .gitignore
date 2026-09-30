@@ -5,3 +5,8 @@ dist/
 ui-kit/dist/
 ui-kit/node_modules/
 /src-tauri/target
+
+# Local planning and internal design docs
+docs/superpowers/
+DESIGN.md
+design.md
