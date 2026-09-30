@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { cn } from "@proxyshard/shardx-ui-kit";
 import { useContextMenu } from "../../shared/hooks/useContextMenu";
 import { useT } from "../../shared/i18n";
@@ -33,6 +33,14 @@ export function FolderTabs() {
   const deleteFolder = useProfile((s) => s.deleteFolder);
   const folders = useFolders();
   const ctx = useContextMenu();
+
+  const folderCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of profiles) {
+      if (p.folder) counts[p.folder] = (counts[p.folder] ?? 0) + 1;
+    }
+    return counts;
+  }, [profiles]);
 
   // Native non-passive wheel handler turns vertical scroll into horizontal tab scroll.
   const folderTabsRef = useRef<HTMLDivElement>(null);
@@ -111,7 +119,7 @@ export function FolderTabs() {
         >
           {f}
           <span className={badge(folder === f)}>
-            {profiles.filter((p) => p.folder === f).length}
+            {folderCounts[f] ?? 0}
           </span>
         </button>
       ))}

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, memo } from "react";
 import { Checkbox, cn } from "@proxyshard/shardx-ui-kit";
 import Badge from "../../shared/ui/Badge";
 import { PinIconApp, KeyIcon } from "../../shared/icons";
@@ -12,7 +12,7 @@ import type { ProxyEntry } from "../../entities/proxy";
 import { ProfileInlineEditor, ProfileRowActions } from "../../features/manage-profiles";
 import { LiveProfileUptime } from "./LiveProfileUptime";
 
-export function ProfileRow({ profile, proxy, onMenu }: {
+export const ProfileRow = memo(function ProfileRow({ profile, proxy, onMenu }: {
   profile: ProfileMeta;
   proxy: ProxyEntry | null;
   onMenu: (e: React.MouseEvent, items: ContextItem[]) => void;
@@ -229,4 +229,4 @@ export function ProfileRow({ profile, proxy, onMenu }: {
       {isExpanded && <ProfileInlineEditor />}
     </div>
   );
-}
+});

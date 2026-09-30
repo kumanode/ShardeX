@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, memo } from "react";
 import { Checkbox } from "@proxyshard/shardx-ui-kit";
 import Badge from "../../shared/ui/Badge";
 import type { ContextItem } from "../../shared/types";
@@ -11,7 +11,7 @@ import { ProxyRowActions, RenameProxyCell } from "../../features/manage-proxies"
 
 import { ProxyTypeBadge, ProxyCountryCell, ProxyTestResult } from "../../entities/proxy";
 
-export function ProxyRow({ proxy, profileCount, onMenu }: {
+export const ProxyRow = memo(function ProxyRow({ proxy, profileCount, onMenu }: {
   proxy: ProxyEntry;
   profileCount: number;
   onMenu: (e: React.MouseEvent, items: ContextItem[]) => void;
@@ -85,4 +85,4 @@ export function ProxyRow({ proxy, profileCount, onMenu }: {
       </div>
     </div>
   );
-}
+});
