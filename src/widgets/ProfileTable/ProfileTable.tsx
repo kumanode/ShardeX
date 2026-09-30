@@ -25,7 +25,6 @@ export function ProfileTable() {
   const expanded = useProfile((s) => s.expanded);
   const folder = useProfile((s) => s.folder);
   const search = useProfile((s) => s.search);
-  const running = useProfile((s) => s.running);
   const status = useProfile((s) => s.status);
 
   const visible = useVisibleProfiles();
@@ -42,15 +41,6 @@ export function ProfileTable() {
     () => visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [visible, page],
   );
-
-  // Re-render every second so the uptime label ticks without re-fetching the
-  // process list (which polls every 2s in the store).
-  const [, setUptimeTick] = useState(0);
-  useEffect(() => {
-    if (Object.keys(running).length === 0) return;
-    const h = setInterval(() => setUptimeTick((t) => t + 1), 1000);
-    return () => clearInterval(h);
-  }, [running]);
 
   // Scroll the expanded editor into view after the expand animation.
   useEffect(() => {

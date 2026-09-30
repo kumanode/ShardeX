@@ -4,12 +4,13 @@ import Badge from "../../shared/ui/Badge";
 import { PinIconApp, KeyIcon } from "../../shared/icons";
 import type { ContextItem } from "../../shared/types";
 import { CountryFlag } from "../../shared/ui/CountryFlag";
-import { fmtTs, fmtUptime } from "../../shared/lib/utils";
+import { fmtTs } from "../../shared/lib/utils";
 import { useT } from "../../shared/i18n";
 import { useProfile, type ProfileMeta } from "../../entities/profile";
 import { useCredentials } from "../../entities/credentials";
 import type { ProxyEntry } from "../../entities/proxy";
 import { ProfileInlineEditor, ProfileRowActions } from "../../features/manage-profiles";
+import { LiveProfileUptime } from "./LiveProfileUptime";
 
 export function ProfileRow({ profile, proxy, onMenu }: {
   profile: ProfileMeta;
@@ -213,13 +214,11 @@ export function ProfileRow({ profile, proxy, onMenu }: {
           {p.notes || <span className="text-zinc-400 dark:text-zinc-500">-</span>}
         </div>
         <div className="cell-time">
-          <span className={cn("text-paragraph-xs tabular-nums font-mono font-medium", isRunning ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-200")}>
-            {(() => {
-              const live = isRunning && runningSince ? Date.now() - runningSince : 0;
-              const total = p.total_runtime_ms + live;
-              return total > 0 ? fmtUptime(total) : "-";
-            })()}
-          </span>
+          <LiveProfileUptime
+            isRunning={isRunning}
+            runningSince={runningSince}
+            totalRuntimeMs={p.total_runtime_ms}
+          />
         </div>
         <div className="cell-lastrun"><span className="text-paragraph-xs tabular-nums font-mono text-zinc-600 dark:text-zinc-300">{p.last_launched_at ? fmtTs(p.last_launched_at) : t("profileRow.neverLaunched")}</span></div>
         <ProfileRowActions
