@@ -267,7 +267,12 @@ export const useProfile = create<ProfileStore>((set, get) => ({
           next[r.profile_id] = prev[r.profile_id] ?? (now - r.uptime_ms);
         }
         const justExited = Object.keys(prev).some((id) => !(id in next));
-        set({ running: next });
+        const prevKeys = Object.keys(prev);
+        const nextKeys = Object.keys(next);
+        const hasSameKeys =
+          prevKeys.length === nextKeys.length &&
+          prevKeys.every((id) => id in next && prev[id] === next[id]);
+        if (!hasSameKeys) set({ running: next });
         if (justExited) get().reload();
       } catch {}
     };
