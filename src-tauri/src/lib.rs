@@ -2033,8 +2033,16 @@ async fn sync_unlock_wallets(group: String, password: String) -> Result<usize, S
     for id in members {
         let pwd = password.clone();
         set.spawn(async move {
-            let filled = fill_field_kind(&id, "password", &pwd).await.unwrap_or(false);
+            let mut filled = false;
+            for _ in 0..12 {
+                if fill_field_kind(&id, "password", &pwd).await.unwrap_or(false) {
+                    filled = true;
+                    break;
+                }
+                tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+            }
             if filled {
+                tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
                 let _ = click_field_kind(&id, "submit").await;
                 let _ = cdp::browser_call(&id, "Motion.pressKey", serde_json::json!({ "key": "Enter" })).await;
                 true
@@ -2687,6 +2695,14 @@ async fn credentials_add(cred: credentials::Credential) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn credentials_add_batch(creds: Vec<credentials::Credential>) -> Result<usize, String> {
+    if !credentials::is_unlocked() {
+        return Err("credential store is locked".into());
+    }
+    credentials::add_batch(&creds).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn credentials_update(cred: credentials::Credential) -> Result<(), String> {
     if !credentials::is_unlocked() {
         return Err("credential store is locked".into());
@@ -2720,6 +2736,7 @@ async fn keep_alive_start(
     provider: String,
     minutes: u32,
 ) -> Result<(), String> {
+    let _ = credentials::set_keep_alive(&profile_id, &provider, minutes);
     let url = credentials::provider_by_id(&provider)
         .map(|p| p.keep_alive_url)
         .ok_or_else(|| format!("unknown provider '{provider}'"))?;
@@ -2731,6 +2748,7 @@ async fn keep_alive_start(
 #[tauri::command]
 async fn keep_alive_stop(profile_id: String) -> Result<(), String> {
     keep_alive().stop(&profile_id);
+    let _ = credentials::set_keep_alive_for_profile(&profile_id, 0);
     Ok(())
 }
 
@@ -2758,44 +2776,76 @@ async fn credentials_autofill(profile_id: String, credential_id: String) -> Resu
         .await
         .map_err(|e| format!("Browser could not be controlled. Launch the profile first. ({e})"))?;
 
-    // Fill email first; a multi-step provider (Google, X) then advances to its
-    // own password page, so the password field is looked up again after.
+    // Smart Tab Sync: If the browser has an open tab matching this provider's domains,
+    // activate that specific tab so DOM evaluation and Motion pointer events hit the same page.
+    if let Some(prov) = credentials::provider_by_id(&cred.provider) {
+        if !prov.domains.is_empty() {
+            let _ = cdp::activate_provider_target(&profile_id, &prov.domains).await;
+        }
+
+        // If the current tab is blank or new tab, and the provider has a known URL, navigate automatically
+        if let Ok(current_url) = cdp::get_page_url(&profile_id).await {
+            let is_blank = current_url.is_empty()
+                || current_url == "about:blank"
+                || current_url == "chrome://newtab"
+                || current_url.starts_with("chrome://new-tab-page");
+            if is_blank && !prov.keep_alive_url.is_empty() {
+                let _ = cdp::navigate_page(&profile_id, &prov.keep_alive_url).await;
+                tokio::time::sleep(tokio::time::Duration::from_millis(2500)).await;
+            }
+        }
+    }
+
+    // Fill email / username first.
     let email_filled = fill_field_kind(&profile_id, "email", &cred.email).await?;
     if !email_filled {
         let alt = fill_field_kind(&profile_id, "text", &cred.email).await?;
         if !alt {
             return Err(
-                "No email field was detected on this page. Make sure the provider's login \
+                "No email/username field was detected on this page. Make sure the provider's login \
                  page is open."
                     .into(),
             );
         }
     }
 
-    // Advance if the form is multi-step: try a Next/Continue button, else Enter.
-    let advanced = click_field_kind(&profile_id, "submit").await?;
-    if !advanced {
-        let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
-            .await;
-    }
+    // Smart Form Detection: Check if the password field is ALREADY visible on this page.
+    // If it's a single-step form (Discord, GitHub, Reddit, standard login), fill password
+    // immediately before submitting. Do not press submit prematurely!
+    let password_already_visible = locate_field(&profile_id, "password").await?.is_some();
 
-    // Look for the password field for up to ~8s (page transition).
-    let mut password_ok = false;
-    for _ in 0..16 {
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-        if fill_field_kind(&profile_id, "password", &cred.password).await? {
-            password_ok = true;
-            break;
+    if password_already_visible {
+        // Single-step form: Fill password directly
+        if !fill_field_kind(&profile_id, "password", &cred.password).await? {
+            return Err("Failed to fill password field.".into());
+        }
+    } else {
+        // Multi-step form (Google, X): Advance to password step via button or Enter
+        let advanced = click_field_kind(&profile_id, "submit").await?;
+        if !advanced {
+            let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
+                .await;
+        }
+
+        // Look for the password field for up to ~8s (page transition).
+        let mut password_ok = false;
+        for _ in 0..16 {
+            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+            if fill_field_kind(&profile_id, "password", &cred.password).await? {
+                password_ok = true;
+                break;
+            }
+        }
+        if !password_ok {
+            return Err(
+                "The password field did not appear. The provider may have changed its login flow, \
+                 or the page has not finished loading."
+                    .into(),
+            );
         }
     }
-    if !password_ok {
-        return Err(
-            "The password field did not appear. The provider may have changed its login flow, \
-             or the page has not finished loading."
-                .into(),
-        );
-    }
 
+    // Final submit
     let _ = click_field_kind(&profile_id, "submit").await;
     let _ = cdp::browser_call(&profile_id, "Motion.pressKey", serde_json::json!({ "key": "Enter" }))
         .await;
@@ -2866,13 +2916,40 @@ async fn locate_field(profile_id: &str, kind: &str) -> Result<Option<(f64, f64, 
                 var el = els[i];
                 if (!visible(el)) continue;
                 var type = (el.getAttribute('type') || '').toLowerCase();
-                var name = ((el.getAttribute('name') || '') + ' ' + (el.getAttribute('autocomplete') || '') + ' ' + (el.id || '')).toLowerCase();
+                var name = ((el.getAttribute('name') || '') + ' ' + (el.getAttribute('autocomplete') || '') + ' ' + (el.id || '') + ' ' + (el.getAttribute('aria-label') || '')).toLowerCase();
                 var isSubmit = el.tagName === 'BUTTON' || type === 'submit';
                 var text = (el.innerText || '').toLowerCase();
-                if (kind === 'email' && type === 'email') {{ pick = el; break; }}
-                if (kind === 'password' && type === 'password') {{ pick = el; break; }}
-                if (kind === 'text' && (type === 'text' || type === '') && name.indexOf('email') !== -1) {{ pick = el; break; }}
-                if (kind === 'submit' && isSubmit && (text.indexOf('next') !== -1 || text.indexOf('log') !== -1 || text.indexOf('sign') !== -1 || text.indexOf('continue') !== -1 || text.indexOf('unlock') !== -1 || text.indexOf('buka') !== -1)) {{ pick = el; break; }}
+                if (kind === 'email') {{
+                    if (type === 'email' || type === 'tel') {{ pick = el; break; }}
+                    if ((type === 'text' || type === '') && (
+                        name.indexOf('email') !== -1 ||
+                        name.indexOf('user') !== -1 ||
+                        name.indexOf('login') !== -1 ||
+                        name.indexOf('identifier') !== -1 ||
+                        name.indexOf('account') !== -1 ||
+                        name.indexOf('phone') !== -1 ||
+                        name.indexOf('text') !== -1
+                    )) {{ pick = el; break; }}
+                }}
+                if (kind === 'password' && (type === 'password' || name.indexOf('pass') !== -1)) {{ pick = el; break; }}
+                if (kind === 'text' && (type === 'text' || type === '') && (
+                    name.indexOf('email') !== -1 ||
+                    name.indexOf('user') !== -1 ||
+                    name.indexOf('login') !== -1 ||
+                    name.indexOf('identifier') !== -1 ||
+                    name.indexOf('account') !== -1 ||
+                    name.indexOf('phone') !== -1 ||
+                    name.indexOf('text') !== -1
+                )) {{ pick = el; break; }}
+                if (kind === 'submit' && isSubmit && (
+                    text.indexOf('next') !== -1 ||
+                    text.indexOf('log') !== -1 ||
+                    text.indexOf('sign') !== -1 ||
+                    text.indexOf('continue') !== -1 ||
+                    text.indexOf('unlock') !== -1 ||
+                    text.indexOf('masuk') !== -1 ||
+                    text.indexOf('buka') !== -1
+                )) {{ pick = el; break; }}
             }}
             if (!pick) return null;
             var r = pick.getBoundingClientRect();
@@ -2955,6 +3032,7 @@ pub fn run() {
             credentials_list,
             credentials_list_all,
             credentials_add,
+            credentials_add_batch,
             credentials_update,
             credentials_delete,
             credentials_providers,

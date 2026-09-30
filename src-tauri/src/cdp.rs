@@ -578,6 +578,59 @@ pub async fn close_active_tab(profile_id: &str) -> Result<()> {
     Ok(())
 }
 
+/// Finds an open page target whose URL matches any of `domains`. If found, activates it
+/// via `Target.activateTarget` and re-attaches `page_session` to that specific target so
+/// subsequent page evaluations and browser-level pointer events target the exact same tab.
+/// Returns true if a matching target was activated.
+pub async fn activate_provider_target(profile_id: &str, domains: &[String]) -> Result<bool> {
+    if domains.is_empty() {
+        return Ok(false);
+    }
+    ensure_attached(profile_id).await?;
+    let s = get(profile_id).ok_or_else(|| anyhow!("not attached"))?;
+    let targets = list_page_targets(profile_id).await?;
+    for t in targets {
+        let url = t.get("url").and_then(|v| v.as_str()).unwrap_or("");
+        let tid = t.get("targetId").and_then(|v| v.as_str());
+        if domains.iter().any(|d| url.contains(d.as_str())) {
+            if let Some(target_id) = tid {
+                let _ = s.call("Target.activateTarget", json!({ "targetId": target_id }), None).await;
+                let attached = s.call(
+                    "Target.attachToTarget",
+                    json!({ "targetId": target_id, "flatten": true }),
+                    None,
+                ).await?;
+                if let Some(sid) = attached.get("sessionId").and_then(|x| x.as_str()) {
+                    if let Ok(mut g) = s.page_session.lock() {
+                        *g = Some(sid.to_string());
+                    }
+                    let _ = s.call("Page.enable", json!({}), Some(sid)).await;
+                    return Ok(true);
+                }
+            }
+        }
+    }
+    Ok(false)
+}
+
+/// Returns the current URL of the attached page target.
+pub async fn get_page_url(profile_id: &str) -> Result<String> {
+    ensure_attached(profile_id).await?;
+    let res = page_call(
+        profile_id,
+        "Runtime.evaluate",
+        json!({ "expression": "window.location.href", "returnByValue": true }),
+    )
+    .await?;
+    let url = res
+        .get("result")
+        .and_then(|r| r.get("value"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    Ok(url)
+}
+
 pub async fn start_screencast(profile_id: &str, max_width: u32, max_height: u32) -> Result<()> {
     page_call(
         profile_id,

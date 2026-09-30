@@ -53,10 +53,14 @@ export const credentialsList = (profileId: string) =>
   invoke<Credential[]>("credentials_list", { profileId });
 export const credentialsListAll = () => invoke<Credential[]>("credentials_list_all");
 export const credentialsAdd = (cred: Credential) => invoke<void>("credentials_add", { cred });
+export const credentialsAddBatch = (creds: Credential[]) =>
+  invoke<number>("credentials_add_batch", { creds });
 export const credentialsUpdate = (cred: Credential) =>
   invoke<void>("credentials_update", { cred });
 export const credentialsDelete = (id: string) => invoke<void>("credentials_delete", { id });
 export const credentialsProviders = () => invoke<ProviderTemplate[]>("credentials_providers");
+export const credentialsDetectProvider = (url: string) =>
+  invoke<string | null>("credentials_detect_provider", { url });
 export const credentialsAutofill = (profileId: string, credentialId: string) =>
   invoke<void>("credentials_autofill", { profileId, credentialId });
 

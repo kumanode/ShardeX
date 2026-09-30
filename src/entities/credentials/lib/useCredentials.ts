@@ -8,6 +8,7 @@ import {
   credentialsReset,
   credentialsListAll,
   credentialsAdd,
+  credentialsAddBatch,
   credentialsUpdate,
   credentialsDelete,
   credentialsProviders,
@@ -58,6 +59,7 @@ export type CredentialsStore = {
   reset: () => Promise<ActionResult>;
   loadAll: () => Promise<void>;
   add: (cred: Credential) => Promise<boolean>;
+  addBatch: (creds: Credential[]) => Promise<number>;
   update: (cred: Credential) => Promise<boolean>;
   remove: (id: string, email: string) => Promise<boolean>;
   autofill: (profileId: string, credentialId: string) => Promise<boolean>;
@@ -240,6 +242,22 @@ export const useCredentials = create<CredentialsStore>((set, get) => ({
     } catch (e) {
       toast.err(String(e));
       return false;
+    }
+  },
+
+  addBatch: async (creds: Credential[]) => {
+    if (creds.length === 0) return 0;
+    set({ loading: true });
+    try {
+      const count = await credentialsAddBatch(creds);
+      toast.ok(`Imported ${count} accounts into vault.`);
+      await get().loadAll();
+      set({ loading: false });
+      return count;
+    } catch (e) {
+      set({ loading: false });
+      toast.err(String(e));
+      return 0;
     }
   },
 

@@ -61,7 +61,7 @@ export function VaultGateModal({ onDone }: Props) {
       if (ok) {
         onDone?.();
       } else {
-        setError(t("credentials.errWrong"));
+        setError(t("credentials.errSetupFailed"));
       }
     } else {
       if (!password) return;

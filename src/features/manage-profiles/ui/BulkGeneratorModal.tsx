@@ -55,7 +55,7 @@ export function BulkGeneratorModal({
           proxy_id: assignedProxy,
           folder: folder.trim(),
           gpu_preset_id: fp.id,
-          created_at: `@${Math.floor(Date.now() / 1000)}`,
+          created_at: new Date().toISOString(),
         };
         base.name = name;
 
