@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { create } from "zustand";
 import en from "./locales/en.json";
 import zh from "./locales/zh.json";
@@ -63,7 +64,10 @@ export function translate(
 /** Inside a component. Re-renders when the language changes. */
 export function useT() {
   const lang = useLang((s) => s.lang);
-  return (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars);
+  return useCallback(
+    (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars),
+    [lang],
+  );
 }
 
 /** Outside React — stores, helpers, toasts. */

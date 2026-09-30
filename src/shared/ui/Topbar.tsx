@@ -1,8 +1,34 @@
+import { useEffect, useState, memo } from "react";
 import { SearchIcon } from "../icons";
 import { useT } from "../i18n";
 
-export function Topbar({ crumbs, search, onSearch }: { crumbs: string[]; search: string; onSearch: (v: string) => void }) {
+export const Topbar = memo(function Topbar({
+  crumbs,
+  search,
+  onSearch,
+}: {
+  crumbs: string[];
+  search: string;
+  onSearch: (v: string) => void;
+}) {
   const t = useT();
+  const [localVal, setLocalVal] = useState(search);
+
+  // Sync external search changes (e.g. cleared externally)
+  useEffect(() => {
+    setLocalVal(search);
+  }, [search]);
+
+  // Debounce the call to onSearch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localVal !== search) {
+        onSearch(localVal);
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [localVal, search, onSearch]);
+
   return (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-1.5 text-[13px] font-normal text-[var(--color-mid-gray,#737373)]">
@@ -27,11 +53,11 @@ export function Topbar({ crumbs, search, onSearch }: { crumbs: string[]; search:
             type="text"
             className="h-9 w-full rounded-[18px] border border-[var(--color-hairline,#e5e5e5)] bg-[var(--color-paper,#ffffff)] pl-9 pr-3 text-[13px] text-[var(--color-ink,#0a0a0a)] placeholder-[var(--color-mid-gray,#737373)] shadow-[var(--shadow-subtle)] outline-none transition-all focus:border-[var(--color-ink,#0a0a0a)] focus:ring-2 focus:ring-[var(--color-ink,#0a0a0a)]/10 dark:focus:border-white dark:focus:ring-white/10"
             placeholder={t("topbar.searchPlaceholder")}
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
+            value={localVal}
+            onChange={(e) => setLocalVal(e.target.value)}
           />
         </div>
       </div>
     </div>
   );
-}
+});
